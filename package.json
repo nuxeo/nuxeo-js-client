@@ -22,15 +22,15 @@
   "keywords": [
     "nuxeo"
   ],
+  "dependencies": {
+    "extend": "~1.2.1",
+    "restler": "~3.1.0"
+  },
   "devDependencies": {
     "gulp-util": "~2.2.14",
     "gulp": "~3.5.2",
     "gulp-mocha": "~0.4.1",
     "chai": "~1.9.0",
-    "extend": "~1.2.1",
-    "restler": "~3.1.0",
-    "temp": "~0.6.0",
-    "jquery": "~2.1.0",
-    "xmlhttprequest": "~1.6.0"
+    "temp": "~0.6.0"
   }
 }
