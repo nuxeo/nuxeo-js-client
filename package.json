@@ -15,7 +15,6 @@
     "type": "git",
     "url": "git://github.com/nuxeo/nuxeo-js-client.git"
   },
-  "license": "LGPL",
   "engines": {
     "node": ">= 0.10.0"
   },
@@ -32,5 +31,9 @@
     "gulp-mocha": "~0.4.1",
     "chai": "~1.9.0",
     "temp": "~0.6.0"
-  }
+  },
+  "licenses" : [{
+    "type": "Apache",
+    "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+  }]
 }
