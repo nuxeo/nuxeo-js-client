@@ -1,28 +1,28 @@
-var chai = require("chai");
+var chai = require('chai');
 var expect = chai.expect;
 var temp = require('temp');
 var fs = require('fs');
-var rest = require("restler");
-var nuxeo = require("../lib/node/nuxeo");
+var rest = require('restler');
+var nuxeo = require('../lib/node/nuxeo');
 
 var client = new nuxeo.Client();
-client.schemas(["dublincore", "file"]);
+client.schemas(['dublincore', 'file']);
 
-describe("Nuxeo automation", function() {
+describe('Nuxeo automation', function() {
 
-  describe("CRUD", function() {
+  describe('CRUD', function() {
     var container,
       children = [],
       createOp;
 
     it('create container document', function(done) {
-      client.operation("Document.Create")
+      client.operation('Document.Create')
         .params({
-          type: "Folder",
-          name: "TestDocs",
-          properties: "dc:title=Test Docs \ndc:description=Simple container"
+          type: 'Folder',
+          name: 'TestDocs',
+          properties: 'dc:title=Test Docs \ndc:description=Simple container'
         })
-        .input("doc:/")
+        .input('doc:/')
         .execute(function(error, data) {
           if (error) {
             throw error;
@@ -35,8 +35,8 @@ describe("Nuxeo automation", function() {
     });
 
     it('create first child', function(done) {
-      createOp = client.operation("Document.Create").param("type", "File").param("name", "TestFile1")
-        .input("doc:" + container.path);
+      createOp = client.operation('Document.Create').param('type', 'File').param('name', 'TestFile1')
+        .input('doc:' + container.path);
       createOp.execute(function(error, data) {
         if (error) {
           throw error;
@@ -50,7 +50,7 @@ describe("Nuxeo automation", function() {
     });
 
     it('create second child', function(done) {
-      createOp.param("name", "TestFile2")
+      createOp.param('name', 'TestFile2')
         .execute(function(error, data) {
           if (error) {
             throw error;
@@ -64,26 +64,26 @@ describe("Nuxeo automation", function() {
     });
 
     it('update second child', function(done) {
-      client.operation("Document.Update")
+      client.operation('Document.Update')
         .params({
-          save : "true",
-          properties : "dc:description=Simple File\ndc:subjects=subject1,subject2"
+          save : 'true',
+          properties : 'dc:description=Simple File\ndc:subjects=subject1,subject2'
         })
-        .input("doc:" + children[1].path)
+        .input('doc:' + children[1].path)
         .execute(function(error, data) {
           if (error) {
             throw error;
           }
 
-          expect(data.properties["dc:description"]).to.equal("Simple File");
-          expect(data.properties["dc:subjects"]).to.have.length(2);
+          expect(data.properties['dc:description']).to.equal('Simple File');
+          expect(data.properties['dc:subjects']).to.have.length(2);
           done();
         });
     });
 
     it('get children', function(done) {
-      client.operation("Document.GetChildren")
-        .input("doc:" + container.path)
+      client.operation('Document.GetChildren')
+        .input('doc:' + container.path)
         .execute(function(error, data) {
           if (error) {
             throw error;
@@ -95,16 +95,16 @@ describe("Nuxeo automation", function() {
     })
   });
 
-  describe("query and pagination", function() {
+  describe('query and pagination', function() {
     var container;
 
     function createChild(index, done) {
-      client.operation("Document.Create")
+      client.operation('Document.Create')
         .params({
-          type : "File",
-          name : "TestFile" + index
+          type : 'File',
+          name : 'TestFile' + index
         })
-        .input("doc:" + container.path)
+        .input('doc:' + container.path)
         .execute(function(error, data) {
           if (error) {
             throw error;
@@ -116,14 +116,14 @@ describe("Nuxeo automation", function() {
         });
     }
 
-    it("create container document", function(done) {
-      client.operation("Document.Create")
+    it('create container document', function(done) {
+      client.operation('Document.Create')
         .params({
-          type : "Folder",
-          name : "TestPagination",
-          properties : "dc:title=Test Pagination \ndc:description=Simple container"
+          type : 'Folder',
+          name : 'TestPagination',
+          properties : 'dc:title=Test Pagination \ndc:description=Simple container'
         })
-        .input("doc:/")
+        .input('doc:/')
         .execute(function(error, data) {
           if (error) {
             throw error;
@@ -135,22 +135,22 @@ describe("Nuxeo automation", function() {
         });
     });
 
-    it("create first child", function(done) {
+    it('create first child', function(done) {
       createChild(1, done);
     });
 
-    it("create second child", function(done) {
+    it('create second child', function(done) {
       createChild(2, done);
     });
 
-    it("create third child", function(done) {
+    it('create third child', function(done) {
       createChild(3, done);
     });
 
-    it("query first page", function(done) {
-      client.operation("Document.PageProvider")
+    it('query first page', function(done) {
+      client.operation('Document.PageProvider')
         .params({
-          query: "select * from Document where ecm:parentId = ?",
+          query: 'select * from Document where ecm:parentId = ?',
           pageSize: 2,
           page: 0,
           queryParams: container.uid
@@ -168,10 +168,10 @@ describe("Nuxeo automation", function() {
         });
     });
 
-    it("query second page", function(done) {
-      client.operation("Document.PageProvider")
+    it('query second page', function(done) {
+      client.operation('Document.PageProvider')
         .params({
-          query: "select * from Document where ecm:parentId = ?",
+          query: 'select * from Document where ecm:parentId = ?',
           pageSize: 2,
           page: 1,
           queryParams: container.uid
@@ -190,17 +190,17 @@ describe("Nuxeo automation", function() {
     })
   });
 
-  describe("blob upload", function() {
+  describe('blob upload', function() {
     var container;
 
-    it("create container document", function(done) {
-      client.operation("Document.Create")
+    it('create container document', function(done) {
+      client.operation('Document.Create')
         .params({
-          type : "Folder",
-          name : "TestBlobs",
-          properties : "dc:title=Test Blobs \ndc:description=Simple container"
+          type : 'Folder',
+          name : 'TestBlobs',
+          properties : 'dc:title=Test Blobs \ndc:description=Simple container'
         })
-        .input("doc:/")
+        .input('doc:/')
         .execute(function(error, data) {
           if (error) {
             throw error;
@@ -212,49 +212,49 @@ describe("Nuxeo automation", function() {
         });
     });
 
-    it("create text blob", function(done) {
+    it('create text blob', function(done) {
       var tmpFile = temp.openSync({
-        suffix: ".txt"
+        suffix: '.txt'
       });
       var stats = fs.statSync(tmpFile.path);
       var file = rest.file(tmpFile.path, null, stats.size, null, null);
 
-      client.operation("FileManager.Import")
+      client.operation('FileManager.Import')
         .context({ currentDocument: container.path })
         .input(file)
         .execute({
-          filename: "testMe.text"
+          filename: 'testMe.text'
         }, function (error, data) {
           if (error) {
             fs.unlinkSync(tmpFile.path);
             throw error;
           }
 
-          expect(data.type).to.equal("Note");
+          expect(data.type).to.equal('Note');
           expect(data.title).to.equal(file.filename);
           fs.unlinkSync(tmpFile.path);
           done();
         });
     });
 
-    it("create binary blob", function(done) {
+    it('create binary blob', function(done) {
       var tmpFile = temp.openSync({
-        suffix: ".bin"
+        suffix: '.bin'
       });
       var stats = fs.statSync(tmpFile.path);
       var file = rest.file(tmpFile.path, null, stats.size, null, null);
 
-      client.operation("FileManager.Import")
+      client.operation('FileManager.Import')
         .context({ currentDocument: container.path })
         .input(file)
         .execute( {
-          filename: "testBin.bin"
+          filename: 'testBin.bin'
         }, function(error, data) {
           if(error) {
             throw error;
           }
 
-          expect(data.type).to.equal("File");
+          expect(data.type).to.equal('File');
           expect(data.title).to.equal(file.filename);
           done()
         });

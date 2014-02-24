@@ -1,15 +1,15 @@
-var chai = require("chai");
+var chai = require('chai');
 var expect = chai.expect;
-var nuxeo = require("../lib/node/nuxeo");
+var nuxeo = require('../lib/node/nuxeo');
 
 var client = new nuxeo.Client();
-client.schemas(["dublincore", "file"]);
+client.schemas(['dublincore', 'file']);
 
-describe("REST tests", function() {
+describe('REST tests', function() {
   var doc;
 
-  it("fetch domain document", function(done) {
-    client.document("/default-domain")
+  it('fetch domain document', function(done) {
+    client.document('/default-domain')
       .fetch(function(error, data) {
         if (error) {
           throw error;
@@ -21,12 +21,12 @@ describe("REST tests", function() {
       });
   });
 
-  it("update fetched document", function(done) {
+  it('update fetched document', function(done) {
     var newSourceValue = 'automaton-test-' + (new Date()).getTime();
-    doc.set({ "dc:source": newSourceValue });
+    doc.set({ 'dc:source': newSourceValue });
 
-    expect(doc.dirtyProperties["dc:source"]).to.exist;
-    expect(doc.dirtyProperties["dc:source"]).to.equal(newSourceValue);
+    expect(doc.dirtyProperties['dc:source']).to.exist;
+    expect(doc.dirtyProperties['dc:source']).to.equal(newSourceValue);
 
     doc.save(function(error, data, response) {
       expect(data.uid).to.exist;
