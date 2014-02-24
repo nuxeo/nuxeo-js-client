@@ -21,7 +21,7 @@ The `nuxeo` client can be also installed through bower:
 
 ### Node.js Applications
 
-After installing [Node.js](http://nodejs.org/#download), use `npm` to install the `nuxeo` module:
+After installing [Node.js](http://nodejs.org/#download), use `npm` to install the `nuxeo` package:
 
     $ npm install nuxeo
 
