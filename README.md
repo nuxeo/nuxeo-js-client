@@ -25,7 +25,7 @@ After installing [Node.js](http://nodejs.org/#download), use `npm` to install th
 
     $ npm install nuxeo
 
-Then, use the following `require` statement to have access to the same API than the browser module
+Then, use the following `require` statement to have access to the same API than the browser client
 
     var nuxeo = require('nuxeo');
 
@@ -127,7 +127,7 @@ Add schemas to the default list of schemas to retrieved when fetching documents 
 
 Most of the methods that actually make an API call can take a callback in the form
 
-    function(error, data, response /* the response from Restler, or jqXHR from jQuery when using browser module */) {
+    function(error, data, response /* the response from Restler, or jqXHR from jQuery when using browser client */) {
       if (error) {
         // something went wrong
         showError(error);
@@ -375,7 +375,7 @@ To run the tests, use the following:
 
     $ gulp test
 
-For now, only the node module is tested through `gulp test`.
+For now, only the node client is tested through `gulp test`.
 
 
 ## About Nuxeo
