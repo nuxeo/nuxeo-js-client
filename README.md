@@ -29,6 +29,10 @@ Then, use the following `require` statement to have access to the same API than 
 
     var nuxeo = require('nuxeo');
 
+You can also install the current development version with:
+
+    $ npm install nuxeo/nuxeo-js-client
+
 
 ## Initialization
 
