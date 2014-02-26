@@ -1,4 +1,4 @@
-# Client library for Nuxeo API
+# Client Library for Nuxeo API
 
 JavaScript client library for the Nuxeo Automation and REST API.
 
@@ -25,7 +25,7 @@ After installing [Node.js](http://nodejs.org/#download), use `npm` to install th
 
     $ npm install nuxeo
 
-Then, use the following `require` statement to have access to the same API than the browser client
+Then, use the following `require` statement to have access to the same API than the browser client:
 
     var nuxeo = require('nuxeo');
 
@@ -39,7 +39,7 @@ You can also install the current development version with:
 
 ### Creating a Client
 
-To be able to make API calls on a Nuxeo, you need to create a `Client` object:
+To be able to make API calls on a Nuxeo server, you need to create a `Client` object:
 
     var client = new nuxeo.Client();
 
@@ -56,7 +56,7 @@ Default values in the browser are:
       timeout: 3000
     }
 
-In Node.js:
+Default values in Node.js are:
 
     {
       baseURL: 'http://localhost:8080/nuxeo/',
@@ -76,7 +76,7 @@ To connect to a different Nuxeo server, you can use the following:
       password: 'Administrator
     })
 
-### Testing the connection
+### Testing the Connection
 
     client.connect(function(error, client) {
       if (error) {
@@ -88,7 +88,7 @@ To connect to a different Nuxeo server, you can use the following:
       console.log('Client is connected: ' + client.connected);
     });
 
-### Client methods
+### Client Methods
 
 The `Client` object stores the values set by the following methods and uses them when creating Operation,
 Request or Document objects.
@@ -97,39 +97,39 @@ If you set the repository name through `client.repositoryName('test')`, when cre
 object through `var operation = client.operation('Document.GetChildren')`, the `operation` object
 will have its `repositoryName` field set to `test`.
 
-The values can be modified by using the same methods on the `Operation`, `Request` and `Document` objects.
+Values can be modified by using the same methods on the `Operation`, `Request` and `Document` objects.
 
 **client.timeout(timeout)**
 
-Set the common timeout in ms to be used for the requests.
+Sets the common timeout in ms to be used for the requests.
 Used also for the `Nuxeo-Transaction-Timeout` header.
 
 **client.header(name, value)**
 
-Set a common header to be used for the requests.
+Sets a common header to be used for the requests.
 
 **client.headers(headers)**
 
-Set common headers to be used for the requests.
+Sets common headers to be used for the requests.
 
 **client.repositoryName(repositoryName)**
 
-Set the default repository name for the requests (`X-NXRepository` header).
+Sets the default repository name for the requests (`X-NXRepository` header).
 
 **client.schema(schema)**
 
-Add a schema to the default list of schemas to retrieved when fetching documents (`X-NXDocumentProperties` header).
+Adds a schema to the default list of schemas to retrieved when fetching documents (`X-NXDocumentProperties` header).
 
 **client.schemas(schemas)**
 
-Add schemas to the default list of schemas to retrieved when fetching documents (`X-NXDocumentProperties` header).
+Adds schemas to the default list of schemas to retrieved when fetching documents (`X-NXDocumentProperties` header).
 
 
 ## Making API Calls!
 
-### Callbacks and error handling
+### Callbacks and Error Handling
 
-Most of the methods that actually make an API call can take a callback in the form
+Most of the methods that actually make an API call can take a callback in the form:
 
     function(error, data, response /* the response from Restler, or jqXHR from jQuery when using browser client */) {
       if (error) {
@@ -180,34 +180,34 @@ Creating a Folder in the Root document:
 
 See [automation.js](test/automation.js) for more samples.
 
-#### Available methods
+#### Available Methods
 
-Assuming you have created an `Operation` object
+Assuming you have created an `Operation` object,
 
     var operation = client.operation('Document.GetChildren');
 
-You can have access to the following methods
+you can have access to the following methods.
 
 **operation.input(object)**
 
-Set the input for this operation. Can be a `document ref`, a `Blob` (in the browser)
+Sets the input for this operation. Can be a `document ref`, a `Blob` (in the browser)
 or a `file` (created with `rest.file()`) in Node.js.
 
 **operation.param(name, value)**
 
-Set one param of this operation.
+Sets one param of this operation.
 
 **operation.params(params)**
 
-Set the params of this operation. The params are merged with the already existing ones.
+Sets the params of this operation. These params are merged with the already existing ones.
 
 **operation.context(context)**
 
-Set the operation context of this operation.
+Sets the operation context of this operation.
 
 **operation.execute(callback)**
 
-Execute this operation.
+Executes this operation.
 
 ### Uploader API
 
@@ -257,48 +257,48 @@ Fetching the whole list of Natures:
         console.log(JSON.stringify(data.entries, null, 2))
       });
 
-#### Available methods
+#### Available Methods
 
-Assuming you have created an `Request` object
+Assuming you have created an `Request` object,
 
     var request = client.request('path/');
 
-You can have access to the following methods
+you can have access to the following methods.
 
 **request.path(path)**
 
-Append the given `path` to the existing `path` of the `request`.
+Appends the given `path` to the existing `path` of the `request`.
 
 **request.query(query)**
 
-Set the query parameters of this request. The query parameters are merged with the already
+Sets the query parameters of this request. These query parameters are merged with the already
 existing ones.
 
 **request.get(options, callback)**
 
-Execute a GET request on the given path, here on the Root document.
+Executes a GET request on the given path, here on the Root document.
 
 **request.post(options, callback)**
 
-Execute a POST request on the given path, here on the Root document.
+Executes a POST request on the given path, here on the Root document.
 The body to be sent should be in `options.data`.
 
 **request.put(options, callback)**
 
-Execute a PUT request on the given path, here on the Root document.
+Executes a PUT request on the given path, here on the Root document.
 The body to be sent should be in `options.data`.
 
 **request.delete(options, callback)**
 
-Execute a DELETE request on the given path, here on the Root document.
+Executes a DELETE request on the given path, here on the Root document.
 
-### Higher level Document API
+### Higher Level Document API
 
 When working with documents, you can also use the `Document` object returned by the `client.document()` method.
 The `Document` object wraps `Request` objects when doing API calls.
 
 If the data returned by any call made with the Document API is a document
-(has the `entity-type` field to be `document`), the data is automatically wrapped in
+(has the `entity-type` field as `document`), the data is automatically wrapped in
 a new `Document` object.
 
 #### Samples
@@ -321,45 +321,45 @@ Fetch and update the Root description
 
 See [document.js](test/document.js) for more samples.
 
-#### Available methods
+#### Available Methods
 
-Assuming you have created a `Document` object on the Root document
+Assuming you have created a `Document` object on the Root document,
 
     var document = client.document('/');
 
-You can have access to the following methods
+you can have access to the following methods.
 
 **document.fetch(callback)**
 
-Fetch (execute a GET request) the referenced document.
+Fetches (executes a GET request on) the referenced document.
 
 **document.create(doc, callback)**
 
-Create the `doc` document (execute a POST request) in the referenced document.
+Creates the `doc` document (executees a POST request) in the referenced document.
 
 **document.update(data, callback)**
 
-Update (execute a PUT request) the referenced document with the given `data`.
+Updates (executes a PUT request on) the referenced document with the given `data`.
 
 **document.delete(callback)**
 
-Delete (execute a DELETE request) the referenced document.
+Deletes (executes a DELETE request on) the referenced document.
 
 **document.set(properties)**
 
-Set properties (locally) on the document. The updated properties are marked as dirty,
+Sets properties (locally) on the document. The updated properties are marked as dirty,
 and can be retrieved through the `document.dirtyProperties` object.
 `properties` must be a JavaScript object: `{ 'dc:title': 'My Title', ... }`.
 This method does not make any API call.
 
 **document.save(callback)**
 
-Update (execute a PUT request) the referenced document with only its dirty properties.
+Updates (executes a PUT request on) the referenced document with only its dirty properties.
 To be called after setting properties with `document.set()`.
 
 **document.children(callback)**
 
-Retrieve the children of the referenced document.
+Retrieves the children of the referenced document.
 
 
 # Development
