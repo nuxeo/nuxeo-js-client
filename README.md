@@ -188,6 +188,10 @@ Assuming you have created an `Operation` object,
 
 you can have access to the following methods.
 
+**operation.overrideMimeType(overrideMimeType)**
+
+Allow to modify the response content-type header. **Only available in the jQuery based client.**
+
 **operation.input(object)**
 
 Sets the input for this operation. Can be a `document ref`, a `Blob` (in the browser)
@@ -264,6 +268,10 @@ Assuming you have created an `Request` object,
     var request = client.request('path/');
 
 you can have access to the following methods.
+
+**request.overrideMimeType(overrideMimeType)**
+
+Allow to modify the response content-type header. **Only available in the jQuery based client.**
 
 **request.path(path)**
 
