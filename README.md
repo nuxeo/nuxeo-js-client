@@ -18,6 +18,18 @@ Just copy the `lib/jquery/nuxeo.js` file in your application and include it in y
 The `nuxeo` client can be also installed through bower:
 
     $ bower install nuxeo
+    
+#### Note about the jQuery version
+
+We require jQuery version 1.8.3 as a minimum version, you can of course use any version >= 1.8.3 through your own `bower.json` file:
+
+    ...
+    "dependencies": {
+      "jquery": "1.11.1",
+      "nuxeo": "0.1.0",
+      ...
+    }
+    ...
 
 ### Node.js Applications
 
