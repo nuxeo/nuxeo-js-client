@@ -1,6 +1,5 @@
 {
   "name": "nuxeo",
-  "version": "0.1.0",
   "main": ["lib/jquery/nuxeo.js"],
   "dependencies": {
     "jquery": ">= 1.8.3"
