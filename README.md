@@ -83,9 +83,9 @@ Default values in Node.js are:
 To connect to a different Nuxeo server, you can use the following:
 
     var client = new nuxeo.Client({
-      baseURL: 'http://demo.nuxeo.com',
+      baseURL: 'http://demo.nuxeo.com/nuxeo',
       username: 'Administrator',
-      password: 'Administrator
+      password: 'Administrator'
     })
 
 ### Testing the Connection
