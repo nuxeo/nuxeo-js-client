@@ -137,7 +137,7 @@ Adds a schema to the default list of schemas to retrieved when fetching document
 Adds schemas to the default list of schemas to retrieved when fetching documents (`X-NXDocumentProperties` header).
 
 
-## Making API Calls!
+## Making API Calls
 
 ### Callbacks and Error Handling
 
@@ -229,7 +229,37 @@ Executes this operation.
 
 #### Samples
 
-See [uploader.js](test/uploader.js) for more samples.
+Upload a blob to an Existing Document
+
+	// In this example:
+	//	* inFile is a File JavaScript object, as filled when using the <input type="file" .../> HTML object
+	//	* No errorcheck, to make the example more readable
+	function attachFile(inDocId, inFile) {
+		var nxClient = new nuxeo.Client({timeout: 10000});
+		// (1) Create the uploader bound to the operation
+		var theUploader = nxClient.operation("Blob.Attach")
+								.params({
+									document: inDocId,
+									save : true,
+									xpath: "file:content"
+								})
+								.uploader();
+
+		// (2) Upload the file
+		theUploader.uploadFile(
+			inFile,
+			function(inErr, inDada) {
+		// (3) Execute the operation
+				theUploader.execute(function(inErr, inData) {
+					// ...
+				});
+			}
+		);
+	}
+
+
+
+#### See [uploader.js](test/uploader.js) for more samples.
 
 ### REST API
 
