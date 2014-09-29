@@ -39,7 +39,9 @@ After installing [Node.js](http://nodejs.org/#download), use `npm` to install th
 
 Then, use the following `require` statement to have access to the same API than the browser client:
 
-    var nuxeo = require('nuxeo');
+```javascript
+var nuxeo = require('nuxeo');
+```
 
 You can also install the current development version with:
 
@@ -53,52 +55,61 @@ You can also install the current development version with:
 
 To be able to make API calls on a Nuxeo server, you need to create a `Client` object:
 
-    var client = new nuxeo.Client();
+```javascript
+var client = new nuxeo.Client();
+```
 
 Default values are not the same in the browser or in Node.js.
 
 Default values in the browser are:
 
-    {
-      baseURL: '/nuxeo',
-      restPath: 'site/api/v1',
-      automationPath: 'site/automation',
-      username: null,
-      password: null,
-      timeout: 3000
-    }
+```javascript
+{
+  baseURL: '/nuxeo',
+  restPath: 'site/api/v1',
+  automationPath: 'site/automation',
+  username: null,
+  password: null,
+  timeout: 3000
+}
+```
 
 Default values in Node.js are:
 
-    {
-      baseURL: 'http://localhost:8080/nuxeo/',
-      restPath: 'site/api/v1/',
-      automationPath: 'site/automation/',
-      username: 'Administrator',
-      password: 'Administrator',
-      timeout: 3000
-    }
-
+```javascript
+{
+  baseURL: 'http://localhost:8080/nuxeo/',
+  restPath: 'site/api/v1/',
+  automationPath: 'site/automation/',
+  username: 'Administrator',
+  password: 'Administrator',
+  timeout: 3000
+}
+```
 
 To connect to a different Nuxeo server, you can use the following:
 
-    var client = new nuxeo.Client({
-      baseURL: 'http://demo.nuxeo.com/nuxeo',
-      username: 'Administrator',
-      password: 'Administrator'
-    })
+```javascript
+var client = new nuxeo.Client({
+  baseURL: 'http://demo.nuxeo.com/nuxeo',
+  username: 'Administrator',
+  password: 'Administrator'
+})
+```
 
 ### Testing the Connection
 
-    client.connect(function(error, client) {
-      if (error) {
-        // cannot connect
-        throw error;
-      }
+```javascript
+client.connect(function(error, client) {
+  if (error) {
+    // cannot connect
+    throw error;
+  }
 
-      // OK, the returned client is connected
-      console.log('Client is connected: ' + client.connected);
-    });
+  // OK, the returned client is connected
+  console.log('Client is connected: ' + client.connected);
+});
+```
 
 ### Client Methods
 
@@ -143,15 +154,17 @@ Adds schemas to the default list of schemas to retrieved when fetching documents
 
 Most of the methods that actually make an API call can take a callback in the form:
 
-    function(error, data, response /* the response from Restler, or jqXHR from jQuery when using browser client */) {
-      if (error) {
-        // something went wrong
-        showError(error);
-      }
+```javascript
+function(error, data, response /* the response from Restler, or jqXHR from jQuery when using browser client */) {
+  if (error) {
+    // something went wrong
+    showError(error);
+  }
 
-      // OK
-      console.log(data);
-    }
+  // OK
+  console.log(data);
+}
+```
 
 ### Automation API
 
@@ -161,34 +174,38 @@ Automation calls are made through the `Operation` object returned by the `client
 
 Retrieving the Root children document:
 
-    client.operation('Document.GetChildren')
-      .input('doc:/')
-      .execute(function(error, children) {
-        if (error) {
-          // something went wrong
-          throw error;
-        }
+```javascript
+client.operation('Document.GetChildren')
+  .input('doc:/')
+  .execute(function(error, children) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
 
-        console.log('Root document has ' + children.entries.length + ' children');
-      });
+    console.log('Root document has ' + children.entries.length + ' children');
+  });
+```
 
 Creating a Folder in the Root document:
 
-    client.operation('Document.Create')
-      .params({
-        type: 'Folder',
-        name: 'My Folder',
-        properties: 'dc:title=My Folder \ndc:description=A Simple Folder'
-      })
-      .input('doc:/')
-      .execute(function(error, folder) {
-        if (error) {
-          // something went wrong
-          throw error;
-        }
+```javascript
+client.operation('Document.Create')
+  .params({
+    type: 'Folder',
+    name: 'My Folder',
+    properties: 'dc:title=My Folder \ndc:description=A Simple Folder'
+  })
+  .input('doc:/')
+  .execute(function(error, folder) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
 
-        console.log('Created ' + folder.title + ' folder')
-      });
+    console.log('Created ' + folder.title + ' folder')
+  });
+```
 
 See [automation.js](test/automation.js) for more samples.
 
@@ -196,7 +213,9 @@ See [automation.js](test/automation.js) for more samples.
 
 Assuming you have created an `Operation` object,
 
-    var operation = client.operation('Document.GetChildren');
+```javascript
+var operation = client.operation('Document.GetChildren');
+```
 
 you can have access to the following methods.
 
@@ -231,31 +250,33 @@ Executes this operation.
 
 Upload a blob to an existing document. In this example, `file` is a File JavaScript object, as filled when using the `<input type="file" .../>` HTML object.
 
-    // Create the uploader bound to the operation
-    var uploader = client.operation("Blob.Attach")
-      .params({ document: existingDocId,
-        save : true,
-        xpath: "file:content"
-      })
-      .uploader();
-    
-    // Upload the file
-    uploader.uploadFile(file, function(error, data) {
-      if (error) {
-        // something went wrong
-        throw error;
-      }
-      
-      // When done, execute the operation
-      uploader.execute(function(error, data) {
-        if (error) {
-          // something went wrong
-          throw error;
-        }
-        
-        // successfully attached blob
-      });
+```javascript
+// Create the uploader bound to the operation
+var uploader = client.operation("Blob.Attach")
+  .params({ document: existingDocId,
+    save : true,
+    xpath: "file:content"
+  })
+  .uploader();
+
+// Upload the file
+uploader.uploadFile(file, function(error, data) {
+  if (error) {
+    // something went wrong
+    throw error;
+  }
+  
+  // When done, execute the operation
+  uploader.execute(function(error, data) {
+    if (error) {
+      // something went wrong
+      throw error;
     }
+    
+    // successfully attached blob
+  });
+}
+```
 
 See [uploader.js](test/uploader.js) for more samples.
 
@@ -267,45 +288,53 @@ REST API calls are made through the `Request` object returned by the `client.req
 
 Fetching the Root document:
 
-    client.request('path/')
-      .get(function(error, root) {
-        if (error) {
-          // something went wrong
-          throw error;
-        }
+```javascript
+client.request('path/')
+  .get(function(error, root) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
 
-        console.log('Fetched ' + root.title + ' document')
-      });
+    console.log('Fetched ' + root.title + ' document')
+  });
+```
 
 Fetching Administrator user:
 
-    client.request('user/Administrator')
-      .get(function(error, user) {
-        if (error) {
-          // something went wrong
-          throw error;
-        }
+```javascript
+client.request('user/Administrator')
+  .get(function(error, user) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
 
-        console.log(user)
-      });
+    console.log(user)
+  });
+```
 
 Fetching the whole list of Natures:
 
-    client.request('directory/nature')
-      .get(function(error, data) {
-        if (error) {
-          // something went wrong
-          throw error;
-        }
+```javascript
+client.request('directory/nature')
+  .get(function(error, data) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
 
-        console.log(JSON.stringify(data.entries, null, 2))
-      });
+    console.log(JSON.stringify(data.entries, null, 2))
+  });
+```
 
 #### Available Methods
 
 Assuming you have created an `Request` object,
 
-    var request = client.request('path/');
+```javascript
+var request = client.request('path/');
+```
 
 you can have access to the following methods.
 
@@ -353,19 +382,21 @@ a new `Document` object.
 
 Fetch and update the Root description
 
-    client.document('/')
-      .fetch(function(error, doc) {
-        if (error) {
-          // something went wrong
-          throw error;
-        }
+```javascript
+client.document('/')
+  .fetch(function(error, doc) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
 
-        doc.set({ 'dc:description': 'An updated description' });
-        doc.save(function(error, doc) {
+    doc.set({ 'dc:description': 'An updated description' });
+    doc.save(function(error, doc) {
 
-          console.log('Successfully updated ' + doc.title + ' with new description: ' + doc.properties['dc:description']);
-        });
-      });
+      console.log('Successfully updated ' + doc.title + ' with new description: ' + doc.properties['dc:description']);
+    });
+  });
+```
 
 See [document.js](test/document.js) for more samples.
 
@@ -373,7 +404,9 @@ See [document.js](test/document.js) for more samples.
 
 Assuming you have created a `Document` object on the Root document,
 
-    var document = client.document('/');
+```javascript
+var document = client.document('/');
+```
 
 you can have access to the following methods.
 
