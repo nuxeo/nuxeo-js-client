@@ -229,37 +229,35 @@ Executes this operation.
 
 #### Samples
 
-Upload a blob to an Existing Document
+Upload a blob to an existing document. In this example, `file` is a File JavaScript object, as filled when using the `<input type="file" .../>` HTML object.
 
-	// In this example:
-	//	* inFile is a File JavaScript object, as filled when using the <input type="file" .../> HTML object
-	//	* No errorcheck, to make the example more readable
-	function attachFile(inDocId, inFile) {
-		var nxClient = new nuxeo.Client({timeout: 10000});
-		// (1) Create the uploader bound to the operation
-		var theUploader = nxClient.operation("Blob.Attach")
-								.params({
-									document: inDocId,
-									save : true,
-									xpath: "file:content"
-								})
-								.uploader();
+    // Create the uploader bound to the operation
+    var uploader = client.operation("Blob.Attach")
+      .params({ document: existingDocId,
+        save : true,
+        xpath: "file:content"
+      })
+      .uploader();
+    
+    // Upload the file
+    uploader.uploadFile(file, function(error, data) {
+      if (error) {
+        // something went wrong
+        throw error;
+      }
+      
+      // When done, execute the operation
+      uploader.execute(function(error, data) {
+        if (error) {
+          // something went wrong
+          throw error;
+        }
+        
+        // successfully attached blob
+      });
+    }
 
-		// (2) Upload the file
-		theUploader.uploadFile(
-			inFile,
-			function(inErr, inDada) {
-		// (3) Execute the operation
-				theUploader.execute(function(inErr, inData) {
-					// ...
-				});
-			}
-		);
-	}
-
-
-
-#### See [uploader.js](test/uploader.js) for more samples.
+See [uploader.js](test/uploader.js) for more samples.
 
 ### REST API
 
