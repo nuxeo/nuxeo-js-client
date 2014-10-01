@@ -380,6 +380,27 @@ a new `Document` object.
 
 #### Samples
 
+Creating a Folder in the Root document:
+
+```javascript
+client.document('/')
+  .create({
+    type: 'Folder',
+    name: 'My Folder',
+    properties: {
+      "dc:title": "My Folder",
+      "dc:description": "A Simple Folder"
+    }
+  }, function(error, folder) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
+    
+    console.log('Created ' + folder.title + ' folder')
+  });
+```
+
 Fetch and update the Root description
 
 ```javascript
