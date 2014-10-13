@@ -260,12 +260,7 @@ var uploader = client.operation("Blob.Attach")
   .uploader();
 
 // Upload the file
-uploader.uploadFile(file, function(error, data) {
-  if (error) {
-    // something went wrong
-    throw error;
-  }
-  
+uploader.uploadFile(file, function(fileIndex, file, timeDiff) {
   // When done, execute the operation
   uploader.execute(function(error, data) {
     if (error) {
