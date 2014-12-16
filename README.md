@@ -1,9 +1,8 @@
 # Client Library for Nuxeo API
 
-JavaScript client library for the Nuxeo Automation and REST API.
+The Nuxeo JavaScript Client is a JavaScript client library for the Nuxeo Automation and REST API. The library can work in a browser, or in Node.js, using the same API.
 
-The library can work in a browser, or in Node.js, using the same API.
-
+This is an on-going project, supported by Nuxeo.
 
 # Getting Started
 
@@ -461,6 +460,13 @@ Retrieves the children of the referenced document.
 
 # Development
 
+## Requirements
+
+* [Node.js](http://nodejs.org/#download)
+* [gulp](http://gulpjs.com/)
+* [Bower](http://bower.io/)
+* [npm](https://www.npmjs.com/)
+
 ## Setup
 
 Install [Node.js](http://nodejs.org/#download) and then use `npm` to install all the required
@@ -478,14 +484,11 @@ To run the tests, use the following:
 
 For now, only the node client is tested through `gulp test`.
 
+## Reporting Issues
+
+You can report issues in the Nuxeo Platform project of our JIRA bug tracker, which includes a Nuxeo JavaScript Client component: https://jira.nuxeo.com/browse/NXP/component/13319
+
 
 ## About Nuxeo
 
-Nuxeo provides a modular, extensible Java-based [open source software platform for enterprise content management] [1] and packaged applications for [document management] [2], [digital asset management] [3] and [case management] [4]. Designed by developers for developers, the Nuxeo platform offers a modern architecture, a powerful plug-in model and extensive packaging capabilities for building content applications.
-
-[1]: http://www.nuxeo.com/en/products/ep
-[2]: http://www.nuxeo.com/en/products/document-management
-[3]: http://www.nuxeo.com/en/products/dam
-[4]: http://www.nuxeo.com/en/products/case-management
-
-More information on: <http://www.nuxeo.com/>
+Nuxeo dramatically improves how content-based applications are built, managed and deployed, making customers more agile, innovative and successful. Nuxeo provides a next generation, enterprise ready platform for building traditional and cutting-edge content oriented applications. Combining a powerful application development environment with SaaS-based tools and a modular architecture, the Nuxeo Platform and Products provide clear business value to some of the most recognizable brands including Verizon, Electronic Arts, Netflix, Sharp, FICO, the U.S. Navy, and Boeing. Nuxeo is headquartered in New York and Paris. More information is available at www.nuxeo.com.
