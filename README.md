@@ -17,7 +17,7 @@ Just copy the `lib/jquery/nuxeo.js` file in your application and include it in y
 The `nuxeo` client can be also installed through bower:
 
     $ bower install nuxeo
-    
+
 #### Note about the jQuery version
 
 We require jQuery version 1.8.3 as a minimum version, you can of course use any version >= 1.8.3 through your own `bower.json` file:
@@ -266,7 +266,7 @@ uploader.uploadFile(file, function(fileIndex, file, timeDiff) {
       // something went wrong
       throw error;
     }
-    
+
     // successfully attached blob
   });
 }
@@ -390,12 +390,12 @@ client.document('/')
       // something went wrong
       throw error;
     }
-    
+
     console.log('Created ' + folder.title + ' folder')
   });
 ```
 
-Fetch and update the Root description
+Fetching and updating the Root description
 
 ```javascript
 client.document('/')
@@ -409,6 +409,44 @@ client.document('/')
     doc.save(function(error, doc) {
 
       console.log('Successfully updated ' + doc.title + ' with new description: ' + doc.properties['dc:description']);
+    });
+  });
+```
+
+Moving a document
+
+client.document('/my-doc')
+  .fetch(function(error, doc) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
+
+    doc.move({
+      target: '/my-new-folder',
+      // optional new name
+      name: 'my-new-name-doc'
+    }, function(error, doc) {
+      console.log('Successfully moved ' + doc.title + ', updated path: ' + doc.path);
+    });
+  });
+```
+
+Copying a document
+
+client.document('/my-doc')
+  .fetch(function(error, doc) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
+
+    doc.copy({
+      target: '/my-new-folder',
+      // optional new name
+      name: 'my-new-name-doc'
+    }, function(error, doc) {
+      console.log('Successfully copied ' + doc.title + 'to : ' + doc.path);
     });
   });
 ```
@@ -440,6 +478,32 @@ Updates (executes a PUT request on) the referenced document with the given `data
 **document.delete(callback)**
 
 Deletes (executes a DELETE request on) the referenced document.
+
+**document.copy(data, callback)**
+
+Copies the referenced document. It internally uses the `Document.Copy` operation.
+
+It accepts through the `data` object the parameters used by the `Document.Copy` operation:
+
+```javascript
+data = {
+  target: targetDocId,
+  name: newName
+}
+```
+
+**document.move(data, callback)**
+
+Moves the referenced document. It internally uses the `Document.Move` operation.
+
+It accepts through the `data` object the parameters used by the `Document.Move` operation:
+
+```javascript
+data = {
+  target: targetDocId,
+  name: newName
+}
+```
 
 **document.set(properties)**
 
