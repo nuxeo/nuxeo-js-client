@@ -415,6 +415,7 @@ client.document('/')
 
 Moving a document
 
+```javascript
 client.document('/my-doc')
   .fetch(function(error, doc) {
     if (error) {
@@ -434,6 +435,7 @@ client.document('/my-doc')
 
 Copying a document
 
+```javascript
 client.document('/my-doc')
   .fetch(function(error, doc) {
     if (error) {
