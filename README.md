@@ -453,6 +453,33 @@ client.document('/my-doc')
   });
 ```
 
+Setting a complex property. Assuming the document has a complex field `schema:author` which contains 3 fields `firstName`, `lastName` and `email`.
+
+```javascript
+client.document('/my-doc')
+  .fetch(function(error, doc) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
+
+    var firstName = ...,
+      lastName = ...,
+      email = ...;
+    doc.set({
+      'schema:author': {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email
+      }
+    });
+    doc.save(function(error, doc) {
+      console.log('Successfully updated ' + doc.title);
+      console.log(JSON.stringify(doc.properties['schema:author'], null, 2));
+    });
+  });
+```
+
 See [document.js](test/document.js) for more samples.
 
 #### Available Methods
