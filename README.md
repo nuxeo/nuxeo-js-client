@@ -1,9 +1,8 @@
 # Client Library for Nuxeo API
 
-JavaScript client library for the Nuxeo Automation and REST API.
+The Nuxeo JavaScript Client is a JavaScript client library for the Nuxeo Automation and REST API. The library can work in a browser, or in Node.js, using the same API.
 
-The library can work in a browser, or in Node.js, using the same API.
-
+This is an on-going project, supported by Nuxeo.
 
 # Getting Started
 
@@ -18,7 +17,7 @@ Just copy the `lib/jquery/nuxeo.js` file in your application and include it in y
 The `nuxeo` client can be also installed through bower:
 
     $ bower install nuxeo
-    
+
 #### Note about the jQuery version
 
 We require jQuery version 1.8.3 as a minimum version, you can of course use any version >= 1.8.3 through your own `bower.json` file:
@@ -267,7 +266,7 @@ uploader.uploadFile(file, function(fileIndex, file, timeDiff) {
       // something went wrong
       throw error;
     }
-    
+
     // successfully attached blob
   });
 }
@@ -391,12 +390,12 @@ client.document('/')
       // something went wrong
       throw error;
     }
-    
+
     console.log('Created ' + folder.title + ' folder')
   });
 ```
 
-Fetch and update the Root description
+Fetching and updating the Root description
 
 ```javascript
 client.document('/')
@@ -410,6 +409,73 @@ client.document('/')
     doc.save(function(error, doc) {
 
       console.log('Successfully updated ' + doc.title + ' with new description: ' + doc.properties['dc:description']);
+    });
+  });
+```
+
+Moving a document
+
+```javascript
+client.document('/my-doc')
+  .fetch(function(error, doc) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
+
+    doc.move({
+      target: '/my-new-folder',
+      // optional new name
+      name: 'my-new-name-doc'
+    }, function(error, doc) {
+      console.log('Successfully moved ' + doc.title + ', updated path: ' + doc.path);
+    });
+  });
+```
+
+Copying a document
+
+```javascript
+client.document('/my-doc')
+  .fetch(function(error, doc) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
+
+    doc.copy({
+      target: '/my-new-folder',
+      // optional new name
+      name: 'my-new-name-doc'
+    }, function(error, doc) {
+      console.log('Successfully copied ' + doc.title + 'to : ' + doc.path);
+    });
+  });
+```
+
+Setting a complex property. Assuming the document has a complex field `schema:author` which contains 3 fields `firstName`, `lastName` and `email`.
+
+```javascript
+client.document('/my-doc')
+  .fetch(function(error, doc) {
+    if (error) {
+      // something went wrong
+      throw error;
+    }
+
+    var firstName = ...,
+      lastName = ...,
+      email = ...;
+    doc.set({
+      'schema:author': {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email
+      }
+    });
+    doc.save(function(error, doc) {
+      console.log('Successfully updated ' + doc.title);
+      console.log(JSON.stringify(doc.properties['schema:author'], null, 2));
     });
   });
 ```
@@ -442,6 +508,32 @@ Updates (executes a PUT request on) the referenced document with the given `data
 
 Deletes (executes a DELETE request on) the referenced document.
 
+**document.copy(data, callback)**
+
+Copies the referenced document. It internally uses the `Document.Copy` operation.
+
+It accepts through the `data` object the parameters used by the `Document.Copy` operation:
+
+```javascript
+data = {
+  target: targetDocId,
+  name: newName
+}
+```
+
+**document.move(data, callback)**
+
+Moves the referenced document. It internally uses the `Document.Move` operation.
+
+It accepts through the `data` object the parameters used by the `Document.Move` operation:
+
+```javascript
+data = {
+  target: targetDocId,
+  name: newName
+}
+```
+
 **document.set(properties)**
 
 Sets properties (locally) on the document. The updated properties are marked as dirty,
@@ -461,6 +553,13 @@ Retrieves the children of the referenced document.
 
 # Development
 
+## Requirements
+
+* [Node.js](http://nodejs.org/#download)
+* [gulp](http://gulpjs.com/)
+* [Bower](http://bower.io/)
+* [npm](https://www.npmjs.com/)
+
 ## Setup
 
 Install [Node.js](http://nodejs.org/#download) and then use `npm` to install all the required
@@ -478,14 +577,13 @@ To run the tests, use the following:
 
 For now, only the node client is tested through `gulp test`.
 
+## Reporting Issues
+
+You can follow the developments in the Nuxeo Platform project of our JIRA bug tracker, which includes a Nuxeo JavaScript Client component: [https://jira.nuxeo.com/browse/NXP/component/13319](https://jira.nuxeo.com/browse/NXP/component/13319).
+
+You can report issues on [answers.nuxeo.com](http://answers.nuxeo.com).
+
 
 ## About Nuxeo
 
-Nuxeo provides a modular, extensible Java-based [open source software platform for enterprise content management] [1] and packaged applications for [document management] [2], [digital asset management] [3] and [case management] [4]. Designed by developers for developers, the Nuxeo platform offers a modern architecture, a powerful plug-in model and extensive packaging capabilities for building content applications.
-
-[1]: http://www.nuxeo.com/en/products/ep
-[2]: http://www.nuxeo.com/en/products/document-management
-[3]: http://www.nuxeo.com/en/products/dam
-[4]: http://www.nuxeo.com/en/products/case-management
-
-More information on: <http://www.nuxeo.com/>
+Nuxeo dramatically improves how content-based applications are built, managed and deployed, making customers more agile, innovative and successful. Nuxeo provides a next generation, enterprise ready platform for building traditional and cutting-edge content oriented applications. Combining a powerful application development environment with SaaS-based tools and a modular architecture, the Nuxeo Platform and Products provide clear business value to some of the most recognizable brands including Verizon, Electronic Arts, Netflix, Sharp, FICO, the U.S. Navy, and Boeing. Nuxeo is headquartered in New York and Paris. More information is available at [www.nuxeo.com](http://www.nuxeo.com/).
