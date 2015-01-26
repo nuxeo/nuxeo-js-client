@@ -80,8 +80,11 @@ Default values in Node.js are:
   baseURL: 'http://localhost:8080/nuxeo/',
   restPath: 'site/api/v1/',
   automationPath: 'site/automation/',
-  username: 'Administrator',
-  password: 'Administrator',
+  authentication: {
+    method: 'basic',
+    username: 'Administrator',
+    password: 'Administrator'
+  },
   timeout: 3000
 }
 ```
@@ -91,8 +94,11 @@ To connect to a different Nuxeo server, you can use the following:
 ```javascript
 var client = new nuxeo.Client({
   baseURL: 'http://demo.nuxeo.com/nuxeo',
-  username: 'Administrator',
-  password: 'Administrator'
+  authentication: {
+    method: 'basic',
+    username: 'Administrator',
+    password: 'Administrator'
+  }
 })
 ```
 
