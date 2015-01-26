@@ -22,8 +22,11 @@
     "nuxeo"
   ],
   "dependencies": {
+    "biguint-format": "~1.0.0",
     "extend": "~1.2.1",
-    "restler": "~3.1.0"
+    "lodash": "~2.4.1",
+    "restler": "~3.1.0",
+    "utf8": "2.0.0"
   },
   "devDependencies": {
     "gulp-util": "~2.2.14",
