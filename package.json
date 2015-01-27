@@ -23,6 +23,7 @@
   ],
   "dependencies": {
     "extend": "~1.2.1",
+    "random-js": "^1.0.4",
     "restler": "~3.1.0"
   },
   "devDependencies": {
@@ -32,8 +33,10 @@
     "chai": "~1.9.0",
     "temp": "~0.6.0"
   },
-  "licenses" : [{
-    "type": "Apache",
-    "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-  }]
+  "licenses": [
+    {
+      "type": "Apache",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  ]
 }
