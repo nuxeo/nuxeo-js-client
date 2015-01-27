@@ -100,6 +100,75 @@ var client = new nuxeo.Client({
 });
 ```
 
+### Authentication
+
+The authentication method is configured when creating a `Client` object. You cannot change the authentication method on an existing `Client`.
+
+If you need to use another authentication method, create a new `Client`.
+
+#### jQuery
+
+The jQuery client only offers the `basic` authentication for now.
+
+To connect with `myuser`:
+
+```javascript
+var client = new nuxeo.Client({
+  authentication: {
+    // optional as it's the default value
+    method: 'basic',
+    username: 'myuser',
+    password: 'mysecretpassword'
+  }
+})
+```
+
+#### Node.js
+
+The Node.js client supports the following authentication method: `basic`, `proxy` and `portal`.
+
+##### basic
+
+```javascript
+var client = new nuxeo.Client({
+  authentication: {
+    // optional as it's the default value
+    method: 'basic',
+    username: 'myuser',
+    password: 'mysecretpassword'
+  }
+})
+```
+
+##### proxy
+
+To configure a `proxy` authentication:
+
+```javascript
+var client = new nuxeo.Client({
+  authentication: {
+    method: 'proxy',
+    username: 'myuser',
+    // optional header name, default is 'Auth-User'
+    proxyAuthHeaderName: 'Custom-Header-Name'
+  }
+})
+```
+
+##### portal
+
+To configure a `portal` authentication:
+
+```javascript
+var client = new nuxeo.Client({
+  authentication: {
+    method: 'portal',
+    username: 'myuser',
+    secret: 'nuxeo5secret'
+  }
+})
+```
+
 ### Testing the Connection
 
 ```javascript
@@ -149,75 +218,6 @@ Adds a schema to the default list of schemas to retrieved when fetching document
 **client.schemas(schemas)**
 
 Adds schemas to the default list of schemas to retrieved when fetching documents (`X-NXDocumentProperties` header).
-
-## Authentication
-
-The authentication method is configured when creating a `Client` object. You cannot change the authentication method on an existing `Client`.
-
-If you need to use another authentication method, create a new `Client`.
-
-### jQuery
-
-The jQuery client only offers the `basic` authentication for now.
-
-To connect with `myuser`:
-
-```javascript
-var client = new nuxeo.Client({
-  authentication: {
-    // optional as it's the default value
-    method: 'basic',
-    username: 'myuser',
-    password: 'mysecretpassword'
-  }
-})
-```
-
-### Node.js
-
-The Node.js client supports the following authentication method: `basic`, `proxy` and `portal`.
-
-#### basic
-
-```javascript
-var client = new nuxeo.Client({
-  authentication: {
-    // optional as it's the default value
-    method: 'basic',
-    username: 'myuser',
-    password: 'mysecretpassword'
-  }
-})
-```
-
-#### proxy
-
-To configure a `proxy` authentication:
-
-```javascript
-var client = new nuxeo.Client({
-  authentication: {
-    method: 'proxy',
-    username: 'myuser',
-    // optional header name, default is 'Auth-User'
-    proxyAuthHeaderName: 'Custom-Header-Name'
-  }
-})
-```
-
-#### portal
-
-To configure a `portal` authentication:
-
-```javascript
-var client = new nuxeo.Client({
-  authentication: {
-    method: 'portal',
-    username: 'myuser',
-    secret: 'nuxeo5secret'
-  }
-})
-```
 
 ## Making API Calls
 
