@@ -67,8 +67,11 @@ Default values in the browser are:
   baseURL: '/nuxeo',
   restPath: 'site/api/v1',
   automationPath: 'site/automation',
-  username: null,
-  password: null,
+  authentication: {
+    method: 'basic',
+    username: null,
+    password: null
+  },
   timeout: 3000
 }
 ```
@@ -149,17 +152,9 @@ Adds schemas to the default list of schemas to retrieved when fetching documents
 
 ## Authentication
 
-The authentication configuration is done through the `authentication` object when initializing a `Client`.
+The authentication method is configured when creating a `Client` object. You cannot change the authentication method on an existing `Client`.
 
-The default `authentication` object is:
-
-```javascript
-authentication: {
-  method: 'basic',
-  username: 'Administrator',
-  password: 'Administrator'
-}
-```
+If you need to use another authentication method, create a new `Client`.
 
 ### jQuery
 
