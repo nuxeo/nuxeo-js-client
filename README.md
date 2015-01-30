@@ -677,7 +677,7 @@ For now, only the node client is tested through `gulp test`.
 
 ## Reporting Issues
 
-You can follow the developments in the Nuxeo Platform project of our JIRA bug tracker, which includes a Nuxeo JavaScript Client component: [https://jira.nuxeo.com/browse/NXP/component/13319](https://jira.nuxeo.com/browse/NXP/component/13319).
+You can follow the developments in the Nuxeo JS Client project of our JIRA bug tracker: [https://jira.nuxeo.com/browse/NXJS](https://jira.nuxeo.com/browse/NXJS).
 
 You can report issues on [answers.nuxeo.com](http://answers.nuxeo.com).
 
