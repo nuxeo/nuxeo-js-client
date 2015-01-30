@@ -622,6 +622,31 @@ To be called after setting properties with `document.set()`.
 
 Retrieves the children of the referenced document.
 
+# Migrating from 0.3.x
+
+Authentication on both clients has changed. All information needed for authentication are now in an `authentication` object.
+
+Before:
+
+```javascript
+var client = nuxeo.client({
+  username: 'Administrator',
+  password: 'Administrator'
+})
+```
+
+After:
+
+```javascript
+var client = nuxeo.client({
+  authentication: {
+    // optional method, default to 'basic'
+    method: 'basic',
+    username: 'Administrator',
+    password: 'Administrator'
+  }
+})
+```
 
 # Development
 
