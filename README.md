@@ -67,7 +67,7 @@ Default values in the browser are:
   baseURL: '/nuxeo',
   restPath: 'site/api/v1',
   automationPath: 'site/automation',
-  authentication: {
+  auth: {
     method: 'basic',
     username: null,
     password: null
@@ -83,7 +83,7 @@ Default values in Node.js are:
   baseURL: 'http://localhost:8080/nuxeo/',
   restPath: 'site/api/v1/',
   automationPath: 'site/automation/',
-  authentication: {
+  auth: {
     method: 'basic',
     username: 'Administrator',
     password: 'Administrator'
@@ -114,8 +114,8 @@ To connect with `myuser`:
 
 ```javascript
 var client = new nuxeo.Client({
-  authentication: {
-    // optional as it's the default value
+  auth: {
+    // optional, default to 'basic'
     method: 'basic',
     username: 'myuser',
     password: 'mysecretpassword'
@@ -131,8 +131,8 @@ The Node.js client supports the following authentication method: `basic`, `proxy
 
 ```javascript
 var client = new nuxeo.Client({
-  authentication: {
-    // optional as it's the default value
+  auth: {
+    // optional, default to 'basic'
     method: 'basic',
     username: 'myuser',
     password: 'mysecretpassword'
@@ -146,7 +146,7 @@ To configure a `proxy` authentication:
 
 ```javascript
 var client = new nuxeo.Client({
-  authentication: {
+  auth: {
     method: 'proxy',
     username: 'myuser',
     // optional header name, default is 'Auth-User'
@@ -161,7 +161,7 @@ To configure a `portal` authentication:
 
 ```javascript
 var client = new nuxeo.Client({
-  authentication: {
+  auth: {
     method: 'portal',
     username: 'myuser',
     secret: 'nuxeo5secret'
@@ -621,6 +621,32 @@ To be called after setting properties with `document.set()`.
 **document.children(callback)**
 
 Retrieves the children of the referenced document.
+
+# Migrating from 0.3.x
+
+Authentication on both clients has changed. All information needed for authentication are now in an `auth` object when creating a `Client`.
+
+Before:
+
+```javascript
+var client = nuxeo.client({
+  username: 'Administrator',
+  password: 'Administrator'
+})
+```
+
+After:
+
+```javascript
+var client = nuxeo.client({
+  auth: {
+    // optional method, default to 'basic'
+    method: 'basic',
+    username: 'Administrator',
+    password: 'Administrator'
+  }
+})
+```
 
 
 # Development
