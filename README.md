@@ -72,7 +72,7 @@ Default values in the browser are:
     username: null,
     password: null
   },
-  timeout: 3000
+  timeout: 30000
 }
 ```
 
@@ -88,7 +88,7 @@ Default values in Node.js are:
     username: 'Administrator',
     password: 'Administrator'
   },
-  timeout: 3000
+  timeout: 30000
 }
 ```
 
