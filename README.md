@@ -82,7 +82,7 @@ Default values in Node.js are:
 {
   baseURL: 'http://localhost:8080/nuxeo/',
   restPath: 'site/api/v1/',
-  automationPath: 'site/automation/',
+  automationPath: 'site/api/v1/automation/',
   auth: {
     method: 'basic',
     username: 'Administrator',
