@@ -5,7 +5,7 @@ var fs = require('fs');
 var rest = require('restler');
 var nuxeo = require('../lib/node/nuxeo');
 
-var client = new nuxeo.Client();
+var client = new nuxeo.Client({});
 client.schemas(['dublincore', 'file']);
 
 describe('Nuxeo automation', function() {
@@ -67,7 +67,7 @@ describe('Nuxeo automation', function() {
       client.operation('Document.Update')
         .params({
           save : 'true',
-          properties : 'dc:description=Simple File\ndc:subjects=subject1,subject2'
+          properties : 'dc:description=Simple File\ndc:subjects=art,sciences'
         })
         .input('doc:' + children[1].path)
         .execute(function(error, data) {
