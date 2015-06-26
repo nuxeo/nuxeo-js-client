@@ -2,7 +2,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var temp = require('temp');
 var fs = require('fs');
-var rest = require('restler');
+var path = require('path');
 var nuxeo = require('../lib/node/nuxeo');
 
 var client = new nuxeo.Client({});
@@ -92,7 +92,7 @@ describe('Nuxeo automation', function() {
           expect(data.entries).to.have.length(2);
           done();
         });
-    })
+    });
   });
 
   describe('query and pagination', function() {
@@ -187,7 +187,7 @@ describe('Nuxeo automation', function() {
           expect(data.totalSize).to.equal(3);
           done();
         });
-    })
+    });
   });
 
   describe('blob upload', function() {
@@ -217,21 +217,19 @@ describe('Nuxeo automation', function() {
         suffix: '.txt'
       });
       var stats = fs.statSync(tmpFile.path);
-      var file = rest.file(tmpFile.path, null, stats.size, null, null);
+      var file = fs.createReadStream(tmpFile.path);
 
       client.operation('FileManager.Import')
         .context({ currentDocument: container.path })
         .input(file)
-        .execute({
-          filename: 'testMe.text'
-        }, function (error, data) {
+        .execute(function (error, data) {
           if (error) {
             fs.unlinkSync(tmpFile.path);
             throw error;
           }
 
           expect(data.type).to.equal('Note');
-          expect(data.title).to.equal(file.filename);
+          expect(data.title).to.equal(path.basename(tmpFile.path));
           fs.unlinkSync(tmpFile.path);
           done();
         });
@@ -242,21 +240,19 @@ describe('Nuxeo automation', function() {
         suffix: '.bin'
       });
       var stats = fs.statSync(tmpFile.path);
-      var file = rest.file(tmpFile.path, null, stats.size, null, null);
+      var file = fs.createReadStream(tmpFile.path);
 
       client.operation('FileManager.Import')
         .context({ currentDocument: container.path })
         .input(file)
-        .execute( {
-          filename: 'testBin.bin'
-        }, function(error, data) {
+        .execute(function(error, data) {
           if(error) {
             throw error;
           }
 
           expect(data.type).to.equal('File');
-          expect(data.title).to.equal(file.filename);
-          done()
+          expect(data.title).to.equal(path.basename(tmpFile.path));
+          done();
         });
     });
   });

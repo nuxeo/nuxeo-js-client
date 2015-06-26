@@ -346,6 +346,45 @@ uploader.uploadFile(file, function(fileIndex, file, timeDiff) {
 
 See [uploader.js](test/uploader.js) for more samples.
 
+#### Available Methods
+
+Assuming you have created an `Uploader` object bound to an operation,
+
+```javascript
+var uploader = client.operation("Blob.Attach")
+  .params({ document: existingDocId,
+    save : true,
+    xpath: "file:content"
+  })
+  .uploader();
+```
+
+you can have access to the following methods.
+
+**uploader.uploadFile(file, [options], callback)**
+
+Upload a file to the Nuxeo server. The file to upload must be a JavaScript File object in the browser, or a Node.js Stream such as:
+
+```javascript
+var file = fs.createReadStream(filePath);
+...
+uploader.uploadFile(file, calback);
+```
+
+`options` object is an optional parameter allowing to set (and override) the file name, size and content type:
+
+```javascript
+var options = {
+  name: 'another name',
+  mimeType: 'application/pdf'
+  size: 500
+}
+```
+
+**uploader.execute(callback)**
+
+Execute the linked operation of the `Uploader` object.
+
 ### REST API
 
 REST API calls are made through the `Request` object returned by the `client.request()` method.
@@ -648,6 +687,33 @@ var client = nuxeo.client({
 })
 ```
 
+# Migrating from 0.5.x
+
+Only on the Node.js client, the `restler` library has been replaced with `request`. It's transparent except when uploading a file.
+
+Before:
+
+```javascript
+var filePath = '/path/to/file';
+var stats = fs.statSync(filePath);
+var file = rest.file(filePath, null, stats.size, null, null);
+
+op.uploader().uploadFile(file, function(fileIndex, fileObj) {
+  // file uploaded
+});
+```
+
+After:
+
+```javascript
+var filePath = '/path/to/file';
+var stats = fs.statSync(filePath);
+var file = fs.createReadStream(filePath);
+
+op.uploader().uploadFile(file, {fileSize: stats.size }, function(fileIndex, fileObj) {
+  // file uploaded
+});
+```
 
 # Development
 

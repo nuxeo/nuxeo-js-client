@@ -102,7 +102,7 @@ describe('Document', function() {
       client.document('/folder')
         .delete(function(err, data, response) {
           expect(response.statusCode).to.equal(204);
-          expect(data).to.be.null;
+          expect(data).to.be.undefined;
 
           done();
         });

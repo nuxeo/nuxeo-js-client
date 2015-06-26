@@ -2,7 +2,6 @@ var chai = require('chai');
 var expect = chai.expect;
 var temp = require('temp');
 var fs = require('fs');
-var rest = require('restler');
 var nuxeo = require('../lib/node/nuxeo');
 
 var client = new nuxeo.Client();
@@ -26,8 +25,8 @@ describe('batch upload', function() {
         }
 
         container = data;
-        expect(container.uid).to.exist
-        done()
+        expect(container.uid).to.exist;
+        done();
       });
   });
 
@@ -35,14 +34,14 @@ describe('batch upload', function() {
     var tmpFile = temp.openSync({
       suffix: '.txt'
     });
-    var stats = fs.statSync(tmpFile.path);
-    var file = rest.file(tmpFile.path, null, stats.size, null, null);
+    var file = fs.createReadStream(tmpFile.path);
 
     importOp = client.operation('FileManager.Import')
       .context({ currentDocument: container.path });
-    importOp.uploader().uploadFile(file, function(fileIndex, fileObj) {
-      expect(fileIndex).to.equal(0);
-      done()
+    importOp.uploader().uploadFile(file,
+      function(fileIndex, fileObj) {
+        expect(fileIndex).to.equal(0);
+        done();
     });
   });
 
@@ -51,11 +50,11 @@ describe('batch upload', function() {
       suffix: '.bin'
     });
     var stats = fs.statSync(tmpFile.path);
-    var file = rest.file(tmpFile.path, null, stats.size, null, null);
+    var file = fs.createReadStream(tmpFile.path);
 
-    importOp.uploader().uploadFile(file, function(fileIndex, fileObj) {
+    importOp.uploader().uploadFile(file, {fileSize: stats.size }, function(fileIndex, fileObj) {
       expect(fileIndex).to.equal(1);
-      done()
+      done();
     });
   });
 
@@ -66,7 +65,7 @@ describe('batch upload', function() {
       }
 
       expect(data.entries).to.have.length(2);
-      done()
+      done();
     });
   });
 
@@ -79,7 +78,7 @@ describe('batch upload', function() {
         }
 
         expect(data.entries).to.have.length(2);
-        done()
-      })
-  })
+        done();
+      });
+  });
 });

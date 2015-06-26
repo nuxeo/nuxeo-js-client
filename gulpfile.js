@@ -8,5 +8,5 @@ gulp.task('default', ['test'], function() {
 
 gulp.task('test', function() {
   gulp.src('test/*.js')
-    .pipe(mocha({ reporter: 'nyan' }));
+    .pipe(mocha());
 });
