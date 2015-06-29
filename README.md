@@ -707,10 +707,9 @@ After:
 
 ```javascript
 var filePath = '/path/to/file';
-var stats = fs.statSync(filePath);
 var file = fs.createReadStream(filePath);
 
-op.uploader().uploadFile(file, {fileSize: stats.size }, function(fileIndex, fileObj) {
+op.uploader().uploadFile(file, function(fileIndex, fileObj) {
   // file uploaded
 });
 ```
