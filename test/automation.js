@@ -255,6 +255,28 @@ describe('Nuxeo automation', function() {
           done();
         });
     });
+
+    it('create binary blob with UTF-8 filename', function(done) {
+      var tmpFile = temp.openSync({
+        prefix: 'κόσμε',
+        suffix: '.bin'
+      });
+      var stats = fs.statSync(tmpFile.path);
+      var file = fs.createReadStream(tmpFile.path);
+
+      client.operation('FileManager.Import')
+        .context({ currentDocument: container.path })
+        .input(file)
+        .execute(function(error, data) {
+          if(error) {
+            throw error;
+          }
+
+          expect(data.type).to.equal('File');
+          expect(data.title).to.equal(path.basename(tmpFile.path));
+          done();
+        });
+    });
   });
 
 });

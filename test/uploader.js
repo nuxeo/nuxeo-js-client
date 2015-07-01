@@ -81,4 +81,31 @@ describe('batch upload', function() {
         done();
       });
   });
+
+  it('upload binary blob with UTF-8 filename', function(done) {
+    var tmpFile = temp.openSync({
+      prefix: 'κόσμε',
+      suffix: '.bin'
+    });
+    var stats = fs.statSync(tmpFile.path);
+    var file = fs.createReadStream(tmpFile.path);
+
+    var op = client.operation('FileManager.Import')
+      .context({ currentDocument: container.path });
+    var uploader = op.uploader()
+    uploader.uploadFile(file, function(fileIndex, fileObj) {
+      expect(fileIndex).to.equal(0);
+
+      uploader.execute(function(error, data) {
+        if (error) {
+          throw error;
+        }
+
+        expect(data.entries).to.have.length(1);
+        expect(data.entries[0].title).to.contain('κόσμε');
+        done();
+      });
+    });
+
+  });
 });
