@@ -92,7 +92,7 @@ describe('batch upload', function() {
 
     var op = client.operation('FileManager.Import')
       .context({ currentDocument: container.path });
-    var uploader = op.uploader()
+    var uploader = op.uploader();
     uploader.uploadFile(file, function(fileIndex, fileObj) {
       expect(fileIndex).to.equal(0);
 
