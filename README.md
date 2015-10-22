@@ -716,7 +716,7 @@ op.uploader().uploadFile(file, function(fileIndex, fileObj) {
 
 # Batch upload requirements
 
-Since Nuxeo Platform 7.4, a new batch upload has been released.
+Since Nuxeo Platform 7.4, a new batch upload API has been released.
 
 The last release of Nuxeo JavaScript Client working with the old API (Nuxeo Platform <= 7.4) is the `0.8.1` one.
 
