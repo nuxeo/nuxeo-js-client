@@ -32,6 +32,7 @@ npm publish
 # freeze dependencies versions
 npm shrinkwrap --dev
 
+git add -f dist lib
 git add npm-shrinkwrap.json
 git commit -m "Release $VERSION"
 git tag v$VERSION
