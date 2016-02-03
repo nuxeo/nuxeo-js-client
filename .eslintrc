@@ -1,0 +1,10 @@
+{
+  'extends': 'airbnb/base',
+  'rules': {
+    'no-param-reassign': [2, { 'props': false }],
+    'max-len': [2, 120, 2, {
+      'ignoreUrls': true,
+      'ignoreComments': false
+    }]
+  }
+}

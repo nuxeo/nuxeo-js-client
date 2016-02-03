@@ -1,0 +1,12 @@
+{
+  'extends': '../.eslintrc',
+  'globals': {
+    'Nuxeo': false,
+    'expect': false,
+    'isBrowser': false,
+    'support': false
+  },
+  'env': {
+    'mocha': true
+  }
+}
