@@ -27,7 +27,7 @@ npm install
 
 # build, test and publish
 gulp prepublish
-npm pack # publish
+npm publish
 
 # freeze dependencies versions
 npm shrinkwrap --dev
@@ -63,5 +63,5 @@ rm -r /tmp/nuxeo.js-doc
 
 # push everything
 git push origin master
-git push --tags v$VERSION
+git push origin v$VERSION
 git push origin gh-pages
