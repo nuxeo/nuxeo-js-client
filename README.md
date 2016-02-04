@@ -8,6 +8,19 @@ This is an on-going project, supported by Nuxeo.
 
 ### Installation
 
+#### Node.js Applications
+
+After installing [Node.js](http://nodejs.org/#download), use `npm` to install the `nuxeo` package:
+
+    $ npm install nuxeo --save
+
+Then, use the following `require` statement to have access to the same API than the browser client:
+
+```javascript
+const Nuxeo = require('nuxeo');
+const nuxeo = new Nuxeo();
+```
+
 #### Bower Powered Applications
 
 The `nuxeo` client can be also installed through bower:
@@ -20,17 +33,44 @@ When added to your page, `Nuxeo` is available as a global variable.
 const nuxeo = new Nuxeo();
 ```
 
-#### Node.js Applications
+#### Angular Applications
 
-After installing [Node.js](http://nodejs.org/#download), use `npm` to install the `nuxeo` package:
-
-    $ npm install nuxeo --save
-
-Then, use the following `require` statement to have access to the same API than the browser client:
+After adding `nuxeo` through Bower, you can easily create a service that will return a client:
 
 ```javascript
-const Nuxeo = require('nuxeo');
-const nuxeo = new Nuxeo();
+...
+.service('nuxeo', function() {
+  return new Nuxeo({
+    baseURL: 'http://localhost:8080/nuxeo/',
+    auth: {
+      username: 'Administrator',
+      password: 'Administrator'
+    }
+  });
+})
+...
+```
+
+To notify Angular to update the UI when a Nuxeo promise has resolved, you can either wrap Nuxeo promises in `$q.when()`
+or, the preferred way, configure the Promise library class to be `$q`.
+
+```javascript
+// wrap promises
+...
+$q.when(nuxeo.request('/path/').get()).then(res => $scope.res = res);
+// use $q as the Promise library class
+...
+.service('nuxeo', function($q) {
+  Nuxeo.promiseLibrary($q)
+  return new Nuxeo({
+    baseURL: 'http://localhost:8080/nuxeo/',
+    auth: {
+      username: 'Administrator',
+      password: 'Administrator'
+    }
+  });
+})
+...
 ```
 
 ## Requirements
