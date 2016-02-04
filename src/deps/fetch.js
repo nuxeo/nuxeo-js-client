@@ -3,10 +3,10 @@
 require('isomorphic-fetch');
 
 import extend from 'extend';
-import Promise from './promise';
 import queryString from 'query-string';
 import FormData from './form-data';
 import computeAuthentication from './auth';
+import newPromise from './promise-nuxeo';
 
 const DEFAULT_OPTS = {
   method: 'GET',
@@ -46,7 +46,7 @@ export default function doFetch(opts) {
     url += queryString.stringify(options.queryParams);
   }
 
-  return new Promise((resolve, reject) => {
+  return newPromise((resolve, reject) => {
     fetch(url, {
       method: options.method,
       headers: options.headers,

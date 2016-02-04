@@ -2,8 +2,8 @@
 
 import Base from './base';
 import join from './deps/utils/join';
+import newPromise from './deps/promise-nuxeo';
 import Document from './document';
-import Promise from './deps/promise';
 
 function computePath(ref) {
   return join(ref.indexOf('/') === 0 ? 'path' : 'id', ref);
@@ -46,7 +46,7 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the {@link Document}.
    */
   fetch(ref, opts) {
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       const path = computePath(ref);
 
       this._nuxeo.request(path)
@@ -79,7 +79,7 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the created {@link Document}.
    */
   create(parentRef, doc, opts = {}) {
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       opts.body = doc;
 
       const path = computePath(parentRef);
@@ -113,7 +113,7 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the updated {@link Document}.
    */
   update(doc, opts = {}) {
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       opts.body = doc;
 
       const path = join('id', doc.uid);

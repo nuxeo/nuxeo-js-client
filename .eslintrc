@@ -6,5 +6,8 @@
       'ignoreUrls': true,
       'ignoreComments': false
     }]
-  }
+  },
+  'globals': {
+    'Nuxeo': false
+  },
 }

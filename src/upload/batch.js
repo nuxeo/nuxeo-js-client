@@ -4,7 +4,7 @@ import extend from 'extend';
 import Base from '../base';
 import fetch from '../deps/fetch';
 import join from '../deps/utils/join';
-import Promise from '../deps/promise';
+import newPromise from '../deps/promise-nuxeo';
 import Queue from 'promise-queue';
 import BatchBlob from './blob';
 
@@ -79,7 +79,7 @@ class BatchUpload extends Base {
       return promises[0];
     }
 
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       Promise.all(promises).then((batchBlobs) => {
         return resolve({
           blobs: batchBlobs,
@@ -90,7 +90,7 @@ class BatchUpload extends Base {
   }
 
   _upload(blob) {
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       if (!this._batchIdPromise) {
         this._batchIdPromise = this._fetchBatchId();
       }
@@ -138,7 +138,7 @@ class BatchUpload extends Base {
       auth: this._auth,
     };
 
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       if (this._batchId) {
         return resolve(this);
       }
@@ -169,7 +169,7 @@ class BatchUpload extends Base {
    * }).catch(error => throw new Error(error));
    */
   done() {
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       Promise.all(this._promises).then((batchBlobs) => {
         return resolve({
           blobs: batchBlobs,
@@ -196,7 +196,7 @@ class BatchUpload extends Base {
       return Promise.resolve(this);
     }
 
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       const path = join('upload', this._batchId);
       this._batchIdPromise.then(() => {
         this._nuxeo.request(path)
@@ -218,7 +218,7 @@ class BatchUpload extends Base {
    * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlob.
    */
   fetchBlob(index, opts) {
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       if (!this._batchId) {
         return reject(new Error('No \'batchId\' set'));
       }
@@ -249,7 +249,7 @@ class BatchUpload extends Base {
    * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlobs.
    */
   fetchBlobs(opts) {
-    return new Promise((resolve, reject) => {
+    return newPromise((resolve, reject) => {
       if (!this._batchId) {
         return reject(new Error('No \'batchId\' set'));
       }

@@ -15,6 +15,7 @@ const AUTOMATION = 'automation/';
 const DEFAULT_OPTS = {
   baseURL: 'http://localhost:8080/nuxeo/',
   apiPath: API_PATH_V1,
+  promiseLibrary: null,
   auth: {
     method: 'basic',
     username: null,
@@ -177,5 +178,12 @@ class Nuxeo extends Base {
     return new BatchUpload(finalOptions);
   }
 }
+
+/**
+ * Sets the Promise library class to use.
+ */
+Nuxeo.promiseLibrary = (promiseLibrary) => {
+  Nuxeo.Promise = promiseLibrary;
+};
 
 export default Nuxeo;
