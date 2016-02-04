@@ -56,7 +56,6 @@ class Repository extends Base {
         .timeout(this._timeout)
         .httpTimeout(this._httpTimeout)
         .transactionTimeout(this._transactionTimeout)
-        .auth(this._auth)
         .get(opts)
         .then((doc) => {
           return resolve(new Document(doc, {
@@ -67,7 +66,6 @@ class Repository extends Base {
             timeout: this._timeout,
             httpTimeout: this._httpTimeout,
             transactionTimeout: this._transactionTimeout,
-            auth: this._auth,
           }));
         }).catch(error => reject(error));
     });
@@ -93,7 +91,6 @@ class Repository extends Base {
         .timeout(this._timeout)
         .httpTimeout(this._httpTimeout)
         .transactionTimeout(this._transactionTimeout)
-        .auth(this._auth)
         .post(opts)
         .then((res) => {
           return resolve(new Document(res, {
@@ -104,7 +101,6 @@ class Repository extends Base {
             timeout: this._timeout,
             httpTimeout: this._httpTimeout,
             transactionTimeout: this._transactionTimeout,
-            auth: this._auth,
           }));
         }).catch(error => reject(error));
     });
@@ -129,7 +125,6 @@ class Repository extends Base {
         .timeout(this._timeout)
         .httpTimeout(this._httpTimeout)
         .transactionTimeout(this._transactionTimeout)
-        .auth(this._auth)
         .put(opts)
         .then((res) => {
           return resolve(new Document(res, {
@@ -140,7 +135,6 @@ class Repository extends Base {
             timeout: this._timeout,
             httpTimeout: this._httpTimeout,
             transactionTimeout: this._transactionTimeout,
-            auth: this._auth,
           }));
         }).catch(error => reject(error));
     });
@@ -162,7 +156,6 @@ class Repository extends Base {
       .timeout(this._timeout)
       .httpTimeout(this._httpTimeout)
       .transactionTimeout(this._transactionTimeout)
-      .auth(this._auth)
       .delete(opts);
   }
 }

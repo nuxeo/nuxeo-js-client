@@ -7,6 +7,7 @@ import Request from './request';
 import Repository from './repository';
 import BatchUpload from './upload/batch';
 import join from './deps/utils/join';
+import fetch from './deps/fetch';
 
 const API_PATH_V1 = 'api/v1/';
 const AUTOMATION = 'automation/';
@@ -51,13 +52,43 @@ class Nuxeo extends Base {
     this._baseURL = options.baseURL;
     this._restURL = join(this._baseURL, options.apiPath);
     this._automationURL = join(this._restURL, AUTOMATION);
+    this.connected = false;
+  }
+
+  /**
+   * Connects to the Nuxeo Platform instance using the configured authentication.
+   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @returns {Promise} A promise resolved with the logged in user.
+   */
+  login(opts = {}) {
+    let finalOptions = {
+      method: 'POST',
+      url: join(this._automationURL, 'login'),
+      headers: this._headers,
+      timeout: this._timeout,
+      transactionTimeout: this._transactionTimeout,
+      httpTimeout: this._httpTimeout,
+      auth: this._auth,
+    };
+    finalOptions = extend(true, finalOptions, opts);
+    return fetch(finalOptions)
+      .then((res) => {
+        return this.request('user')
+          .path(res.username)
+          .get()
+          .then((user) => {
+            this.user = user;
+            this.connected = true;
+            return user;
+          });
+      });
   }
 
   /**
    * Creates a new {@link Operation} object.
    * @param {string} id - The operation ID.
    * @param {object} opts - Options overriding the ones from the Nuxeo object.
-   * @returns {Operation} an {@link Operation}.
+   * @returns {Operation}
    */
   operation(id, opts = {}) {
     let finalOptions = {
@@ -80,7 +111,7 @@ class Nuxeo extends Base {
    * Creates a new {@link Request} object.
    * @param {string} path - The request default path.
    * @param {object} opts - Options overriding the ones from the Nuxeo object.
-   * @returns {Request} an {@link Request}.
+   * @returns {Request}
    */
   request(path, opts = {}) {
     let finalOptions = {
@@ -103,7 +134,7 @@ class Nuxeo extends Base {
    * Creates a new {@link Repository} object.
    * @param {string} name - The repository name. Default to the Nuxeo's repository name.
    * @param {object} opts - Options overriding the ones from the Nuxeo object.
-   * @returns {Repository} an {@link Repository}.
+   * @returns {Repository}
    */
   repository(name = this._repositoryName, opts = {}) {
     let options = opts;
@@ -130,7 +161,7 @@ class Nuxeo extends Base {
   /**
    * Creates a new {@link BatchUpload} object.
    * @param {object} opts - Options overriding the ones from the Nuxeo object.
-   * @returns {BatchUpload} an {@link BatchUpload}.
+   * @returns {BatchUpload}
    */
   batchUpload(opts = {}) {
     let finalOptions = {

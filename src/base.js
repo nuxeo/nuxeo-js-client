@@ -47,15 +47,6 @@ class Base {
   }
 
   /**
-   * Sets the auth object to use to authenticate the user.
-   * @returns {Base} The object itself.
-   */
-  auth(auth) {
-    this._auth = auth;
-    return this;
-  }
-
-  /**
    * Adds a header.
    * @param {string} name - the header name
    * @param {string} value - the header value

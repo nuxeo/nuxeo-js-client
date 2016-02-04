@@ -203,7 +203,6 @@ class BatchUpload extends Base {
           .timeout(this._timeout)
           .httpTimeout(this._httpTimeout)
           .transactionTimeout(this._transactionTimeout)
-          .auth(this._auth)
           .delete(opts)
           .then(() => {
             this._batchIdPromise = null;

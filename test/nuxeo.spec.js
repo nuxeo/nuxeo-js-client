@@ -38,6 +38,17 @@ describe('Nuxeo', () => {
     expect(n._auth.password).to.be.equal('Administrator');
   });
 
+  describe('#login', () => {
+    it('should login and retrieve the logged in user', () => {
+      nuxeo.login().then((user) => {
+        expect(user['entity-type']).to.be.equal('user');
+        expect(user.id).to.be.equal('Administrator');
+        expect(user.properties.username).to.be.equal('Administrator');
+        expect(user.properties.groups).to.be.equal(['administrators']);
+      });
+    });
+  });
+
   describe('#operation', () => {
     it('should create an Operation object', () => {
       const op = nuxeo.operation('Document.Update');
