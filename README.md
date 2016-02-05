@@ -110,6 +110,7 @@ All API calls return a Promise object:
 
 ```javascript
 nuxeo.operation('Document.GetChildren')
+  .execute()
   .then((docs) => {
     // work with docs
   })
@@ -138,6 +139,7 @@ nuxeo.operation('Document.Create')
     properties: 'dc:title=My Folder \ndc:description=A Simple Folder'
   })
   .input('/')
+  .execute()
   .then((doc) => {
       console.log('Created ' + doc.title + ' folder');
   })
