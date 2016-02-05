@@ -55,6 +55,20 @@ describe('Request', () => {
     });
   });
 
+  it('should compute an URL with query params', () => {
+    return nuxeo.request(join('path', WS_JS_TESTS_PATH))
+      .queryParams({
+        foo: 'foo',
+        bar: 'bar',
+      })
+      .get({
+        resolveWithFullResponse: true,
+      })
+      .then((res) => {
+        expect(res.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/repo/default/path/default-domain/workspaces/ws-js-tests?bar=bar&foo=foo');
+      });
+  });
+
   it('should do a GET request', () => {
     return nuxeo.request(join('path', WS_JS_TESTS_PATH))
       .get().then((res) => {

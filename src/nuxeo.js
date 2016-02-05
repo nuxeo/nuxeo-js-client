@@ -127,6 +127,7 @@ class Nuxeo extends Base {
 
     let url = options.url;
     if (options.queryParams) {
+      url += url.indexOf('?') === -1 ? '?' : '';
       url += queryString.stringify(options.queryParams);
     }
 
