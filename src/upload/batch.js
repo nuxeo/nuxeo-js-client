@@ -2,13 +2,9 @@
 
 import extend from 'extend';
 import Base from '../base';
-import fetch from '../deps/fetch';
 import join from '../deps/utils/join';
-import newPromise from '../deps/promise-nuxeo';
 import Queue from 'promise-queue';
 import BatchBlob from './blob';
-
-Queue.configure(Promise);
 
 const DEFAULT_OPTS = {
   concurrency: 5,
@@ -49,6 +45,7 @@ class BatchUpload extends Base {
     this._url = join(options.url, 'upload/');
     this._nuxeo = options.nuxeo;
     this._uploadIndex = 0;
+    Queue.configure(this._nuxeo.Promise);
     this._queue = new Queue(options.concurrency, Infinity);
     this._batchIdPromise = null;
     this._batchId = null;
@@ -79,51 +76,48 @@ class BatchUpload extends Base {
       return promises[0];
     }
 
-    return newPromise((resolve, reject) => {
-      Promise.all(promises).then((batchBlobs) => {
-        return resolve({
-          blobs: batchBlobs,
-          batch: this,
-        });
-      }).catch(error => reject(error));
+    const Promise = this._nuxeo.Promise;
+    return Promise.all(promises).then((batchBlobs) => {
+      return {
+        blobs: batchBlobs,
+        batch: this,
+      };
     });
   }
 
   _upload(blob) {
-    return newPromise((resolve, reject) => {
-      if (!this._batchIdPromise) {
-        this._batchIdPromise = this._fetchBatchId();
-      }
+    if (!this._batchIdPromise) {
+      this._batchIdPromise = this._fetchBatchId();
+    }
 
-      this._batchIdPromise.then(() => {
-        const uploadIndex = this._uploadIndex++;
-        const options = {
-          json: false,
-          method: 'POST',
-          url: join(this._url, this._batchId, uploadIndex),
-          body: blob.content,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'X-File-Name': encodeURIComponent(blob.name),
-            'X-File-Size': blob.size,
-            'X-File-Type': blob.mimeType,
-            'Content-Length': blob.size,
-          },
-          timeout: this._timeout,
-          httpTimeout: this._httpTimeout,
-          transactionTimeout: this._transactionTimeout,
-          auth: this._auth,
-        };
+    const uploadIndex = this._uploadIndex++;
+    return this._batchIdPromise.then(() => {
+      const options = {
+        json: false,
+        method: 'POST',
+        url: join(this._url, this._batchId, uploadIndex),
+        body: blob.content,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'X-File-Name': encodeURIComponent(blob.name),
+          'X-File-Size': blob.size,
+          'X-File-Type': blob.mimeType,
+          'Content-Length': blob.size,
+        },
+        timeout: this._timeout,
+        httpTimeout: this._httpTimeout,
+        transactionTimeout: this._transactionTimeout,
+        auth: this._auth,
+      };
 
-        fetch(options).then((res) => {
-          res.batchId = this._batchId;
-          res.index = uploadIndex;
-          return resolve({
-            blob: new BatchBlob(res),
-            batch: this,
-          });
-        }).catch(error => reject(error));
-      }).catch(error => reject(error));
+      return this._nuxeo.fetch(options);
+    }).then((res) => {
+      res.batchId = this._batchId;
+      res.index = uploadIndex;
+      return {
+        blob: new BatchBlob(res),
+        batch: this,
+      };
     });
   }
 
@@ -138,17 +132,13 @@ class BatchUpload extends Base {
       auth: this._auth,
     };
 
-    return newPromise((resolve, reject) => {
-      if (this._batchId) {
-        return resolve(this);
-      }
-
-      fetch(opts).then((res) => {
-        this._batchId = res.batchId;
-        return resolve(this);
-      }).catch((error) => {
-        return reject(error);
-      });
+    const Promise = this._nuxeo.Promise;
+    if (this._batchId) {
+      return Promise.resolve(this);
+    }
+    return this._nuxeo.fetch(opts).then((res) => {
+      this._batchId = res.batchId;
+      return this;
     });
   }
 
@@ -169,13 +159,12 @@ class BatchUpload extends Base {
    * }).catch(error => throw new Error(error));
    */
   done() {
-    return newPromise((resolve, reject) => {
-      Promise.all(this._promises).then((batchBlobs) => {
-        return resolve({
-          blobs: batchBlobs,
-          batch: this,
-        });
-      }).catch(error => reject(error));
+    const Promise = this._nuxeo.Promise;
+    return Promise.all(this._promises).then((batchBlobs) => {
+      return {
+        blobs: batchBlobs,
+        batch: this,
+      };
     });
   }
 
@@ -192,24 +181,22 @@ class BatchUpload extends Base {
    * @returns {Promise} A Promise object resolved with the BatchUpload itself.
    */
   cancel(opts) {
+    const Promise = this._nuxeo.Promise;
     if (!this._batchIdPromise) {
       return Promise.resolve(this);
     }
 
-    return newPromise((resolve, reject) => {
-      const path = join('upload', this._batchId);
-      this._batchIdPromise.then(() => {
-        this._nuxeo.request(path)
-          .timeout(this._timeout)
-          .httpTimeout(this._httpTimeout)
-          .transactionTimeout(this._transactionTimeout)
-          .delete(opts)
-          .then(() => {
-            this._batchIdPromise = null;
-            this._batchId = null;
-            return resolve(this);
-          }).catch(error => reject(error));
-      }).catch(error => reject(error));
+    const path = join('upload', this._batchId);
+    return this._batchIdPromise.then(() => {
+      return this._nuxeo.request(path)
+        .timeout(this._timeout)
+        .httpTimeout(this._httpTimeout)
+        .transactionTimeout(this._transactionTimeout)
+        .delete(opts);
+    }).then(() => {
+      this._batchIdPromise = null;
+      this._batchId = null;
+      return this;
     });
   }
 
@@ -218,29 +205,28 @@ class BatchUpload extends Base {
    * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlob.
    */
   fetchBlob(index, opts) {
-    return newPromise((resolve, reject) => {
-      if (!this._batchId) {
-        return reject(new Error('No \'batchId\' set'));
-      }
+    const Promise = this._nuxeo.Promise;
+    if (!this._batchId) {
+      return Promise.reject(new Error('No \'batchId\' set'));
+    }
 
-      let finalOptions = {
-        method: 'GET',
-        url: join(this._url, this._batchId, index),
-        timeout: this._timeout,
-        httpTimeout: this._httpTimeout,
-        transactionTimeout: this._transactionTimeout,
-        auth: this._auth,
+    let finalOptions = {
+      method: 'GET',
+      url: join(this._url, this._batchId, index),
+      timeout: this._timeout,
+      httpTimeout: this._httpTimeout,
+      transactionTimeout: this._transactionTimeout,
+      auth: this._auth,
+    };
+    finalOptions = extend(true, finalOptions, opts);
+
+    return this._nuxeo.fetch(finalOptions).then((res) => {
+      res.batchId = this._batchId;
+      res.index = index;
+      return {
+        batch: this,
+        blob: new BatchBlob(res),
       };
-      finalOptions = extend(true, finalOptions, opts);
-
-      fetch(finalOptions).then((res) => {
-        res.batchId = this._batchId;
-        res.index = index;
-        return resolve({
-          batch: this,
-          blob: new BatchBlob(res),
-        });
-      }).catch(error => reject(error));
     });
   }
 
@@ -249,32 +235,31 @@ class BatchUpload extends Base {
    * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlobs.
    */
   fetchBlobs(opts) {
-    return newPromise((resolve, reject) => {
-      if (!this._batchId) {
-        return reject(new Error('No \'batchId\' set'));
-      }
+    const Promise = this._nuxeo.Promise;
+    if (!this._batchId) {
+      return Promise.reject(new Error('No \'batchId\' set'));
+    }
 
-      let finalOptions = {
-        method: 'GET',
-        url: join(this._url, this._batchId),
-        timeout: this._timeout,
-        httpTimeout: this._httpTimeout,
-        transactionTimeout: this._transactionTimeout,
-        auth: this._auth,
+    let finalOptions = {
+      method: 'GET',
+      url: join(this._url, this._batchId),
+      timeout: this._timeout,
+      httpTimeout: this._httpTimeout,
+      transactionTimeout: this._transactionTimeout,
+      auth: this._auth,
+    };
+    finalOptions = extend(true, finalOptions, opts);
+
+    this._nuxeo.fetch(finalOptions).then((blobs) => {
+      const batchBlobs = blobs.map((blob, index) => {
+        blob.batchId = this._batchId;
+        blob.index = index;
+        return new BatchBlob(blob);
+      });
+      return {
+        batch: this,
+        blobs: batchBlobs,
       };
-      finalOptions = extend(true, finalOptions, opts);
-
-      fetch(finalOptions).then((blobs) => {
-        const batchBlobs = blobs.map((blob, index) => {
-          blob.batchId = this._batchId;
-          blob.index = index;
-          return new BatchBlob(blob);
-        });
-        return resolve({
-          batch: this,
-          blobs: batchBlobs,
-        });
-      }).catch(error => reject(error));
     });
   }
 }

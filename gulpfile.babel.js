@@ -48,7 +48,7 @@ gulp.task('test:node', ['build:node'], () => {
     }));
 });
 
-gulp.task('test:browser', ['build:browser'], (done) => {
+gulp.task('test:browser', ['build:node', 'build:browser'], (done) => {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true,

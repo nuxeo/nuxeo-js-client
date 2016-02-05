@@ -2,7 +2,6 @@
 
 import extend from 'extend';
 import Base from './base';
-import fetch from './deps/fetch';
 import join from './deps/utils/join';
 import Blob from './blob';
 import BatchBlob from './upload/blob';
@@ -125,7 +124,7 @@ class Operation extends Base {
     };
     finalOptions = extend(true, finalOptions, opts);
 
-    return fetch(finalOptions);
+    return this._nuxeo.fetch(finalOptions);
   }
 
   _computeContentTypeHeader(input) {

@@ -7,7 +7,11 @@ import Request from './request';
 import Repository from './repository';
 import BatchUpload from './upload/batch';
 import join from './deps/utils/join';
-import fetch from './deps/fetch';
+import Promise from './deps/promise';
+import queryString from 'query-string';
+import FormData from './deps/form-data';
+import computeAuthentication from './deps/auth';
+import doFetch from './deps/fetch';
 
 const API_PATH_V1 = 'api/v1/';
 const AUTOMATION = 'automation/';
@@ -54,6 +58,7 @@ class Nuxeo extends Base {
     this._restURL = join(this._baseURL, options.apiPath);
     this._automationURL = join(this._restURL, AUTOMATION);
     this.connected = false;
+    this.Promise = Nuxeo.Promise || Promise;
   }
 
   /**
@@ -72,7 +77,7 @@ class Nuxeo extends Base {
       auth: this._auth,
     };
     finalOptions = extend(true, finalOptions, opts);
-    return fetch(finalOptions)
+    return this.fetch(finalOptions)
       .then((res) => {
         return this.request('user')
           .path(res.username)
@@ -83,6 +88,73 @@ class Nuxeo extends Base {
             return user;
           });
       });
+  }
+
+  /**
+   *
+   */
+  fetch(opts = {}) {
+    let options = {
+      method: 'GET',
+      headers: {},
+      json: true,
+      timeout: 30000,
+      cache: false,
+      resolveWithFullResponse: false,
+    };
+    options = extend(true, {}, options, opts);
+    options = computeAuthentication(options);
+
+    const transactionTimeout = options.transactionTimeout || options.timeout;
+    const httpTimeout = options.httpTimeout || (5 + transactionTimeout);
+    options.headers['Nuxeo-Transaction-Timeout'] = transactionTimeout;
+    options.timeout = httpTimeout;
+    delete options.transactionTimeout;
+    delete options.httpTimeout;
+
+    if (options.json) {
+      options.headers.Accept = 'application/json';
+      options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
+      // do not stringify FormData
+      if (typeof options.body === 'object' && !(options.body instanceof FormData)) {
+        options.body = JSON.stringify(options.body);
+      }
+    }
+
+    if (options.method === 'GET') {
+      delete options.headers['Content-Type'];
+    }
+
+    let url = options.url;
+    if (options.queryParams) {
+      url += queryString.stringify(options.queryParams);
+    }
+
+    return new this.Promise((resolve, reject) => {
+      doFetch(url, {
+        method: options.method,
+        headers: options.headers,
+        body: options.body,
+        credentials: 'include',
+      }).then((res) => {
+        if (!(/^2/.test('' + res.status))) {
+          const error = new Error(res.statusText);
+          error.response = res;
+          return reject(error);
+        }
+
+        if (options.resolveWithFullResponse || res.status === 204) {
+          return resolve(res);
+        }
+
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.indexOf('application/json') === 0) {
+          // TODO add marshallers
+          return resolve(res.json());
+        }
+        return resolve(res);
+      }).catch(error => reject(error));
+    });
   }
 
   /**

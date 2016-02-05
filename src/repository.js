@@ -2,7 +2,6 @@
 
 import Base from './base';
 import join from './deps/utils/join';
-import newPromise from './deps/promise-nuxeo';
 import Document from './document';
 
 function computePath(ref) {
@@ -46,29 +45,26 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the {@link Document}.
    */
   fetch(ref, opts) {
-    return newPromise((resolve, reject) => {
-      const path = computePath(ref);
-
-      this._nuxeo.request(path)
-        .repositoryName(this._repositoryName)
-        .schemas(this._schemas)
-        .headers(this._headers)
-        .timeout(this._timeout)
-        .httpTimeout(this._httpTimeout)
-        .transactionTimeout(this._transactionTimeout)
-        .get(opts)
-        .then((doc) => {
-          return resolve(new Document(doc, {
-            nuxeo: this._nuxeo,
-            repository: this,
-            schemas: this._schemas,
-            headers: this._headers,
-            timeout: this._timeout,
-            httpTimeout: this._httpTimeout,
-            transactionTimeout: this._transactionTimeout,
-          }));
-        }).catch(error => reject(error));
-    });
+    const path = computePath(ref);
+    return this._nuxeo.request(path)
+      .repositoryName(this._repositoryName)
+      .schemas(this._schemas)
+      .headers(this._headers)
+      .timeout(this._timeout)
+      .httpTimeout(this._httpTimeout)
+      .transactionTimeout(this._transactionTimeout)
+      .get(opts)
+      .then((doc) => {
+        return new Document(doc, {
+          nuxeo: this._nuxeo,
+          repository: this,
+          schemas: this._schemas,
+          headers: this._headers,
+          timeout: this._timeout,
+          httpTimeout: this._httpTimeout,
+          transactionTimeout: this._transactionTimeout,
+        });
+      });
   }
 
   /**
@@ -79,31 +75,27 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the created {@link Document}.
    */
   create(parentRef, doc, opts = {}) {
-    return newPromise((resolve, reject) => {
-      opts.body = doc;
-
-      const path = computePath(parentRef);
-
-      this._nuxeo.request(path)
-        .repositoryName(this._repositoryName)
-        .schemas(this._schemas)
-        .headers(this._headers)
-        .timeout(this._timeout)
-        .httpTimeout(this._httpTimeout)
-        .transactionTimeout(this._transactionTimeout)
-        .post(opts)
-        .then((res) => {
-          return resolve(new Document(res, {
-            nuxeo: this._nuxeo,
-            repository: this,
-            schemas: this._schemas,
-            headers: this._headers,
-            timeout: this._timeout,
-            httpTimeout: this._httpTimeout,
-            transactionTimeout: this._transactionTimeout,
-          }));
-        }).catch(error => reject(error));
-    });
+    opts.body = doc;
+    const path = computePath(parentRef);
+    return this._nuxeo.request(path)
+      .repositoryName(this._repositoryName)
+      .schemas(this._schemas)
+      .headers(this._headers)
+      .timeout(this._timeout)
+      .httpTimeout(this._httpTimeout)
+      .transactionTimeout(this._transactionTimeout)
+      .post(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this,
+          schemas: this._schemas,
+          headers: this._headers,
+          timeout: this._timeout,
+          httpTimeout: this._httpTimeout,
+          transactionTimeout: this._transactionTimeout,
+        });
+      });
   }
 
   /**
@@ -113,31 +105,27 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the updated {@link Document}.
    */
   update(doc, opts = {}) {
-    return newPromise((resolve, reject) => {
-      opts.body = doc;
-
-      const path = join('id', doc.uid);
-
-      this._nuxeo.request(path)
-        .repositoryName(this._repositoryName)
-        .schemas(this._schemas)
-        .headers(this._headers)
-        .timeout(this._timeout)
-        .httpTimeout(this._httpTimeout)
-        .transactionTimeout(this._transactionTimeout)
-        .put(opts)
-        .then((res) => {
-          return resolve(new Document(res, {
-            nuxeo: this._nuxeo,
-            repository: this,
-            schemas: this._schemas,
-            headers: this._headers,
-            timeout: this._timeout,
-            httpTimeout: this._httpTimeout,
-            transactionTimeout: this._transactionTimeout,
-          }));
-        }).catch(error => reject(error));
-    });
+    opts.body = doc;
+    const path = join('id', doc.uid);
+    return this._nuxeo.request(path)
+      .repositoryName(this._repositoryName)
+      .schemas(this._schemas)
+      .headers(this._headers)
+      .timeout(this._timeout)
+      .httpTimeout(this._httpTimeout)
+      .transactionTimeout(this._transactionTimeout)
+      .put(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this,
+          schemas: this._schemas,
+          headers: this._headers,
+          timeout: this._timeout,
+          httpTimeout: this._httpTimeout,
+          transactionTimeout: this._transactionTimeout,
+        });
+      });
   }
 
   /**

@@ -3,7 +3,6 @@
 import extend from 'extend';
 import join from './deps/utils/join';
 import Base from './base';
-import fetch from './deps/fetch';
 
 const defaultOptions = {
   path: '',
@@ -139,7 +138,7 @@ class Request extends Base {
       auth: this._auth,
     };
     finalOptions = extend(true, finalOptions, opts);
-    return fetch(finalOptions);
+    return this._nuxeo.fetch(finalOptions);
   }
 
 }
