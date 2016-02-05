@@ -51,7 +51,6 @@ describe('Operation', () => {
     const repository = nuxeo.repository();
     return repository.create(WS_ROOT_PATH, newDoc1)
       .then(() => repository.create(WS_ROOT_PATH, newDoc2))
-      .then(() => repository.create(WS_ROOT_PATH, newDoc2))
       .then(() => repository.create(WS_JS_TESTS_1_PATH, newDoc3));
   });
 
@@ -212,16 +211,16 @@ describe('Operation', () => {
         const blob1 = createTextBlob('foo', 'foo.txt');
         const blob2 = createTextBlob('bar', 'bar.txt');
         batch.upload(blob1);
-        batch.upload(blob2).then(({ blob }) => {
-          nuxeo.operation('FileManager.Import')
+        return batch.upload(blob2).then(({ blob }) => {
+          return nuxeo.operation('FileManager.Import')
             .input(blob)
             .context({ currentDocument: WS_JS_TESTS_2_PATH })
-            .execute({ schemas: ['dublincore', 'note'] }).then((res) => {
-              expect(res['entity-type']).to.be.equal('document');
-              expect(res.title).to.be.equal('bar.txt');
-              expect(res.type).to.be.equal('Note');
-              expect(res.properties['note:note']).to.be.equal('bar');
-            });
+            .execute({ schemas: ['dublincore', 'note'] });
+        }).then((res) => {
+          expect(res['entity-type']).to.be.equal('document');
+          expect(res.title).to.be.equal('bar.txt');
+          expect(res.type).to.be.equal('Note');
+          expect(res.properties['note:note']).to.be.equal('bar');
         });
       });
     });

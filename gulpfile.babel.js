@@ -52,7 +52,7 @@ gulp.task('test:browser', ['build:node', 'build:browser'], (done) => {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true,
-  }, () => done()).start();
+  }, (exitStatus) => done(exitStatus ? 'Browser tests failed' : undefined)).start();
 });
 
 gulp.task('test', gulpSequence('test:node', 'test:browser'));

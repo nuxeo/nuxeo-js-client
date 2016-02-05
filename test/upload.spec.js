@@ -1,11 +1,6 @@
 'use strict';
 
-import join from '../lib/deps/utils/join';
 import { createTextBlob } from './helpers/blob-helper';
-
-const WS_ROOT_PATH = '/default-domain/workspaces';
-const WS_JS_TEST_NAME = 'ws-js-tests';
-const WS_JS_TESTS_PATH = join(WS_ROOT_PATH, WS_JS_TEST_NAME);
 
 describe('Upload', () => {
   let nuxeo;
@@ -14,20 +9,6 @@ describe('Upload', () => {
   before(() => {
     nuxeo = new Nuxeo({ auth: { username: 'Administrator', password: 'Administrator' } });
     nuxeoBatch = nuxeo.batchUpload();
-
-    const newDoc = {
-      'entity-type': 'document',
-      name: WS_JS_TEST_NAME,
-      type: 'Workspace',
-      properties: {
-        'dc:title': 'foo',
-      },
-    };
-    return nuxeo.repository().create(WS_ROOT_PATH, newDoc);
-  });
-
-  after(() => {
-    return nuxeo.repository().delete(WS_JS_TESTS_PATH);
   });
 
   it('should lazily initialize a batch', () => {
