@@ -1,6 +1,7 @@
 'use strict';
 
 import join from '../lib/deps/utils/join';
+import { createTextBlob } from './helpers/blob-helper';
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';
@@ -61,6 +62,7 @@ describe('Document', () => {
       });
     });
   });
+
   describe('#set', () => {
     it('should fill only dirtyProperties field', () => {
       return repository.fetch(FILE_TEST_PATH).then((doc) => {
@@ -72,6 +74,7 @@ describe('Document', () => {
       });
     });
   });
+
   describe('#get', () => {
     it('should return a property value', () => {
       return repository.fetch(FILE_TEST_PATH).then((doc) => {
@@ -92,6 +95,39 @@ describe('Document', () => {
         });
         expect(doc.get('dc:description')).to.be.equal('foo');
       });
+    });
+  });
+
+  describe('#save', () => {
+    it('should save an updated document', () => {
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.get('dc:description')).to.be.null();
+          doc.set({
+            'dc:description': 'foo',
+          });
+          return doc.save();
+        }).then((doc) => {
+          expect(doc.get('dc:description')).to.be.equal('foo');
+        });
+    });
+
+    it('should save a document with a property referencing a BatchBlob', () => {
+      const batch = nuxeo.batchUpload();
+      const blob = createTextBlob('foo', 'foo.txt');
+
+      return nuxeo.Promise.all([batch.upload(blob), repository.fetch(FILE_TEST_PATH)])
+        .then((values) => {
+          const batchBlob = values[0].blob;
+          const doc = values[1];
+          doc.set({ 'file:content': batchBlob });
+          return doc.save({ schemas: ['dublincore', 'file'] });
+        })
+        .then((doc) => {
+          expect(doc.get('file:content').name).to.be.equal('foo.txt');
+          expect(doc.get('file:content').length).to.be.equal('3');
+          expect(doc.get('file:content')['mime-type']).to.be.equal('text/plain');
+        });
     });
   });
 });

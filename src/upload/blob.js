@@ -9,7 +9,7 @@ import extend from 'extend';
 class BatchBlob {
   constructor(data = {}) {
     this['upload-batch'] = data.batchId;
-    this['upload-fileId'] = data.index;
+    this['upload-fileId'] = '' + data.index;
     delete data.batchId;
     delete data.index;
     extend(this, data);
