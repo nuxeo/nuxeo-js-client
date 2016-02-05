@@ -91,7 +91,9 @@ class Nuxeo extends Base {
   }
 
   /**
+   * Do a fetch request.
    *
+   * To be used when doing any call on Nuxeo Platform.
    */
   fetch(opts = {}) {
     let options = {
