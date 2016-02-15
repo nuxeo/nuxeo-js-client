@@ -6,6 +6,8 @@ import Operation from './operation';
 import Request from './request';
 import Repository from './repository';
 import BatchUpload from './upload/batch';
+import Users from './user/users';
+import Groups from './group/groups';
 import join from './deps/utils/join';
 import Promise from './deps/promise';
 import queryString from 'query-string';
@@ -103,6 +105,7 @@ class Nuxeo extends Base {
       timeout: 30000,
       cache: false,
       resolveWithFullResponse: false,
+      auth: this._auth,
     };
     options = extend(true, {}, options, opts);
     options = computeAuthentication(options);
@@ -176,7 +179,6 @@ class Nuxeo extends Base {
       timeout: this._timeout,
       httpTimeout: this._httpTimeout,
       transactionTimeout: this._transactionTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, {}, finalOptions, opts);
     finalOptions.schemas = opts.schemas || this._schemas;
@@ -199,7 +201,6 @@ class Nuxeo extends Base {
       timeout: this._timeout,
       httpTimeout: this._httpTimeout,
       transactionTimeout: this._transactionTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, {}, finalOptions, opts);
     finalOptions.schemas = opts.schemas || this._schemas;
@@ -227,7 +228,6 @@ class Nuxeo extends Base {
       timeout: this._timeout,
       httpTimeout: this._httpTimeout,
       transactionTimeout: this._transactionTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, {}, finalOptions, options);
     finalOptions.schemas = options.schemas || this._schemas;
@@ -247,10 +247,43 @@ class Nuxeo extends Base {
       timeout: this._timeout,
       transactionTimeout: this._transactionTimeout,
       httpTimeout: this._httpTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, {}, finalOptions, opts);
     return new BatchUpload(finalOptions);
+  }
+
+  /**
+   * Creates a new {@link Users} object to manage users.
+   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @returns {Users}
+   */
+  users(opts = {}) {
+    let finalOptions = {
+      nuxeo: this,
+      headers: this._headers,
+      timeout: this._timeout,
+      transactionTimeout: this._transactionTimeout,
+      httpTimeout: this._httpTimeout,
+    };
+    finalOptions = extend(true, {}, finalOptions, opts);
+    return new Users(finalOptions);
+  }
+
+  /**
+   * Creates a new {@link Groups} object to manage groups.
+   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @returns {Groups}
+   */
+  groups(opts = {}) {
+    let finalOptions = {
+      nuxeo: this,
+      headers: this._headers,
+      timeout: this._timeout,
+      transactionTimeout: this._transactionTimeout,
+      httpTimeout: this._httpTimeout,
+    };
+    finalOptions = extend(true, {}, finalOptions, opts);
+    return new Groups(finalOptions);
   }
 }
 

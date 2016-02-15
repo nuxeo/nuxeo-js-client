@@ -6,32 +6,12 @@ import extend from 'extend';
  * The `Document` class wraps a document.
  *
  * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    username: 'Administrator',
- *    password: 'Administrator',
- *  }
- * });
- * nuxeo.operation('Document.GetChild')
- *   .input('/default-domain')
- *   .params({
- *     name: 'workspaces',
- *   })
- *   .execute().then((res) => {
-       // res.uid !== null
- *     // res.title === 'Workspaces'
- *   }).catch(error => throw new Error(error));
  */
-
 class Document {
   /**
    * Creates a Document.
    * @param {object} doc - The initial document object. This Document object will be extended with doc properties.
-   * @param {object} opts - Options overriding the ones from the Operation object.
+   * @param {object} opts - The configuration options.
    * @param {string} opts.repository - The {@link Repository} object linked to this document.
    */
   constructor(doc, opts) {
@@ -39,12 +19,11 @@ class Document {
     this._repository = opts.repository;
     this.properties = {};
     this._dirtyProperties = {};
-
     extend(true, this, doc);
   }
 
   /**
-   * Sets document peroperties.
+   * Sets document properties.
    * @param {object} properties - The properties to set.
    * @returns {Document}
    *

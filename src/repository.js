@@ -58,24 +58,24 @@ class Repository extends Base {
         return new Document(doc, {
           nuxeo: this._nuxeo,
           repository: this,
-          schemas: this._schemas,
-          headers: this._headers,
-          timeout: this._timeout,
-          httpTimeout: this._httpTimeout,
-          transactionTimeout: this._transactionTimeout,
         });
       });
   }
 
   /**
-   * Creates a document given a document ref.
+   * Creates a document.
    * @param {string} parentRef - The parent document ref. A path if starting with '/', otherwise and id.
    * @param {object} doc - The document to be created.
    * @param {object} opts - Options overriding the ones from the Request object.
    * @returns {Promise} A Promise object resolved with the created {@link Document}.
    */
   create(parentRef, doc, opts = {}) {
-    opts.body = doc;
+    opts.body = {
+      'entity-type': 'document',
+      type: doc.type,
+      name: doc.name,
+      properties: doc.properties,
+    };
     const path = computePath(parentRef);
     return this._nuxeo.request(path)
       .repositoryName(this._repositoryName)
@@ -89,11 +89,6 @@ class Repository extends Base {
         return new Document(res, {
           nuxeo: this._nuxeo,
           repository: this,
-          schemas: this._schemas,
-          headers: this._headers,
-          timeout: this._timeout,
-          httpTimeout: this._httpTimeout,
-          transactionTimeout: this._transactionTimeout,
         });
       });
   }
@@ -105,7 +100,11 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the updated {@link Document}.
    */
   update(doc, opts = {}) {
-    opts.body = doc;
+    opts.body = {
+      'entity-type': 'document',
+      uid: doc.uid,
+      properties: doc.properties,
+    };
     const path = join('id', doc.uid);
     return this._nuxeo.request(path)
       .repositoryName(this._repositoryName)
@@ -119,11 +118,6 @@ class Repository extends Base {
         return new Document(res, {
           nuxeo: this._nuxeo,
           repository: this,
-          schemas: this._schemas,
-          headers: this._headers,
-          timeout: this._timeout,
-          httpTimeout: this._httpTimeout,
-          transactionTimeout: this._transactionTimeout,
         });
       });
   }
