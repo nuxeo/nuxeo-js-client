@@ -1,7 +1,7 @@
 'use strict';
 
 import join from '../lib/deps/utils/join';
-import { createTextBlob } from './helpers/blob-helper';
+import { createTextBlob, assertTextBlobContent } from './helpers/blob-helper';
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';
@@ -126,6 +126,29 @@ describe('Document', () => {
           expect(doc.get('file:content').length).to.be.equal('3');
           expect(doc.get('file:content')['mime-type']).to.be.equal('text/plain');
         });
+    });
+  });
+
+  describe('#fetchBlob', () => {
+    it('should download the main blob', (done) => {
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          return doc.fetchBlob();
+        })
+        .then((res) => isBrowser ? res.blob() : res.body)
+        .then((body) => {
+          assertTextBlobContent(body, 'foo', 3, done);
+        }).catch(error => done(error));
+    });
+
+    it('should download a blob given a xpath', (done) => {
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          return doc.fetchBlob('file:content');
+        }).then((res) => isBrowser ? res.blob() : res.body)
+        .then((body) => {
+          assertTextBlobContent(body, 'foo', 3, done);
+        }).catch(error => done(error));
     });
   });
 });

@@ -1,6 +1,7 @@
 'use strict';
 
 import extend from 'extend';
+import join from './deps/utils/join';
 
 /**
  * The `Document` class wraps a document.
@@ -49,7 +50,7 @@ class Document {
 
   /**
    * Saves the document. It updates only the 'dirty properties' set through the {@link Document#set} method.
-   * @param {object} opts - Options overriding the ones from the Document object.
+   * @param {object} [opts] - Options overriding the ones from the underlying Repository object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
   save(opts) {
@@ -66,6 +67,23 @@ class Document {
    */
   isFolder() {
     return this.facets.indexOf('Folderish') !== -1;
+  }
+
+  /**
+   * Fetch a Blob from this document.
+   * @param {string} [xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the response.
+   */
+  fetchBlob(xpath = 'blobholder:0', opts = {}) {
+    let options = opts;
+    let blobXPath = xpath;
+    if (typeof xpath === 'object') {
+      options = xpath;
+      blobXPath = 'blobholder:0';
+    }
+    const path = join('id', this.uid, '@blob', blobXPath);
+    return this._nuxeo.request(path).get(options);
   }
 }
 

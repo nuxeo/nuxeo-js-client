@@ -1,7 +1,7 @@
 'use strict';
 
 import join from '../lib/deps/utils/join';
-import { createTextBlob } from './helpers/blob-helper';
+import { createTextBlob, assertTextBlobContent } from './helpers/blob-helper';
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_1_NAME = 'ws-js-tests1';
@@ -263,30 +263,7 @@ describe('Operation', () => {
           .execute()
           .then((res) => isBrowser ? res.blob() : res.body)
           .then((body) => {
-            if (isBrowser) {
-              expect(body).to.be.an.instanceof(Blob);
-              expect(body.size).to.be.equal(3);
-              if (support.readBlob) {
-                const reader = new FileReader();
-                reader.addEventListener('loadend', () => {
-                  const dataView = new DataView(reader.result);
-                  const decoder = new TextDecoder('utf-8');
-                  expect(decoder.decode(dataView)).to.be.equal('foo');
-                  done();
-                });
-                reader.readAsArrayBuffer(body);
-              }
-            } else {
-              body.on('data', (chunk) => {
-                if (chunk === null) {
-                  return;
-                }
-                expect(chunk.toString()).to.equal('foo');
-              });
-              body.on('end', () => {
-                done();
-              });
-            }
+            assertTextBlobContent(body, 'foo', 3, done);
           }).catch(error => done(error));
       });
     });
