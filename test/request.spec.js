@@ -13,7 +13,6 @@ describe('Request', () => {
     nuxeo = new Nuxeo({ auth: { username: 'Administrator', password: 'Administrator' } });
 
     const newDoc = {
-      'entity-type': 'document',
       name: WS_JS_TEST_NAME,
       type: 'Workspace',
       properties: {

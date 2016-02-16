@@ -20,7 +20,6 @@ describe('Document', () => {
     });
 
     const newDoc = {
-      'entity-type': 'document',
       name: WS_JS_TEST_NAME,
       type: 'Workspace',
       properties: {
@@ -28,7 +27,6 @@ describe('Document', () => {
       },
     };
     const newDoc2 = {
-      'entity-type': 'document',
       name: FILE_TEST_NAME,
       type: 'File',
       properties: {
@@ -83,13 +81,13 @@ describe('Document', () => {
     });
 
     it('should return undefined for non existing property', () => {
-      repository.fetch(FILE_TEST_PATH).then((doc) => {
+      return repository.fetch(FILE_TEST_PATH).then((doc) => {
         expect(doc.get('dc:non-existing')).to.be.undefined();
       });
     });
 
     it('should return the dirty property value if any', () => {
-      repository.fetch(FILE_TEST_PATH).then((doc) => {
+      return repository.fetch(FILE_TEST_PATH).then((doc) => {
         doc.set({
           'dc:description': 'foo',
         });
@@ -100,7 +98,7 @@ describe('Document', () => {
 
   describe('#save', () => {
     it('should save an updated document', () => {
-      repository.fetch(FILE_TEST_PATH)
+      return repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
           expect(doc.get('dc:description')).to.be.null();
           doc.set({

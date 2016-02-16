@@ -36,7 +36,6 @@ describe('Repository', () => {
   describe('#create', () => {
     it('should create a document', () => {
       const newDoc = {
-        'entity-type': 'document',
         name: WS_JS_TEST_NAME,
         type: 'Workspace',
         properties: {

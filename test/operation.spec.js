@@ -24,7 +24,6 @@ describe('Operation', () => {
     });
 
     const newDoc1 = {
-      'entity-type': 'document',
       name: WS_JS_TEST_1_NAME,
       type: 'Workspace',
       properties: {
@@ -32,7 +31,6 @@ describe('Operation', () => {
       },
     };
     const newDoc2 = {
-      'entity-type': 'document',
       name: WS_JS_TEST_2_NAME,
       type: 'Workspace',
       properties: {
@@ -40,7 +38,6 @@ describe('Operation', () => {
       },
     };
     const newDoc3 = {
-      'entity-type': 'document',
       name: FILE_TEST_NAME,
       type: 'File',
       properties: {
