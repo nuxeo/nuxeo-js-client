@@ -224,4 +224,31 @@ describe('Nuxeo', () => {
       });
     });
   });
+
+  describe('#directory', () => {
+    it('should create a Directory object', () => {
+      const directory = nuxeo.directory('foo');
+      expect(directory).to.be.an.instanceof(Nuxeo.Directory);
+      expect(directory).to.be.an.instanceof(Nuxeo.Base);
+      expect(directory._directoryName).to.be.equal('foo');
+      expect(directory._nuxeo).to.be.equal(nuxeo);
+    });
+
+    it('should inherit configuration from Nuxeo', () => {
+      const directory = nuxeo.directory();
+      expect(directory._headers).to.be.eql({ foo: 'bar' });
+    });
+
+    it('should allow overriding configuration from Nuxeo', () => {
+      const directory = nuxeo.directory('foo', {
+        headers: {
+          bar: 'foo',
+        },
+      });
+      expect(directory._headers).to.be.eql({
+        foo: 'bar',
+        bar: 'foo',
+      });
+    });
+  });
 });

@@ -8,6 +8,7 @@ import Repository from './repository';
 import BatchUpload from './upload/batch';
 import Users from './user/users';
 import Groups from './group/groups';
+import Directory from './directory/directory';
 import join from './deps/utils/join';
 import Promise from './deps/promise';
 import queryString from 'query-string';
@@ -284,6 +285,25 @@ class Nuxeo extends Base {
     };
     finalOptions = extend(true, {}, finalOptions, opts);
     return new Groups(finalOptions);
+  }
+
+  /**
+   * Creates a new {@link Directory} object.
+   * @param {string} name - The directory name.
+   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @returns {Directory}
+   */
+  directory(name, opts = {}) {
+    let finalOptions = {
+      directoryName: name,
+      nuxeo: this,
+      headers: this._headers,
+      timeout: this._timeout,
+      transactionTimeout: this._transactionTimeout,
+      httpTimeout: this._httpTimeout,
+    };
+    finalOptions = extend(true, {}, finalOptions, opts);
+    return new Directory(finalOptions);
   }
 }
 

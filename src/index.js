@@ -13,6 +13,8 @@ import Users from './user/users';
 import User from './user/user';
 import Groups from './group/groups';
 import Group from './group/group';
+import Directory from './directory/directory';
+import DirectoryEntry from './directory/entry';
 import Promise from './deps/promise';
 
 Nuxeo.Base = Base;
@@ -27,7 +29,8 @@ Nuxeo.Users = Users;
 Nuxeo.User = User;
 Nuxeo.Groups = Groups;
 Nuxeo.Group = Group;
-
+Nuxeo.Directory = Directory;
+Nuxeo.DirectoryEntry = DirectoryEntry;
 
 Nuxeo.promiseLibrary(Promise);
 
