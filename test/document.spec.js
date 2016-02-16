@@ -145,10 +145,53 @@ describe('Document', () => {
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
           return doc.fetchBlob('file:content');
-        }).then((res) => isBrowser ? res.blob() : res.body)
+        })
+        .then((res) => isBrowser ? res.blob() : res.body)
         .then((body) => {
           assertTextBlobContent(body, 'foo', 3, done);
         }).catch(error => done(error));
+    });
+  });
+
+  describe('#move', () => {
+    const FOO_PATH_BEFORE = join(WS_JS_TESTS_PATH, 'foo');
+    const FOO_PATH_AFTER = join(WS_JS_TESTS_PATH, 'folder', 'foo');
+    const FOLDER_PATH = join(WS_JS_TESTS_PATH, 'folder');
+    const FOO_PATH_AFTER_RENAMING = join(WS_JS_TESTS_PATH, 'newFoo');
+
+    before(() => {
+      const doc = {
+        name: 'foo',
+        type: 'File',
+        properties: {
+          'dc:title': 'foo',
+        },
+      };
+      const folder = {
+        name: 'folder',
+        type: 'Folder',
+        properties: {
+          'dc:title': 'folder',
+        },
+      };
+      return repository.create(WS_JS_TESTS_PATH, doc)
+        .then(() => repository.create(WS_JS_TESTS_PATH, folder));
+    });
+
+    it('should move a document keeping its name', () => {
+      return repository.fetch(FOO_PATH_BEFORE).then((doc) => {
+        return doc.move(FOLDER_PATH);
+      }).then((doc) => {
+        expect(doc.path).to.be.equal(FOO_PATH_AFTER);
+      });
+    });
+
+    it('should move a document changing its final name', () => {
+      return repository.fetch(FOO_PATH_AFTER).then((doc) => {
+        return doc.move(WS_JS_TESTS_PATH, 'newFoo');
+      }).then((doc) => {
+        expect(doc.path).to.be.equal(FOO_PATH_AFTER_RENAMING);
+      });
     });
   });
 });

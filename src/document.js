@@ -85,6 +85,29 @@ class Document {
     const path = join('id', this.uid, '@blob', blobXPath);
     return this._nuxeo.request(path).get(options);
   }
+
+  /**
+   * Moves this document.
+   * @param {string} dst - The destination folder.
+   * @param {string} [name] - The destination name, can be null.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the moved document.
+   */
+  move(dst, name, opts = {}) {
+    return this._nuxeo.operation('Document.Move')
+      .input(this.uid)
+      .params({
+        name,
+        target: dst,
+      })
+      .execute(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this._repository,
+        });
+      });
+  }
 }
 
 export default Document;
