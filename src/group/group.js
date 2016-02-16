@@ -12,10 +12,10 @@ class Group {
    * Creates a Group.
    * @param {object} group - The initial group object. This Group object will be extended with group properties.
    * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this group.
+   * @param {string} opts.groups - The {@link Groups} object linked to this group.
    */
   constructor(group, opts) {
-    this._nuxeo = opts.nuxeo;
+    this._groups = opts.groups;
     extend(true, this, group);
   }
 
@@ -25,7 +25,7 @@ class Group {
    * @returns {Promise} A promise object resolved with the updated group.
    */
   save(opts) {
-    return this._nuxeo.group.update({
+    return this._groups.update({
       'entity-type': 'group',
       groupname: this.groupname,
       grouplabel: this.grouplabel,

@@ -13,6 +13,7 @@ describe('Group', () => {
     return groups.create({
       'entity-type': 'group',
       groupname: FOO_GROUPNAME,
+      grouplabel: 'Foo',
     });
   });
 
@@ -29,13 +30,13 @@ describe('Group', () => {
 
   describe('#save', () => {
     it('should save an updated group', () => {
-      groups.fetch(FOO_GROUPNAME)
+      return groups.fetch(FOO_GROUPNAME)
         .then((group) => {
-          expect(group.grouplabel).to.be.null();
-          group.grouplabel = 'Foo';
+          expect(group.grouplabel).to.be.equal('Foo');
+          group.grouplabel = 'Foo Fighters';
           return group.save();
         }).then((group) => {
-          expect(group.grouplabel).to.be.equal('Foo');
+          expect(group.grouplabel).to.be.equal('Foo Fighters');
         });
     });
   });

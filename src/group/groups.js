@@ -53,7 +53,7 @@ class Groups extends Base {
       .get(opts)
       .then((res) => {
         return new Group(res, {
-          nuxeo: this._nuxeo,
+          groups: this,
         });
       });
   }
@@ -80,7 +80,7 @@ class Groups extends Base {
       .post(opts)
       .then((res) => {
         return new Group(res, {
-          nuxeo: this._nuxeo,
+          groups: this,
         });
       });
   }
@@ -108,7 +108,7 @@ class Groups extends Base {
       .put(opts)
       .then((res) => {
         return new Group(res, {
-          nuxeo: this._nuxeo,
+          groups: this,
         });
       });
   }

@@ -172,4 +172,56 @@ describe('Nuxeo', () => {
       });
     });
   });
+
+  describe('#users', () => {
+    it('should create a Users object', () => {
+      const users = nuxeo.users();
+      expect(users).to.be.an.instanceof(Nuxeo.Users);
+      expect(users).to.be.an.instanceof(Nuxeo.Base);
+      expect(users._nuxeo).to.be.equal(nuxeo);
+    });
+
+    it('should inherit configuration from Nuxeo', () => {
+      const users = nuxeo.users();
+      expect(users._headers).to.be.eql({ foo: 'bar' });
+    });
+
+    it('should allow overriding configuration from Nuxeo', () => {
+      const users = nuxeo.users({
+        headers: {
+          bar: 'foo',
+        },
+      });
+      expect(users._headers).to.be.eql({
+        foo: 'bar',
+        bar: 'foo',
+      });
+    });
+  });
+
+  describe('#groups', () => {
+    it('should create a Groups object', () => {
+      const groups = nuxeo.groups();
+      expect(groups).to.be.an.instanceof(Nuxeo.Groups);
+      expect(groups).to.be.an.instanceof(Nuxeo.Base);
+      expect(groups._nuxeo).to.be.equal(nuxeo);
+    });
+
+    it('should inherit configuration from Nuxeo', () => {
+      const groups = nuxeo.groups();
+      expect(groups._headers).to.be.eql({ foo: 'bar' });
+    });
+
+    it('should allow overriding configuration from Nuxeo', () => {
+      const groups = nuxeo.groups({
+        headers: {
+          bar: 'foo',
+        },
+      });
+      expect(groups._headers).to.be.eql({
+        foo: 'bar',
+        bar: 'foo',
+      });
+    });
+  });
 });

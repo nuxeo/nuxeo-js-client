@@ -12,10 +12,10 @@ class User {
    * Creates a User.
    * @param {object} user - The initial user object. This User object will be extended with user properties.
    * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this user.
+   * @param {string} opts.users - The {@link Users} object linked to this user.
    */
   constructor(user, opts) {
-    this._nuxeo = opts.nuxeo;
+    this._users = opts.users;
     this.properties = {};
     this._dirtyProperties = {};
     extend(true, this, user);
@@ -52,9 +52,8 @@ class User {
    * @returns {Promise} A promise object resolved with the updated user.
    */
   save(opts) {
-    return this._nuxeo.user.update({
-      'entity-type': 'user',
-      ud: this.id,
+    return this._users.update({
+      id: this.id,
       properties: this._dirtyProperties,
     }, opts);
   }

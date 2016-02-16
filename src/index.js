@@ -9,7 +9,9 @@ import Document from './document';
 import BatchUpload from './upload/batch';
 import Blob from './blob';
 import BatchBlob from './upload/blob';
+import Users from './user/users';
 import User from './user/user';
+import Groups from './group/groups';
 import Group from './group/group';
 import Promise from './deps/promise';
 
@@ -21,7 +23,9 @@ Nuxeo.Document = Document;
 Nuxeo.BatchUpload = BatchUpload;
 Nuxeo.Blob = Blob;
 Nuxeo.BatchBlob = BatchBlob;
+Nuxeo.Users = Users;
 Nuxeo.User = User;
+Nuxeo.Groups = Groups;
 Nuxeo.Group = Group;
 
 

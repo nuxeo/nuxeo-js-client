@@ -52,7 +52,7 @@ class Users extends Base {
       .get(opts)
       .then((res) => {
         return new User(res, {
-          nuxeo: this._nuxeo,
+          users: this,
         });
       });
   }
@@ -76,7 +76,7 @@ class Users extends Base {
       .post(opts)
       .then((res) => {
         return new User(res, {
-          nuxeo: this._nuxeo,
+          users: this,
         });
       });
   }
@@ -102,7 +102,7 @@ class Users extends Base {
       .put(opts)
       .then((res) => {
         return new User(res, {
-          nuxeo: this._nuxeo,
+          users: this,
         });
       });
   }
