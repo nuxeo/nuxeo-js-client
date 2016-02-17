@@ -194,4 +194,15 @@ describe('Document', () => {
       });
     });
   });
+
+  describe('#followTransition', () => {
+    it('should set the life cycle state to deleted', () => {
+      return repository.fetch(FILE_TEST_PATH).then((doc) => {
+        expect(doc.state).to.be.equal('project');
+        return doc.followTransition('delete');
+      }).then((doc) => {
+        expect(doc.state).to.be.equal('deleted');
+      });
+    });
+  });
 });

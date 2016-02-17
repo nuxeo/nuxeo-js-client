@@ -108,6 +108,27 @@ class Document {
         });
       });
   }
+
+  /**
+   * Follows a given life cycle transition.
+   * @param {string} transitionName - The life cycle transition to follow.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the updated document.
+   */
+  followTransition(transitionName, opts = {}) {
+    return this._nuxeo.operation('Document.FollowLifecycleTransition')
+      .input(this.uid)
+      .params({
+        value: transitionName,
+      })
+      .execute(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this._repository,
+        });
+      });
+  }
 }
 
 export default Document;
