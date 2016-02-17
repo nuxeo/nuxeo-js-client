@@ -18,29 +18,31 @@ export function createTextBlob(content, name) {
   });
 }
 
-export function assertTextBlobContent(body, text, size, done) {
-  if (isBrowser) {
-    expect(body).to.be.an.instanceof(Blob);
-    expect(body.size).to.be.equal(size);
-    if (support.readBlob) {
-      const reader = new FileReader();
-      reader.addEventListener('loadend', () => {
-        const dataView = new DataView(reader.result);
-        const decoder = new TextDecoder('utf-8');
-        expect(decoder.decode(dataView)).to.be.equal(text);
-        done();
-      });
-      reader.readAsArrayBuffer(body);
-    }
-  } else {
-    body.on('data', (chunk) => {
-      if (chunk === null) {
-        return;
+export function getTextFromBody(body) {
+  return new Nuxeo.Promise((resolve) => {
+    if (isBrowser) {
+      if (support.readBlob) {
+        const reader = new FileReader();
+        reader.addEventListener('loadend', () => {
+          const dataView = new DataView(reader.result);
+          const decoder = new TextDecoder('utf-8');
+          resolve(decoder.decode(dataView));
+        });
+        reader.readAsArrayBuffer(body);
+      } else {
+        resolve();
       }
-      expect(chunk.toString()).to.equal('foo');
-    });
-    body.on('end', () => {
-      done();
-    });
-  }
+    } else {
+      let data = '';
+      body.on('data', (chunk) => {
+        if (chunk === null) {
+          return;
+        }
+        data += chunk.toString();
+      });
+      body.on('end', () => {
+        resolve(data);
+      });
+    }
+  });
 }

@@ -129,6 +129,29 @@ class Document {
         });
       });
   }
+
+  /**
+   * Converts a Blob from this document.
+   * @param {object} convertOpts - Configuration options for the conversion.
+                                   At least one of the options must be defined.
+   * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
+   * @param {string} convertOpts.converter - Named converter to use.
+   * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
+   * @param {string} convertOpts.format - The destination format, such as 'pdf'.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the response.
+   */
+  convert(convertOpts, opts) {
+    const xpath = convertOpts.xpath || 'blobholder:0';
+    const path = join('id', this.uid, '@blob', xpath, '@convert');
+    return this._nuxeo.request(path)
+      .queryParams({
+        converter: convertOpts.converter,
+        type: convertOpts.type,
+        format: convertOpts.format,
+      })
+      .get(opts);
+  }
 }
 
 export default Document;

@@ -1,7 +1,7 @@
 'use strict';
 
 import join from '../lib/deps/utils/join';
-import { createTextBlob, assertTextBlobContent } from './helpers/blob-helper';
+import { createTextBlob, getTextFromBody } from './helpers/blob-helper';
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';
@@ -130,26 +130,24 @@ describe('Document', () => {
   });
 
   describe('#fetchBlob', () => {
-    it('should download the main blob', (done) => {
-      repository.fetch(FILE_TEST_PATH)
-        .then((doc) => {
-          return doc.fetchBlob();
-        })
-        .then((res) => isBrowser ? res.blob() : res.body)
-        .then((body) => {
-          assertTextBlobContent(body, 'foo', 3, done);
-        }).catch(error => done(error));
+    it('should download the main blob', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.fetchBlob())
+        .then(res => isBrowser ? res.blob() : res.body)
+        .then(body => getTextFromBody(body))
+        .then((text) => {
+          expect(text).to.be.equal('foo');
+        });
     });
 
-    it('should download a blob given a xpath', (done) => {
-      repository.fetch(FILE_TEST_PATH)
-        .then((doc) => {
-          return doc.fetchBlob('file:content');
-        })
+    it('should download a blob given a xpath', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.fetchBlob('file:content'))
         .then((res) => isBrowser ? res.blob() : res.body)
-        .then((body) => {
-          assertTextBlobContent(body, 'foo', 3, done);
-        }).catch(error => done(error));
+        .then(body => getTextFromBody(body))
+        .then((text) => {
+          expect(text).to.be.equal('foo');
+        });
     });
   });
 
@@ -203,6 +201,70 @@ describe('Document', () => {
       }).then((doc) => {
         expect(doc.state).to.be.equal('deleted');
       });
+    });
+  });
+
+  describe('#convert', () => {
+    describe('should convert the main blob', () => {
+      it('using a destination format', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then((doc) => {
+            return doc.convert({ format: 'html' });
+          })
+          .then((res) => isBrowser ? res.blob() : res.body)
+          .then((body) => {
+            return getTextFromBody(body);
+          })
+          .then((text) => {
+            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('foo') >= 0).to.be.true();
+          });
+      });
+
+      it('using a destination mime type', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then((doc) => {
+            return doc.convert({ type: 'text/html' });
+          })
+          .then((res) => isBrowser ? res.blob() : res.body)
+          .then((body) => {
+            return getTextFromBody(body);
+          })
+          .then((text) => {
+            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('foo') >= 0).to.be.true();
+          });
+      });
+
+      it('using a given converter', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then((doc) => {
+            return doc.convert({ converter: 'office2html' });
+          })
+          .then((res) => isBrowser ? res.blob() : res.body)
+          .then((body) => {
+            return getTextFromBody(body);
+          })
+          .then((text) => {
+            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('foo') >= 0).to.be.true();
+          });
+      });
+    });
+
+    it('should convert a blob given an xpath', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          return doc.convert({ xpath: 'file:content', type: 'text/html' });
+        })
+        .then((res) => isBrowser ? res.blob() : res.body)
+        .then((body) => {
+          return getTextFromBody(body);
+        })
+        .then((text) => {
+          expect(text.indexOf('<html>') >= 0).to.be.true();
+          expect(text.indexOf('foo') >= 0).to.be.true();
+        });
     });
   });
 });
