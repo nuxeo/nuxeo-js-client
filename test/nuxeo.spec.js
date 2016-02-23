@@ -5,6 +5,10 @@ describe('Nuxeo', () => {
 
   before(() => {
     nuxeo = new Nuxeo({
+      auth: {
+        username: 'Administrator',
+        password: 'Administrator',
+      },
       schemas: ['dublincore', 'common'],
       headers: {
         foo: 'bar',
@@ -40,11 +44,11 @@ describe('Nuxeo', () => {
 
   describe('#login', () => {
     it('should login and retrieve the logged in user', () => {
-      nuxeo.login().then((user) => {
+      return nuxeo.login().then((user) => {
         expect(user['entity-type']).to.be.equal('user');
         expect(user.id).to.be.equal('Administrator');
         expect(user.properties.username).to.be.equal('Administrator');
-        expect(user.properties.groups).to.be.equal(['administrators']);
+        expect(user.properties.groups).to.be.eql(['administrators']);
       });
     });
   });
