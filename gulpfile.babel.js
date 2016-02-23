@@ -11,7 +11,7 @@ import { Server } from 'karma';
 import gulpSequence from 'gulp-sequence';
 import nsp from 'gulp-nsp';
 
-gulp.task('default', ['dist'], () => {
+gulp.task('default', ['build'], () => {
 });
 
 gulp.task('lint', () => {
