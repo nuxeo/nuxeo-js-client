@@ -20,8 +20,10 @@ import { btoa } from './utils/base64';
 export default function computeAuthentication(opts) {
   switch (opts.auth.method) {
     case 'basic':
-      const authorization = 'Basic ' + btoa(opts.auth.username + ':' + opts.auth.password);
-      opts.headers.Authorization = authorization;
+      if (opts.auth.username && opts.auth.password) {
+        const authorization = 'Basic ' + btoa(opts.auth.username + ':' + opts.auth.password);
+        opts.headers.Authorization = authorization;
+      }
       break;
     default:
       // do nothing
