@@ -18,7 +18,7 @@ module.exports = (config) => {
         plugins: ['add-module-exports', 'transform-es2015-modules-commonjs'],
       }]],
     },
-    reporters: ['progress'],
+    reporters: ['spec'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
