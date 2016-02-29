@@ -9,6 +9,7 @@ import BatchUpload from './upload/batch';
 import Users from './user/users';
 import Groups from './group/groups';
 import Directory from './directory/directory';
+import Workflows from './workflow/workflows';
 import join from './deps/utils/join';
 import Promise from './deps/promise';
 import queryString from 'query-string';
@@ -78,7 +79,6 @@ class Nuxeo extends Base {
       timeout: this._timeout,
       transactionTimeout: this._transactionTimeout,
       httpTimeout: this._httpTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, finalOptions, opts);
     return this.fetch(finalOptions)
@@ -310,6 +310,25 @@ class Nuxeo extends Base {
     };
     finalOptions = extend(true, {}, finalOptions, opts);
     return new Directory(finalOptions);
+  }
+
+  /**
+   * Creates a new {@link Workflows} object.
+   * @param {string} name - The repository name. Default to the Nuxeo's repository name.
+   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @returns {Workflows}
+   */
+  workflows(repositoryName = this._repositoryName, opts = {}) {
+    let finalOptions = {
+      repositoryName,
+      nuxeo: this,
+      headers: this._headers,
+      timeout: this._timeout,
+      httpTimeout: this._httpTimeout,
+      transactionTimeout: this._transactionTimeout,
+    };
+    finalOptions = extend(true, {}, finalOptions, opts);
+    return new Workflows(finalOptions);
   }
 }
 

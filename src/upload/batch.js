@@ -107,7 +107,6 @@ class BatchUpload extends Base {
         timeout: this._timeout,
         httpTimeout: this._httpTimeout,
         transactionTimeout: this._transactionTimeout,
-        auth: this._auth,
       };
 
       return this._nuxeo.fetch(options);
@@ -129,7 +128,6 @@ class BatchUpload extends Base {
       timeout: this._timeout,
       transactionTimeout: this._transactionTimeout,
       httpTimeout: this._httpTimeout,
-      auth: this._auth,
     };
 
     const Promise = this._nuxeo.Promise;
@@ -216,7 +214,6 @@ class BatchUpload extends Base {
       timeout: this._timeout,
       httpTimeout: this._httpTimeout,
       transactionTimeout: this._transactionTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, finalOptions, opts);
 
@@ -246,7 +243,6 @@ class BatchUpload extends Base {
       timeout: this._timeout,
       httpTimeout: this._httpTimeout,
       transactionTimeout: this._transactionTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, finalOptions, opts);
 

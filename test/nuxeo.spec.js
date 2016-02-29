@@ -127,7 +127,7 @@ describe('Nuxeo', () => {
       expect(fooRepository).to.be.an.instanceof(Nuxeo.Repository);
       expect(fooRepository).to.be.an.instanceof(Nuxeo.Base);
       expect(fooRepository._repositoryName).to.be.equal('foo');
-      expect(repository._nuxeo).to.be.equal(nuxeo);
+      expect(fooRepository._nuxeo).to.be.equal(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
@@ -250,6 +250,39 @@ describe('Nuxeo', () => {
         },
       });
       expect(directory._headers).to.be.eql({
+        foo: 'bar',
+        bar: 'foo',
+      });
+    });
+  });
+
+  describe('#workflows', () => {
+    it('should create a Workflows object', () => {
+      const workflows = nuxeo.workflows();
+      expect(workflows).to.be.an.instanceof(Nuxeo.Workflows);
+      expect(workflows).to.be.an.instanceof(Nuxeo.Base);
+      expect(workflows._repositoryName).to.be.equal('default');
+      expect(workflows._nuxeo).to.be.equal(nuxeo);
+
+      const fooWorkflows = nuxeo.workflows('foo');
+      expect(fooWorkflows).to.be.an.instanceof(Nuxeo.Workflows);
+      expect(fooWorkflows).to.be.an.instanceof(Nuxeo.Base);
+      expect(fooWorkflows._repositoryName).to.be.equal('foo');
+      expect(fooWorkflows._nuxeo).to.be.equal(nuxeo);
+    });
+
+    it('should inherit configuration from Nuxeo', () => {
+      const workflows = nuxeo.workflows();
+      expect(workflows._headers).to.be.eql({ foo: 'bar' });
+    });
+
+    it('should allow overriding configuration from Nuxeo', () => {
+      const workflows = nuxeo.workflows('foo', {
+        headers: {
+          bar: 'foo',
+        },
+      });
+      expect(workflows._headers).to.be.eql({
         foo: 'bar',
         bar: 'foo',
       });

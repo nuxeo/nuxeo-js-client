@@ -120,7 +120,6 @@ class Operation extends Base {
       timeout: this._timeout,
       transactionTimeout: this._transactionTimeout,
       httpTimeout: this._httpTimeout,
-      auth: this._auth,
     };
     finalOptions = extend(true, finalOptions, opts);
 

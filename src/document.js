@@ -2,6 +2,7 @@
 
 import extend from 'extend';
 import join from './deps/utils/join';
+import Workflow from './workflow/workflow';
 
 /**
  * The `Document` class wraps a document.
@@ -13,7 +14,7 @@ class Document {
    * Creates a Document.
    * @param {object} doc - The initial document object. This Document object will be extended with doc properties.
    * @param {object} opts - The configuration options.
-   * @param {string} opts.repository - The {@link Repository} object linked to this document.
+   * @param {object} opts.repository - The {@link Repository} object linked to this document.
    */
   constructor(doc, opts) {
     this._nuxeo = opts.nuxeo;
@@ -151,6 +152,48 @@ class Document {
         format: convertOpts.format,
       })
       .get(opts);
+  }
+
+  /**
+   * Starts a workflow on this document given a workflow model name.
+   * @param {string} workflowModelName - The workflow model name.
+   * @param {object} opts - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the started `Workflow` object.
+   */
+  startWorkflow(workflowModelName, opts = {}) {
+    opts.body = {
+      workflowModelName,
+      'entity-type': 'workflow',
+    };
+    const path = join('id', this.uid, '@workflow');
+    return this._nuxeo.request(path)
+      .post(opts)
+      .then((workflow) => {
+        return new Workflow(workflow, {
+          nuxeo: this._nuxeo,
+          documentId: this.uid,
+        });
+      });
+  }
+
+  /**
+   * Fetches the started workflows on this document.
+   * @param {object} opts - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the started workflows.
+   */
+  fetchWorkflows(opts = {}) {
+    const path = join('id', this.uid, '@workflow');
+    return this._nuxeo.request(path)
+      .get(opts)
+      .then(({ entries }) => {
+        const workflows = entries.map((workflow) => {
+          return new Workflow(workflow, {
+            nuxeo: this._nuxeo,
+            documentId: this.uid,
+          });
+        });
+        return workflows;
+      });
   }
 }
 

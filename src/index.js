@@ -15,6 +15,9 @@ import Groups from './group/groups';
 import Group from './group/group';
 import Directory from './directory/directory';
 import DirectoryEntry from './directory/entry';
+import Workflows from './workflow/workflows';
+import Workflow from './workflow/workflow';
+import Task from './workflow/task';
 import Promise from './deps/promise';
 
 Nuxeo.Base = Base;
@@ -31,6 +34,9 @@ Nuxeo.Groups = Groups;
 Nuxeo.Group = Group;
 Nuxeo.Directory = Directory;
 Nuxeo.DirectoryEntry = DirectoryEntry;
+Nuxeo.Workflows = Workflows;
+Nuxeo.Workflow = Workflow;
+Nuxeo.Task = Task;
 
 Nuxeo.promiseLibrary(Promise);
 
