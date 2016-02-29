@@ -62,6 +62,7 @@ class Nuxeo extends Base {
     this._automationURL = join(this._restURL, AUTOMATION);
     this.connected = false;
     this.Promise = Nuxeo.Promise || Promise;
+    this._activeRequests = 0;
   }
 
   /**
@@ -138,12 +139,14 @@ class Nuxeo extends Base {
     }
 
     return new this.Promise((resolve, reject) => {
+      this._activeRequests++;
       doFetch(url, {
         method: options.method,
         headers: options.headers,
         body: options.body,
         credentials: 'include',
       }).then((res) => {
+        this._activeRequests--;
         if (!(/^2/.test('' + res.status))) {
           const error = new Error(res.statusText);
           error.response = res;
@@ -160,7 +163,10 @@ class Nuxeo extends Base {
           return resolve(res.json());
         }
         return resolve(res);
-      }).catch(error => reject(error));
+      }).catch((error) => {
+        this._activeRequests--;
+        return reject(error);
+      });
     });
   }
 
