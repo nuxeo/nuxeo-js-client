@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h2>Client Library for Nuxeo API</h2><p>The Nuxeo JavaScript Client is a JavaScript client library for the Nuxeo Automation and REST API. The library can work in a browser, or in Node.js, using the same API.</p>
+<p>This is an on-going project, supported by Nuxeo.</p>
+<h2>Getting Started</h2><h3>Installation</h3><h4>Node.js Applications</h4><p>After installing <a href="http://nodejs.org/#download">Node.js</a>, use <code>npm</code> to install the <code>nuxeo</code> package:</p>
+<pre class="prettyprint source"><code>$ npm install nuxeo --save</code></pre><p>Then, use the following <code>require</code> statement to have access to the same API than the browser client:</p>
+<pre class="prettyprint source lang-javascript"><code>const Nuxeo = require('nuxeo');
+const nuxeo = new Nuxeo();</code></pre><h4>Bower Powered Applications</h4><p>The <code>nuxeo</code> client can be also installed through bower:</p>
+<pre class="prettyprint source"><code>$ bower install nuxeo --save</code></pre><p>When added to your page, <code>Nuxeo</code> is available as a global variable.</p>
+<pre class="prettyprint source lang-javascript"><code>const nuxeo = new Nuxeo();</code></pre><h4>Angular Applications</h4><p>After adding <code>nuxeo</code> through Bower, you can easily create a service that will return a client:</p>
+<pre class="prettyprint source lang-javascript"><code>...
+.service('nuxeo', function() {
+  return new Nuxeo({
+    baseURL: 'http://localhost:8080/nuxeo/',
+    auth: {
+      username: 'Administrator',
+      password: 'Administrator'
+    }
+  });
+})
+...</code></pre><p>To notify Angular to update the UI when a Nuxeo promise has resolved, you can either wrap Nuxeo promises in <code>$q.when()</code><br>or, the preferred way, configure the Promise library class to be <code>$q</code>.</p>
+<pre class="prettyprint source lang-javascript"><code>// wrap promises
+...
+$q.when(nuxeo.request('/path/').get()).then(res => $scope.res = res);
+// use $q as the Promise library class
+...
+.service('nuxeo', function($q) {
+  Nuxeo.promiseLibrary($q)
+  return new Nuxeo({
+    baseURL: 'http://localhost:8080/nuxeo/',
+    auth: {
+      username: 'Administrator',
+      password: 'Administrator'
+    }
+  });
+})
+...</code></pre><h2>Requirements</h2><p>The Nuxeo JavaScript client works only with Nuxeo Platform &gt;= LTS 2015.</p>
+<h2>Quick Start</h2><p>This quick start guide will show how to do basics operations using the client.</p>
+<h3>Creating a Client</h3><pre class="prettyprint source lang-javascript"><code>const nuxeo = new Nuxeo({
+  auth: {
+    username: 'Administrator',
+    password: 'Administrator',
+  },
+});</code></pre><p>To connect to a different Nuxeo Platform Instance, you can use the following:</p>
+<pre class="prettyprint source lang-javascript"><code>const nuxeo = new Nuxeo({
+  auth: {
+    baseURL: 'http://demo.nuxeo.com/nuxeo/'
+    username: 'Administrator',
+    password: 'Administrator',
+  },
+});</code></pre><h3>Promise Based Calls</h3><p>All API calls return a Promise object:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.operation('Document.GetChildren')
+  .execute()
+  .then((docs) => {
+    // work with docs
+  })
+  .catch((error) => {
+    // something went wrong
+    throw error;
+  });</code></pre><p>When something went wrong, the <code>error</code> is an <code>Error</code> object with a <code>response</code> field containing the whole response.</p>
+<h3>Operation</h3><p><code>Operation</code> object allows you to execute an operation<br>(or operation chain).</p>
+<h4>Samples</h4><p>Calling an operation to create a new folder in the Root document:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.operation('Document.Create')
+  .params({
+    type: 'Folder',
+    name: 'My Folder',
+    properties: 'dc:title=My Folder \ndc:description=A Simple Folder'
+  })
+  .input('/')
+  .execute()
+  .then((doc) => {
+      console.log('Created ' + doc.title + ' folder');
+  })
+  .catch(error => throw error);</code></pre><h3>Request</h3><p>The <code>Request</code> object allows you to call the Nuxeo REST API.</p>
+<h4>Samples</h4><p>Fetching the Administrator user:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.request('user/Administrator')
+  .get()
+  .then((user) => {
+    console.log(user);
+  })
+  .catch(error => throw error);</code></pre><p>Fetching the whole list of Natures:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.request('directory/nature')
+  .get()
+  .then(data => console.log(JSON.stringify(data.entries, null, 2)))
+  .catch(error => throw error);</code></pre><h3>Repository API</h3><p>The <code>Repository</code> object allows you to work with document.</p>
+<h4>Samples</h4><p>Creating a <code>Repository</code> object:</p>
+<pre class="prettyprint source lang-javascript"><code>const defaultRepository = nuxeo.repository(); // 'default' repository
+...
+const testRepository = nuxeo.repository('test'); // 'test' repository
+...</code></pre><p>Fetching the Root document:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.repository().fetch('/').then((doc) => {
+  console.log(doc);
+}).catch(error => throw error);</code></pre><p>Creating a new folder:</p>
+<pre class="prettyprint source lang-javascript"><code>const newFolder = {
+  'entity-type': 'document',
+  name: 'a-folder',
+  type: 'Folder',
+  properties: {
+    'dc:title': 'foo',
+  },
+};
+nuxeo.repository()
+  .create('/', newFolder)
+  .then((doc) => console.log(doc))
+  .catch(error => throw error);</code></pre><p>Deleting a document:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.repository()
+  .delete('/a-folder')
+  .then((res) => {
+    // res.status === 204
+  });</code></pre><h3>Document</h3><p><code>Repository</code> object returns and works with <code>Document</code> objects. <code>Document</code> objects exposes a simpler API<br>to work with a document.</p>
+<h4>Samples</h4><p>Retrieving a <code>Document</code> object:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.repository()
+  .fetch('/')
+  .then((doc) => {
+    // doc instanceof Nuxeo.Document === true
+  })
+  .catch(error => throw error);</code></pre><p>Set a document property:</p>
+<pre class="prettyprint source lang-javascript"><code>doc.set({ 'dc:title': 'foo' });</code></pre><p>Get a document property:</p>
+<pre class="prettyprint source lang-javascript"><code>doc.get('dc:title');</code></pre><p>Save an updated document:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.repository()
+  .fetch('/')
+  .then((doc) => {
+    // doc.title !== 'foo'
+    doc.set({ 'dc:title': 'foo' });
+    return doc.save();
+  })
+  .then((doc) => {
+    // doc.title === 'foo'
+  })
+  .catch(error => throw error);</code></pre><h3>BatchUpload</h3><p>The <code>BatchUpload</code> object allows you to upload blobs to a Nuxeo Platform instance, and use them as operation input or<br>as document property value.</p>
+<h4>Samples</h4><p>Create a Nuxeo.Blob to be uploaded:</p>
+<pre class="prettyprint source lang-javascript"><code>// on the browser, assuming you have a File object 'file'
+const blob = new Nuxeo.Blob({ content: file });
+// the name, mimeType and size will be extracted from the file object itself, you can still override them.
+...
+// on Node.js, assuming you have a Stream 'file'
+const blob = new Nuxeo.Blob({ content: file, name: 'foo.txt', mimeType: 'plain/text', size: 10 })</code></pre><p>Upload a blob:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.batchUpload()
+  .upload(blob)
+  .then(({ batch, blob }) => {
+    // blob instanceof Nuxeo.BatchBlob
+    console.log(blob);
+  })
+  .catch(error => throw error);</code></pre><p>Attach an uploaded blob to a document:</p>
+<pre class="prettyprint source lang-javascript"><code>nuxeo.batchUpload()
+  .upload(blob)
+  .then(({ batch, blob }) => {
+    return nuxeo.operation('Blob.AttachOnDocument')
+      .param('document', '/a-file')
+      .input(blob)
+      .execute({ schemas: ['dublincore', 'file']});
+    }).then((doc) => {
+    console.log(doc.properties[file:content]);
+  })
+  .catch(error => throw error);</code></pre><h2>Contributing</h2><p>See our <a href="https://doc.nuxeo.com/x/VIZH">contribution documentation</a>.</p>
+<h3>Requirements</h3><ul>
+<li><a href="http://nodejs.org/#download">Node.js</a></li>
+<li><a href="http://gulpjs.com/">gulp</a></li>
+<li><a href="http://bower.io/">Bower</a></li>
+<li><a href="https://www.npmjs.com/">npm</a></li>
+</ul>
+<h3>Setup</h3><p>Install <a href="http://nodejs.org/#download">Node.js</a> and then use <code>npm</code> to install all the required<br>libraries:</p>
+<pre class="prettyprint source"><code>$ git clone https://github.com/nuxeo/nuxeo-js-client
+$ cd nuxeo-js-client
+$ npm install</code></pre><h3>Test</h3><p>A Nuxeo Platform instance needs to be running on <code>http://localhost:8080/nuxeo</code> for the tests to be run.</p>
+<p>Tests can be launched on Node.js with:</p>
+<pre class="prettyprint source"><code>$ gulp test:node</code></pre><p>For testing the browser client (tests are run on Firefox and Chrome by default):</p>
+<pre class="prettyprint source"><code>$ gulp test:browser</code></pre><p>To run both Node.js and browser tests:</p>
+<pre class="prettyprint source"><code>$ gulp test</code></pre><h3>Reporting Issues</h3><p>You can follow the developments in the Nuxeo JS Client project of our JIRA bug tracker: <a href="https://jira.nuxeo.com/browse/NXJS">https://jira.nuxeo.com/browse/NXJS</a>.</p>
+<p>You can report issues on <a href="http://answers.nuxeo.com">answers.nuxeo.com</a>.</p>
+<h2>License</h2><p><a href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache License 2.0</a> Copyright (c) Nuxeo SA</p>
+<h2>About Nuxeo</h2><p>Nuxeo dramatically improves how content-based applications are built, managed and deployed, making customers more agile, innovative and successful. Nuxeo provides a next generation, enterprise ready platform for building traditional and cutting-edge content oriented applications. Combining a powerful application development environment with SaaS-based tools and a modular architecture, the Nuxeo Platform and Products provide clear business value to some of the most recognizable brands including Verizon, Electronic Arts, Netflix, Sharp, FICO, the U.S. Navy, and Boeing. Nuxeo is headquartered in New York and Paris. More information is available at <a href="http://www.nuxeo.com/">www.nuxeo.com</a>.</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BatchBlob.html">BatchBlob</a></li><li><a href="BatchUpload.html">BatchUpload</a></li><li><a href="Blob.html">Blob</a></li><li><a href="Directory.html">Directory</a></li><li><a href="DirectoryEntry.html">DirectoryEntry</a></li><li><a href="Document.html">Document</a></li><li><a href="Group.html">Group</a></li><li><a href="Groups.html">Groups</a></li><li><a href="Nuxeo.html">Nuxeo</a></li><li><a href="Operation.html">Operation</a></li><li><a href="Repository.html">Repository</a></li><li><a href="Request.html">Request</a></li><li><a href="User.html">User</a></li><li><a href="Users.html">Users</a></li></ul><h3>Mixins</h3><ul><li><a href="Base.html">Base</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Feb 29 2016 16:15:53 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
