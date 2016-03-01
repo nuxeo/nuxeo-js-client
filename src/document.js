@@ -178,7 +178,7 @@ class Document {
 
   /**
    * Fetches the started workflows on this document.
-   * @param {object} opts - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
    * @returns {Promise} A promise object resolved with the started workflows.
    */
   fetchWorkflows(opts = {}) {
@@ -194,6 +194,41 @@ class Document {
         });
         return workflows;
       });
+  }
+
+  /**
+   * Fetches the renditions list of this document.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the rendition definitions.
+   */
+  fetchRenditions(opts = {}) {
+    const Promise = this._nuxeo.Promise;
+    if (this.contextParameters && this.contextParameters.renditions) {
+      return Promise.resolve(this.contextParameters.renditions);
+    }
+
+    const finalOptions = extend(true, { headers: { 'enrichers-document': 'renditions' } }, opts);
+    return this._repository
+      .fetch(this.uid, finalOptions)
+      .then((doc) => {
+        if (!this.contextParameters) {
+          this.contextParameters = {};
+        }
+        this.contextParameters.renditions = doc.contextParameters.renditions;
+        return this.contextParameters.renditions;
+      });
+  }
+
+  /**
+   * Fetch a rendition from this document.
+   * @param {string} name - The rendition name.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the response.
+   */
+  fetchRendition(name, opts = {}) {
+    const path = join('id', this.uid, '@rendition', name);
+    return this._nuxeo.request(path)
+      .get(opts);
   }
 }
 
