@@ -140,6 +140,43 @@ class Repository extends Base {
       .transactionTimeout(this._transactionTimeout)
       .delete(opts);
   }
+
+  /**
+   * Performs a query returning documents.
+   * Named parameters can be set in the `queryOpts` object, such as
+   * { query: ..., customParam1: 'foo', anotherParam: 'bar'}
+   * @param {object} queryOpts - The query options.
+   * @param {string} queryOpts.query - The query to execute. `query` or `pageProvider` must be set.
+   * @param {string} queryOpts.pageProvider - The page provider name to execute. `query` or `pageProvider` must be set.
+   * @param {array} [queryOpts.queryParams] - Ordered parameters for the query or page provider.
+   * @param {number} [queryOpts.pageSize=0] - The number of results per page.
+   * @param {number} [queryOpts.currentPageIndex=0] - The current page index.
+   * @param {number} [queryOpts.maxResults] - The expected max results.
+   * @param {string} [queryOpts.sortBy] - The sort by info.
+   * @param {string} [queryOpts.sortOrder] - The sort order info.
+     @returns {Promise} A Promise object resolved with the list of documents.
+   */
+  query(queryOpts, opts = {}) {
+    const path = join('query', queryOpts.query ? 'NXQL' : queryOpts.pageProvider);
+    return this._nuxeo.request(path)
+      .repositoryName(this._repositoryName)
+      .schemas(this._schemas)
+      .headers(this._headers)
+      .timeout(this._timeout)
+      .httpTimeout(this._httpTimeout)
+      .transactionTimeout(this._transactionTimeout)
+      .queryParams(queryOpts)
+      .get(opts)
+      .then(({ entries }) => {
+        const docs = entries.map((doc) => {
+          return new Document(doc, {
+            nuxeo: this._nuxeo,
+            repository: this,
+          });
+        });
+        return docs;
+      });
+  }
 }
 
 export default Repository;

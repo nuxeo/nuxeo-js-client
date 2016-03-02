@@ -69,4 +69,76 @@ describe('Repository', () => {
       });
     });
   });
+
+  describe('#query', () => {
+    it('should do a NXQL query', () => {
+      return repository.query({
+        query: 'SELECT * FROM Document WHERE ecm:primaryType = \'Domain\'',
+      })
+      .then((docs) => {
+        expect(docs.length).to.be.equal(1);
+      });
+    });
+
+    it('should use a named page provider', () => {
+      return repository.fetch('/default-domain')
+        .then((doc) => {
+          return repository.query({
+            pageProvider: 'CURRENT_DOC_CHILDREN',
+            queryParams: [doc.uid],
+          });
+        })
+        .then((docs) => {
+          expect(docs.length).to.be.equal(3);
+        });
+    });
+
+    it('should handle pagination', () => {
+      let docId;
+      return repository.fetch('/default-domain')
+        .then((doc) => {
+          docId = doc.uid;
+          return repository.query({
+            pageProvider: 'CURRENT_DOC_CHILDREN',
+            queryParams: [docId],
+            pageSize: 1,
+            currentPageIndex: 0,
+            sortBy: 'dc:title',
+            sortOrder: 'asc',
+          });
+        })
+        .then((docs) => {
+          expect(docs.length).to.be.equal(1);
+          expect(docs[0].title).to.be.equal('Sections');
+        })
+        .then(() => {
+          return repository.query({
+            pageProvider: 'CURRENT_DOC_CHILDREN',
+            queryParams: [docId],
+            pageSize: 1,
+            currentPageIndex: 1,
+            sortBy: 'dc:title',
+            sortOrder: 'asc',
+          });
+        })
+        .then((docs) => {
+          expect(docs.length).to.be.equal(1);
+          expect(docs[0].title).to.be.equal('Templates');
+        })
+        .then(() => {
+          return repository.query({
+            pageProvider: 'CURRENT_DOC_CHILDREN',
+            queryParams: [docId],
+            pageSize: 1,
+            currentPageIndex: 2,
+            sortBy: 'dc:title',
+            sortOrder: 'asc',
+          });
+        })
+        .then((docs) => {
+          expect(docs.length).to.be.equal(1);
+          expect(docs[0].title).to.be.equal('Workspaces');
+        });
+    });
+  });
 });
