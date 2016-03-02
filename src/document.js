@@ -230,6 +230,105 @@ class Document {
     return this._nuxeo.request(path)
       .get(opts);
   }
+
+  /**
+   * Fetches the ACLs list of this document.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the ACLs.
+   */
+  fetchACLs(opts = {}) {
+    const Promise = this._nuxeo.Promise;
+    if (this.contextParameters && this.contextParameters.acls) {
+      return Promise.resolve(this.contextParameters.acls);
+    }
+
+    const finalOptions = extend(true, { headers: { 'enrichers-document': 'acls' } }, opts);
+    return this._repository
+      .fetch(this.uid, finalOptions)
+      .then((doc) => {
+        if (!this.contextParameters) {
+          this.contextParameters = {};
+        }
+        this.contextParameters.acls = doc.contextParameters.acls;
+        return this.contextParameters.acls;
+      });
+  }
+
+  /**
+   * Checks if the user has a given permission. It only works for now for 'Write', 'Read' and 'Everything' permission.
+   * This method may call the server to compute the available permissions (using the 'permissions' enricher)
+   * if not already present.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with true or false.
+   */
+  hasPermission(name, opts = {}) {
+    const Promise = this._nuxeo.Promise;
+    if (this.contextParameters && this.contextParameters.permissions) {
+      return Promise.resolve(this.contextParameters.permissions.indexOf(name) !== -1);
+    }
+
+    const finalOptions = extend(true, { headers: { 'enrichers-document': 'permissions' } }, opts);
+    return this._repository
+      .fetch(this.uid, finalOptions)
+      .then((doc) => {
+        if (!this.contextParameters) {
+          this.contextParameters = {};
+        }
+        this.contextParameters.permissions = doc.contextParameters.permissions;
+        return this.contextParameters.permissions.indexOf(name) !== -1;
+      });
+  }
+
+  /**
+   * Adds a new permission.
+   * @param {object} params - The params needed to add a new permission.
+   * @param {string} params.permission - The permission string to set, such as 'Write', 'Read', ...
+   * @param {string} params.username - The target username. `username` or `email` must be set.
+   * @param {string} params.email - The target email. `username` or `email` must be set.
+   * @param {string} [params.acl] - The ACL name where to add the new permission.
+   * @param {string} [params.begin] - Optional begin date.
+   * @param {string} [params.end] - Optional end date.
+   * @param {string} [params.blockInheritance] - Whether to block the permissions inheritance or not
+   *                                             before adding the new permission.
+   * @param {string} [params.notify] - Optional flag to notify the user of the new permission.
+   * @param {string} [params.comment] - Optional comment used for the user notification.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the updated document.
+   */
+  addPermission(params, opts = {}) {
+    return this._nuxeo.operation('Document.AddPermission')
+      .input(this.uid)
+      .params(params)
+      .execute(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this._repository,
+        });
+      });
+  }
+
+  /**
+   * Removes a permission given its id, or all permissions for a given user.
+   * @param {object} params - The params needed to remove a permission.
+   * @param {string} params.id - The permission id. `id` or `user` must be set.
+   * @param {string} params.user - The user to rem. `id` or `user` must be set.
+   * @param {string} [params.acl] - The ACL name where to add the new permission.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the updated document.
+   */
+  removePermission(params, opts = {}) {
+    return this._nuxeo.operation('Document.RemovePermission')
+      .input(this.uid)
+      .params(params)
+      .execute(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this._repository,
+        });
+      });
+  }
 }
 
 export default Document;

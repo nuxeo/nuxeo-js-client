@@ -33,12 +33,21 @@ describe('Document', () => {
         'dc:title': 'bar.txt',
       },
     };
+    const newUser = {
+      'entity-type': 'user',
+      properties: {
+        username: 'leela',
+        password: 'leela1',
+      },
+    };
     return nuxeo.repository().create(WS_ROOT_PATH, newDoc)
-      .then(() => nuxeo.repository().create(WS_JS_TESTS_PATH, newDoc2));
+      .then(() => nuxeo.repository().create(WS_JS_TESTS_PATH, newDoc2))
+      .then(() => nuxeo.users().create(newUser));
   });
 
   after(() => {
-    return repository.delete(WS_JS_TESTS_PATH);
+    return repository.delete(WS_JS_TESTS_PATH)
+    .then(() => nuxeo.users().delete('leela'));
   });
 
   it('should be retrieved from a Repository', () => {
@@ -291,6 +300,75 @@ describe('Document', () => {
           expect(text).to.contain('<?xml version="1.0" encoding="UTF-8"?>');
           expect(text).to.contain(`<path>${FILE_TEST_PATH.substring(1)}</path>`);
         });
+    });
+  });
+
+  describe('#fetchACLs', () => {
+    it('should fetch a document ACLS', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.fetchACLs())
+        .then((acls) => {
+          expect(acls.length).to.be.equal(1);
+          expect(acls[0].name).to.be.equal('inherited');
+          expect(acls[0].aces[0].id).to.be.equal('Administrator:Everything:true:::');
+          expect(acls[0].aces[1].id).to.be.equal('members:Read:true:::');
+        });
+    });
+  });
+
+  describe('#addPermission', () => {
+    it('should add a new permission', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.addPermission({
+          username: 'members',
+          permission: 'Write',
+        }))
+        .then(doc => doc.fetchACLs())
+        .then((acls) => {
+          expect(acls[0].name).to.be.equal('local');
+          expect(acls[0].aces[0].id).to.be.equal('members:Write:true:Administrator::');
+        });
+    });
+  });
+
+  describe('#removePermission', () => {
+    it('should remove a permission', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.removePermission({
+          id: 'members:Write:true:Administrator::',
+        }))
+        .then(doc => doc.fetchACLs())
+        .then((acls) => {
+          expect(acls[0].name).to.be.equal('inherited');
+        });
+    });
+  });
+
+  describe('#hasPermission', () => {
+    it('should returns true for Write permission on a document', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.hasPermission('Write'))
+        .then(perm => expect(perm).to.be.true());
+    });
+
+    it('should returns false for a non existing permission on a document', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.hasPermission('Foo'))
+        .then(perm => expect(perm).to.be.false());
+    });
+
+    it('should returns false if the user does not have the permission', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then(doc => doc.addPermission({
+          username: 'leela',
+          permission: 'Read',
+        }))
+        .then(() => {
+          return new Nuxeo({ auth: { username: 'leela', password: 'leela1' } });
+        })
+        .then(n => n.repository().fetch(FILE_TEST_PATH))
+        .then(doc => doc.hasPermission('Write'))
+        .then(perm => expect(perm).to.be.false());
     });
   });
 });
