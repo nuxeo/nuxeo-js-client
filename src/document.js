@@ -392,6 +392,29 @@ class Document {
         });
       });
   }
+
+  /**
+   * Fetches the audit of the document.
+   * @param {object} [queryOpts] - Parameters for the audit query.
+   * @param {Array} [queryOpts.eventId] - List of event ids to filter.
+   * @param {Array} [queryOpts.category] - List of categories to filter
+   * @param {Array} [queryOpts.principalName] - List of principal names to filter.
+   * @param {object} [queryOpts.startEventDate] - Start date.
+   * @param {object} [queryParams.endEventDate] - End date
+   * @param {number} [queryOpts.pageSize=0] - The number of results per page.
+   * @param {number} [queryOpts.currentPageIndex=0] - The current page index.
+   * @param {number} [queryOpts.maxResults] - The expected max results.
+   * @param {string} [queryOpts.sortBy] - The sort by info.
+   * @param {string} [queryOpts.sortOrder] - The sort order info.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with audit entries.
+   */
+  fetchAudit(queryOpts = {}, opts = {}) {
+    const path = join('id', this.uid, '@audit');
+    return this._nuxeo.request(path)
+      .queryParams(queryOpts)
+      .get(opts);
+  }
 }
 
 export default Document;
