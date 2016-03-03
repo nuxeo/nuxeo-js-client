@@ -127,9 +127,10 @@ describe('Workflow spec', () => {
     });
   });
 
-  it('should start and end a full serial review workflow on a document', () => {
+  it('should start and end a full serial review workflow on a document', function f(done) {
+    this.timeout(5000);
     let currentWorkflow;
-    return repository.fetch(FILE_TEST_PATH)
+    repository.fetch(FILE_TEST_PATH)
       .then(doc => doc.startWorkflow('SerialDocumentReview'))
       .then((workflow) => {
         expect(workflow).to.be.an.instanceof(Nuxeo.Workflow);
@@ -168,6 +169,8 @@ describe('Workflow spec', () => {
       .then(doc => doc.fetchWorkflows())
       .then(workflows => {
         expect(workflows.length).to.be.equal(0);
-      });
+        done();
+      })
+      .catch(e => done(e));
   });
 });

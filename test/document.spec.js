@@ -221,7 +221,9 @@ describe('Document', () => {
     });
   });
 
-  describe('#convert', () => {
+  describe('#convert', function f() {
+    // increase the timeout as it may be needed for the conversion
+    this.timeout(10000);
     describe('should convert the main blob', () => {
       it('using a destination format', () => {
         return repository.fetch(FILE_TEST_PATH)
