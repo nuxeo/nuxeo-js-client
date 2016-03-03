@@ -329,6 +329,69 @@ class Document {
         });
       });
   }
+
+  /**
+   * Fetches the lock status of the document.
+   * @example
+   * // if the doc is locked
+   * doc.fetchLockStatus().then((status) => {
+   *   // status.lockOwner === 'Administrator'
+   *   // status.lockCreated === '2011-10-23T12:00:00.00Z'
+   * })
+   * @example
+   * // if the doc is not locked
+   * doc.fetchLockStatus().then((status) => {
+   *   // status.lockOwner === undefined
+   *   // status.lockCreated === undefined
+   * })
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with true or false.
+   */
+  fetchLockStatus(opts = {}) {
+    const finalOptions = extend(true, { headers: { 'fetch-document': 'lock' } }, opts);
+    return this._repository
+      .fetch(this.uid, finalOptions)
+      .then((doc) => {
+        return {
+          lockOwner: doc.lockOwner,
+          lockCreated: doc.lockCreated,
+        };
+      });
+  }
+
+  /**
+   * Locks the document.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the updated document.
+   */
+  lock(opts = {}) {
+    return this._nuxeo.operation('Document.Lock')
+      .input(this.uid)
+      .execute(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this._repository,
+        });
+      });
+  }
+
+  /**
+   * Unlocks the document.
+   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @returns {Promise} A promise object resolved with the updated document.
+   */
+  unlock(opts = {}) {
+    return this._nuxeo.operation('Document.Unlock')
+      .input(this.uid)
+      .execute(opts)
+      .then((res) => {
+        return new Document(res, {
+          nuxeo: this._nuxeo,
+          repository: this._repository,
+        });
+      });
+  }
 }
 
 export default Document;

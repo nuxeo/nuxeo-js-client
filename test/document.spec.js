@@ -371,4 +371,68 @@ describe('Document', () => {
         .then(perm => expect(perm).to.be.false());
     });
   });
+
+  describe('Lock Status', () => {
+    describe('#lock', () => {
+      it('should lock the document', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then(doc => doc.lock())
+          .then(doc => doc.fetchLockStatus())
+          .then((status) => {
+            expect(status.lockOwner).to.exist();
+            expect(status.lockCreated).to.exist();
+          });
+      });
+
+      it('should throw an error when locking a document already locked', () => {
+        const p = repository.fetch(FILE_TEST_PATH)
+          .then(doc => doc.lock());
+        return expect(p).to.be.rejected();
+      });
+    });
+
+    describe('#unlock', () => {
+      it('should unlock the document', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then(doc => doc.unlock())
+          .then(doc => doc.fetchLockStatus())
+          .then((status) => {
+            expect(status.lockOwner).to.not.exist();
+            expect(status.lockCreated).to.not.exist();
+          });
+      });
+
+      it('should do nothing if the document is not locked', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then(doc => doc.unlock())
+          .then(doc => doc.fetchLockStatus())
+          .then((status) => {
+            expect(status.lockOwner).to.not.exist();
+            expect(status.lockCreated).to.not.exist();
+          });
+      });
+    });
+
+    describe('#fetchLockStatus', () => {
+      it('should fetch nothing for a non locked document', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then(doc => doc.fetchLockStatus())
+          .then((status) => {
+            expect(status.lockOwner).to.not.exist();
+            expect(status.lockCreated).to.not.exist();
+          });
+      });
+
+      it('should fetch the lock status of a locked document', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then(doc => doc.lock())
+          .then(doc => doc.fetchLockStatus())
+          .then((status) => {
+            expect(status.lockOwner).to.exist();
+            expect(status.lockOwner).to.be.equal('Administrator');
+            expect(status.lockCreated).to.exist();
+          });
+      });
+    });
+  });
 });
