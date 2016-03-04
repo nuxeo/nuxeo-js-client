@@ -55,8 +55,10 @@
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.2.2",
     "karma-firefox-launcher": "^0.1.7",
+    "karma-junit-reporter": "^0.3.8",
     "karma-mocha": "^0.2.1",
     "karma-spec-reporter": "0.0.24",
+    "mocha-junit-reporter": "^1.9.1",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0"
   },

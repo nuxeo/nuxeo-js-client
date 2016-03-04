@@ -1,0 +1,7 @@
+<component name="org.nuxeo.cors">
+  <extension target="org.nuxeo.ecm.platform.web.common.requestcontroller.service.RequestControllerService" point="corsConfig">
+    <corsConfig name="test-config" supportedMethods="GET,POST,PUT,DELETE,HEAD,OPTIONS">
+      <pattern>/nuxeo/.*</pattern>
+    </corsConfig>
+  </extension>
+</component>

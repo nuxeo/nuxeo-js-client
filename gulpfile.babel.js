@@ -57,6 +57,39 @@ gulp.task('test:browser', ['build:node', 'build:browser'], (done) => {
 
 gulp.task('test', gulpSequence('test:node', 'test:browser'));
 
+gulp.task('it:node', ['build:node'], () => {
+  return gulp.src('test/**/*.spec.js')
+    .pipe(mocha({
+      require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
+      compilers: 'js:babel-core/register',
+      reporter: 'mocha-junit-reporter',
+      reporterOptions: 'mochaFile=./ftest/target/js-reports/test-results-node.xml',
+    }))
+    .on('error', () => {
+      /* eslint no-console: 0 */
+      console.error('Node.js tests failed');
+    });
+});
+
+gulp.task('it:browser', ['build:node', 'build:browser'], (done) => {
+  new Server({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true,
+    reporters: ['junit'],
+    junitReporter: {
+      outputDir: './ftest/target/js-reports/',
+      useBrowserName: true,
+    },
+  }, (exitStatus) => done(exitStatus ? 'Browser tests failed' : undefined)).start();
+});
+
+gulp.task('it', () => {
+  gulpSequence('it:node', 'it:browser', () => {
+    // always return 0 status code for frontend-maven-plugin
+    return process.exit(0);
+  });
+});
+
 gulp.task('prepublish', ['nsp', 'test']);
 
 gulp.task('nsp', (done) => {
