@@ -17,7 +17,6 @@ describe('Groups', () => {
         .then((group) => {
           expect(group.groupname).to.be.equal('administrators');
           expect(group.grouplabel).to.be.equal('Administrators group');
-          expect(group.memberUsers).to.be.eql(['Administrator']);
         });
     });
   });
@@ -34,7 +33,6 @@ describe('Groups', () => {
         .then((group) => {
           expect(group.groupname).to.be.equal(FOO_GROUPNAME);
           expect(group.grouplabel).to.be.equal('Foo');
-          expect(group.memberUsers).to.be.eql(['Administrator']);
         });
     });
   });
