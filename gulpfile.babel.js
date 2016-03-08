@@ -11,7 +11,6 @@ import { Server } from 'karma';
 import gulpSequence from 'gulp-sequence';
 import nsp from 'gulp-nsp';
 import fs from'fs';
-import childProcess from 'child_process';
 import path from 'path';
 
 gulp.task('default', ['build'], () => {
@@ -76,8 +75,8 @@ gulp.task('it:node', ['build:node'], () => {
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
       compilers: 'js:babel-core/register',
-      reporter: 'mocha-junit-reporter',
-      reporterOptions: 'mochaFile=./ftest/target/js-reports/test-results-node.xml',
+      reporter: 'mocha-jenkins-reporter',
+      reporterOptions: 'junit_report_path=./ftest/target/js-reports/test-results-node.xml,junit_report_stack=1',
     }))
     .on('error', () => {
       /* eslint no-console: 0 */
@@ -89,7 +88,7 @@ gulp.task('it:browser', ['build:node', 'build:browser'], (done) => {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true,
-    reporters: ['junit'],
+    reporters: ['junit', 'spec'],
     junitReporter: {
       outputDir: './ftest/target/js-reports/',
       useBrowserName: true,
