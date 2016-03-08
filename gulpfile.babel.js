@@ -10,6 +10,9 @@ import babelify from 'babelify';
 import { Server } from 'karma';
 import gulpSequence from 'gulp-sequence';
 import nsp from 'gulp-nsp';
+import fs from'fs';
+import childProcess from 'child_process';
+import path from 'path';
 
 gulp.task('default', ['build'], () => {
 });
@@ -57,6 +60,17 @@ gulp.task('test:browser', ['build:node', 'build:browser'], (done) => {
 
 gulp.task('test', gulpSequence('test:node', 'test:browser'));
 
+gulp.task('checkstyle', () => {
+  const targetFolder = 'ftest/target';
+  if (!fs.existsSync(targetFolder)) {
+    fs.mkdirSync(targetFolder);
+  }
+
+  return gulp.src(['src/**', '!node_modules/**'])
+    .pipe(eslint())
+    .pipe(eslint.format('checkstyle', fs.createWriteStream(path.join(targetFolder, '/checkstyle-result.xml'))));
+});
+
 gulp.task('it:node', ['build:node'], () => {
   return gulp.src('test/**/*.spec.js')
     .pipe(mocha({
@@ -84,7 +98,7 @@ gulp.task('it:browser', ['build:node', 'build:browser'], (done) => {
 });
 
 gulp.task('it', () => {
-  gulpSequence('it:node', 'it:browser', () => {
+  gulpSequence('checkstyle', 'it:node', 'it:browser', () => {
     // always return 0 status code for frontend-maven-plugin
     return process.exit(0);
   });
