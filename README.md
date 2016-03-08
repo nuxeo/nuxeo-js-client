@@ -1,5 +1,7 @@
 ## Client Library for Nuxeo API
 
+[![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=nuxeo-js-client-master)](http://qa.nuxeo.org/jenkins/job/nuxeo-js-client-master)
+
 The Nuxeo JavaScript Client is a JavaScript client library for the Nuxeo Automation and REST API. The library can work in a browser, or in Node.js, using the same API.
 
 This is an on-going project, supported by Nuxeo.
