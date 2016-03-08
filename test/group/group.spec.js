@@ -21,7 +21,7 @@ describe('Group', () => {
     return groups.delete(FOO_GROUPNAME);
   });
 
-  it('should be retrieved from Nuxeo.user', () => {
+  it('should be retrieved from Groups', () => {
     return groups.fetch('administrators').then((group) => {
       expect(group).to.be.an.instanceof(Nuxeo.Group);
       expect(group.groupname).to.exist();
