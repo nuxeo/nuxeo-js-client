@@ -102,7 +102,7 @@ To connect to a different Nuxeo Platform Instance, you can use the following:
 ```javascript
 const nuxeo = new Nuxeo({
   auth: {
-    baseURL: 'http://demo.nuxeo.com/nuxeo/'
+    baseURL: 'http://demo.nuxeo.com/nuxeo/',
     username: 'Administrator',
     password: 'Administrator',
   },
