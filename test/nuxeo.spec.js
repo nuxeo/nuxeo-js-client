@@ -1,5 +1,7 @@
 'use strict';
 
+import pkg from '../package.json';
+
 describe('Nuxeo', () => {
   let nuxeo;
 
@@ -14,6 +16,10 @@ describe('Nuxeo', () => {
         foo: 'bar',
       },
     });
+  });
+
+  it('should have a version', () => {
+    expect(Nuxeo.version).to.be.equal(pkg.version);
   });
 
   it('should have default values', () => {

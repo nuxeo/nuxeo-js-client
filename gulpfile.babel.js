@@ -10,8 +10,10 @@ import babelify from 'babelify';
 import { Server } from 'karma';
 import gulpSequence from 'gulp-sequence';
 import nsp from 'gulp-nsp';
+import replace from 'gulp-replace';
 import fs from'fs';
 import path from 'path';
+import pkg from './package.json';
 
 gulp.task('default', ['build'], () => {
 });
@@ -25,6 +27,7 @@ gulp.task('lint', () => {
 
 gulp.task('build:node', ['lint'], () => {
   return gulp.src('src/**')
+    .pipe(replace('__VERSION__', pkg.version))
     .pipe(babel())
     .pipe(gulp.dest('lib'));
 });
@@ -33,6 +36,10 @@ gulp.task('build:browser', ['lint'], () => {
   return browserify({
     entries: [require.resolve('babel-polyfill'), 'src/index.js'],
     standalone: 'Nuxeo',
+  })
+  .transform('browserify-versionify', {
+    placeholder: '__VERSION__',
+    version: pkg.version,
   })
   .transform(babelify)
   .bundle()

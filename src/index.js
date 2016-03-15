@@ -39,6 +39,7 @@ Nuxeo.Workflows = Workflows;
 Nuxeo.Workflow = Workflow;
 Nuxeo.Task = Task;
 Nuxeo.constants = constants;
+Nuxeo.version = '__VERSION__';
 
 Nuxeo.promiseLibrary(Promise);
 
