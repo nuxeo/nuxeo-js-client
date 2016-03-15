@@ -50,7 +50,7 @@ class User extends Base {
 
   /**
    * Saves the user. It updates only the 'dirty properties' set through the {@link User#set} method.
-   * @param {object} [opts] - Options overriding the ones from the User object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated user.
    */
   save(opts = {}) {

@@ -23,7 +23,7 @@ class Group extends Base {
 
   /**
    * Saves the group.
-   * @param {object} [opts] - Options overriding the ones from the Group object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated group.
    */
   save(opts = {}) {

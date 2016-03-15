@@ -41,6 +41,7 @@ class BatchUpload extends Base {
   /**
    * Creates a BatchUpload.
    * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this BatchUpload object.
    * @param {Number} [opts.concurrency=5] - Number of concurrent uploads.
    */
   constructor(opts = {}) {
@@ -203,7 +204,7 @@ class BatchUpload extends Base {
   }
 
   /**
-   * Fetch a blob at a given index from the batch.
+   * Fetches a blob at a given index from the batch.
    * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlob.
    */
   fetchBlob(index, opts = {}) {
@@ -229,7 +230,7 @@ class BatchUpload extends Base {
   }
 
   /**
-   * Fetch the blobs from the batch.
+   * Fetches the blobs from the batch.
    * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlobs.
    */
   fetchBlobs(opts) {

@@ -53,9 +53,10 @@ const DEFAULT_OPTS = {
 class Nuxeo extends Base {
   /**
    * Creates a new Nuxeo instance.
-   * @param {object} opts - The configuration options.
+   * @param {object} [opts] - The configuration options.
    * @param {string} [opts.baseURL=http://localhost:8080/nuxeo/] - Base URL of the Nuxeo Platform.
    * @param {string} [opts.apiPath=api/v1] - The API path.
+   * @param {object} [opts.auth] - The authentication configuration.
    */
   constructor(opts = {}) {
     const options = extend(true, {}, DEFAULT_OPTS, opts);
@@ -71,7 +72,7 @@ class Nuxeo extends Base {
 
   /**
    * Connects to the Nuxeo Platform instance using the configured authentication.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise resolved with the logged in user.
    */
   login(opts = {}) {
@@ -191,7 +192,7 @@ class Nuxeo extends Base {
   /**
    * Creates a new {@link Operation} object.
    * @param {string} id - The operation ID.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Operation}
    */
   operation(id, opts = {}) {
@@ -208,7 +209,7 @@ class Nuxeo extends Base {
   /**
    * Creates a new {@link Request} object.
    * @param {string} path - The request default path.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Request}
    */
   request(path, opts = {}) {
@@ -225,7 +226,7 @@ class Nuxeo extends Base {
   /**
    * Creates a new {@link Repository} object.
    * @param {string} name - The repository name. Default to the Nuxeo's repository name.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Repository}
    */
   repository(name = null, opts = {}) {
@@ -249,7 +250,7 @@ class Nuxeo extends Base {
 
   /**
    * Creates a new {@link BatchUpload} object.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {BatchUpload}
    */
   batchUpload(opts = {}) {
@@ -264,7 +265,7 @@ class Nuxeo extends Base {
 
   /**
    * Creates a new {@link Users} object to manage users.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Users}
    */
   users(opts = {}) {
@@ -278,7 +279,7 @@ class Nuxeo extends Base {
 
   /**
    * Creates a new {@link Groups} object to manage groups.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Groups}
    */
   groups(opts = {}) {
@@ -293,7 +294,7 @@ class Nuxeo extends Base {
   /**
    * Creates a new {@link Directory} object.
    * @param {string} name - The directory name.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Directory}
    */
   directory(name, opts = {}) {
@@ -309,7 +310,7 @@ class Nuxeo extends Base {
   /**
    * Creates a new {@link Workflows} object.
    * @param {string} name - The repository name. Default to the Nuxeo's repository name.
-   * @param {object} opts - Options overriding the ones from the Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Workflows}
    */
   workflows(repositoryName = this._repositoryName, opts = {}) {

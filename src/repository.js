@@ -36,6 +36,7 @@ class Repository extends Base {
   /**
    * Creates a Repository.
    * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this repository.
    */
   constructor(opts = {}) {
     super(opts);
@@ -45,7 +46,7 @@ class Repository extends Base {
   /**
    * Fetches a document given a document ref.
    * @param {string} ref - The document ref. A path if starting with '/', otherwise and id.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the {@link Document}.
    */
   fetch(ref, opts = {}) {
@@ -64,7 +65,7 @@ class Repository extends Base {
    * Creates a document.
    * @param {string} parentRef - The parent document ref. A path if starting with '/', otherwise and id.
    * @param {object} doc - The document to be created.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the created {@link Document}.
    */
   create(parentRef, doc, opts = {}) {
@@ -88,7 +89,7 @@ class Repository extends Base {
   /**
    * Updates a document. Assumes that the doc object has an uid field.
    * @param {object} doc - The document to be updated.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the updated {@link Document}.
    */
   update(doc, opts = {}) {
@@ -111,10 +112,10 @@ class Repository extends Base {
   /**
    * Deletes a document given a document ref.
    * @param {string} ref - The document ref. A path if starting with '/', otherwise and id.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
-  delete(ref, opts) {
+  delete(ref, opts = {}) {
     const options = this._computeOptions(opts);
     const path = computePath(ref);
     return this._nuxeo.request(path)
@@ -134,7 +135,8 @@ class Repository extends Base {
    * @param {number} [queryOpts.maxResults] - The expected max results.
    * @param {string} [queryOpts.sortBy] - The sort by info.
    * @param {string} [queryOpts.sortOrder] - The sort order info.
-     @returns {Promise} A Promise object resolved with the list of documents.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the list of documents.
    */
   query(queryOpts, opts = {}) {
     const options = this._computeOptions(opts);

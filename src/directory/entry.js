@@ -18,7 +18,6 @@ class DirectoryEntry extends Base {
    */
   constructor(entry, opts) {
     super(opts);
-    this._nuxeo = opts.nuxeo;
     this._directory = opts.directory;
     this.properties = {};
     this._dirtyProperties = {
@@ -54,7 +53,7 @@ class DirectoryEntry extends Base {
 
   /**
    * Saves the entry. It updates only the 'dirty properties' set through the {@link DirectoryEntry#set} method.
-   * @param {object} [opts] - Options overriding the ones from the Document object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated entry.
    */
   save(opts = {}) {

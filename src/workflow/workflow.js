@@ -17,7 +17,7 @@ class Workflow extends Base {
    * Creates a `Workflow`.
    * @param {object} workflow - The initial workflow object. This User object will be extended with workflow properties.
    * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this task.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this workflow.
    * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
    */
   constructor(workflow, opts) {
@@ -29,10 +29,10 @@ class Workflow extends Base {
 
   /**
    * Fetches the tasks of this workflow.
-   * @param {object} opts - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the tasks.
    */
-  fetchTasks(opts) {
+  fetchTasks(opts = {}) {
     const options = this._computeOptions(opts);
     return this._buildTasksRequest()
       .get(options)
@@ -48,10 +48,10 @@ class Workflow extends Base {
 
   /**
    * Fetches this workflow graph.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the workflow graph.
    */
-  fetchGraph(opts) {
+  fetchGraph(opts = {}) {
     const options = this._computeOptions(opts);
     const path = join(WORKFLOW_PATH, this.id, 'graph');
     return this._nuxeo.request(path)

@@ -16,7 +16,8 @@ class Document extends Base {
    * Creates a Document.
    * @param {object} doc - The initial document object. This Document object will be extended with doc properties.
    * @param {object} opts - The configuration options.
-   * @param {object} opts.repository - The {@link Repository} object linked to this document.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this `Document` object.
+   * @param {object} opts.repository - The {@link Repository} object linked to this `Document` object.
    */
   constructor(doc, opts) {
     super(opts);
@@ -54,7 +55,7 @@ class Document extends Base {
 
   /**
    * Saves the document. It updates only the 'dirty properties' set through the {@link Document#set} method.
-   * @param {object} [opts] - Options overriding the ones from the underlying Repository object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
   save(opts = {}) {
@@ -77,7 +78,7 @@ class Document extends Base {
   /**
    * Fetch a Blob from this document.
    * @param {string} [xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the response.
    */
   fetchBlob(xpath = 'blobholder:0', opts = {}) {
@@ -96,10 +97,10 @@ class Document extends Base {
    * Moves this document.
    * @param {string} dst - The destination folder.
    * @param {string} [name] - The destination name, can be null.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the moved document.
    */
-  move(dst, name, opts = {}) {
+  move(dst, name = null, opts = {}) {
     const options = this._computeOptions(opts);
     return this._nuxeo.operation('Document.Move')
       .input(this.uid)
@@ -118,7 +119,7 @@ class Document extends Base {
   /**
    * Follows a given life cycle transition.
    * @param {string} transitionName - The life cycle transition to follow.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
   followTransition(transitionName, opts = {}) {
@@ -139,12 +140,12 @@ class Document extends Base {
   /**
    * Converts a Blob from this document.
    * @param {object} convertOpts - Configuration options for the conversion.
-                                   At least one of the options must be defined.
+                                   At least one of the 'converter', 'type' or 'format' option must be defined.
    * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
    * @param {string} convertOpts.converter - Named converter to use.
    * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
    * @param {string} convertOpts.format - The destination format, such as 'pdf'.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the response.
    */
   convert(convertOpts, opts = {}) {
@@ -163,7 +164,7 @@ class Document extends Base {
   /**
    * Starts a workflow on this document given a workflow model name.
    * @param {string} workflowModelName - The workflow model name.
-   * @param {object} opts - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the started `Workflow` object.
    */
   startWorkflow(workflowModelName, opts = {}) {
@@ -184,7 +185,7 @@ class Document extends Base {
 
   /**
    * Fetches the started workflows on this document.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the started workflows.
    */
   fetchWorkflows(opts = {}) {
@@ -204,7 +205,7 @@ class Document extends Base {
 
   /**
    * Fetches the renditions list of this document.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the rendition definitions.
    */
   fetchRenditions(opts = {}) {
@@ -229,7 +230,7 @@ class Document extends Base {
   /**
    * Fetch a rendition from this document.
    * @param {string} name - The rendition name.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the response.
    */
   fetchRendition(name, opts = {}) {
@@ -241,7 +242,7 @@ class Document extends Base {
 
   /**
    * Fetches the ACLs list of this document.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the ACLs.
    */
   fetchACLs(opts = {}) {
@@ -267,7 +268,7 @@ class Document extends Base {
    * Checks if the user has a given permission. It only works for now for 'Write', 'Read' and 'Everything' permission.
    * This method may call the server to compute the available permissions (using the 'permissions' enricher)
    * if not already present.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with true or false.
    */
   hasPermission(name, opts = {}) {
@@ -302,7 +303,7 @@ class Document extends Base {
    *                                             before adding the new permission.
    * @param {string} [params.notify] - Optional flag to notify the user of the new permission.
    * @param {string} [params.comment] - Optional comment used for the user notification.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
   addPermission(params, opts = {}) {
@@ -324,7 +325,7 @@ class Document extends Base {
    * @param {string} params.id - The permission id. `id` or `user` must be set.
    * @param {string} params.user - The user to rem. `id` or `user` must be set.
    * @param {string} [params.acl] - The ACL name where to add the new permission.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
   removePermission(params, opts = {}) {
@@ -356,7 +357,7 @@ class Document extends Base {
    *     // status.lockOwner === undefined
    *     // status.lockCreated === undefined
    *   });
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with true or false.
    */
   fetchLockStatus(opts = {}) {
@@ -374,7 +375,7 @@ class Document extends Base {
 
   /**
    * Locks the document.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
   lock(opts = {}) {
@@ -391,7 +392,7 @@ class Document extends Base {
 
   /**
    * Unlocks the document.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
   unlock(opts = {}) {
@@ -419,7 +420,7 @@ class Document extends Base {
    * @param {number} [queryOpts.maxResults] - The expected max results.
    * @param {string} [queryOpts.sortBy] - The sort by info.
    * @param {string} [queryOpts.sortOrder] - The sort order info.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with audit entries.
    */
   fetchAudit(queryOpts = {}, opts = {}) {

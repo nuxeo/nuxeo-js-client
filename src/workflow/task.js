@@ -41,13 +41,13 @@ class Task extends Base {
    * Completes the task.
    * @param {string} action - The action name to complete the task.
    * @param {object} [taskOpts] - Configuration options for the task completion.
-   * @param {string} [taskOpts.variables] - Optional variables to merge with the existing ones.
+   * @param {string} [taskOpts.variables] - Optional variables to override the existing ones.
    * @param {string} [taskOpts.comment] - Optional comment.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the completed task.
    */
   complete(action, taskOpts = {}, opts = {}) {
-    const variables = extend(true, {}, this.variables, taskOpts.variables);
+    const variables = taskOpts.variables || this.variables;
     opts.body = {
       variables,
       'entity-type': 'task',
@@ -63,9 +63,9 @@ class Task extends Base {
   /**
    * Reassigns the task to the given actors.
    * @param {string} actors - Actors to reassign the task.
-   * @param {object} taskOpts - Configuration options for the task completion.
+   * @param {object} [taskOpts] - Configuration options for the task reassignment.
    * @param {string} [taskOpts.comment] - Optional comment.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with nothing.
    */
   reassign(actors, taskOpts = {}, opts = {}) {
@@ -82,9 +82,9 @@ class Task extends Base {
   /**
    * Delegates the task to the given actors.
    * @param {string} actors - Actors to delegate the task.
-   * @param {object} taskOpts - Configuration options for the task completion.
+   * @param {object} [taskOpts] - Configuration options for the task delegation.
    * @param {string} [taskOpts.comment] - Optional comment.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with nothing.
    */
   delegate(actors, taskOpts = {}, opts = {}) {

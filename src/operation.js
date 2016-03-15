@@ -40,6 +40,7 @@ class Operation extends Base {
   /**
    * Creates an Operation.
    * @param {string} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this `Operation` object.
    * @param {string} opts.id - The ID of the operation.
    * @param {string} opts.url - The automation URL.
    */
@@ -99,7 +100,7 @@ class Operation extends Base {
 
   /**
    * Executes this operation.
-   * @param {object} opts - Options overriding the ones from the Operation object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the Operation.
    */
   execute(opts = {}) {

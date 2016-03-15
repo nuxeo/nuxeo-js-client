@@ -32,9 +32,10 @@ class Directory extends Base {
   /**
    * Creates a Directory.
    * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this directory.
    * @param {string} opts.directoryName - The name of this directory.
    */
-  constructor(opts = {}) {
+  constructor(opts) {
     super(opts);
     this._nuxeo = opts.nuxeo;
     this._directoryName = opts.directoryName;
@@ -43,7 +44,7 @@ class Directory extends Base {
 
   /**
    * Fetches all directory entries.
-   * @param {object} [opts] - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the entries.
    */
   fetchAll(opts = {}) {
@@ -64,7 +65,7 @@ class Directory extends Base {
   /**
    * Fetches a directory entry given its id.
    * @param {string} id - The entry id.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the {@link DirectoryEntry}.
    */
   fetch(id, opts) {
@@ -82,7 +83,7 @@ class Directory extends Base {
   /**
    * Creates an entry.
    * @param {object} entry - The entry to be created.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the created {@link DirectoryEntry}.
    */
   create(entry, opts = {}) {
@@ -105,7 +106,7 @@ class Directory extends Base {
   /**
    * Updates an entry. Assumes that the entry object has an `id` property.
    * @param {object} entry - The entry to be updated.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the updated {@link DirectoryEntry}.
    */
   update(entry, opts = {}) {
@@ -128,7 +129,7 @@ class Directory extends Base {
   /**
    * Deletes an entry given its id.
    * @param {string} id - The entry id.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
   delete(id, opts) {

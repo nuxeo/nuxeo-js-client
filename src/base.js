@@ -144,7 +144,7 @@ class Base {
   }
 
   /**
-   * Sets a global timeout, used as HTTP timeout and transaction timeout
+   * Sets the global timeout, used as HTTP timeout and transaction timeout
    * by default.
    * @returns {Base} The object itself.
    */
@@ -154,7 +154,7 @@ class Base {
   }
 
   /**
-   * Sets a transaction timeout.
+   * Sets the transaction timeout.
    * @returns {Base} The object itself.
    */
   transactionTimeout(transactionTimeout) {
@@ -163,7 +163,7 @@ class Base {
   }
 
   /**
-   * Sets a HTTP timeout.
+   * Sets the HTTP timeout.
    * @returns {Base} The object itself.
    */
   httpTimeout(httpTimeout) {
@@ -171,6 +171,11 @@ class Base {
     return this;
   }
 
+ /**
+  * Computes a full options object from an optional `opts` object and the ones from this object.
+  * `schemas`, `enrichers`, `fetchProperties` and `headers` are not merged but the ones from the `opts` object
+  * override the ones from this object.
+  */
   _computeOptions(opts = {}) {
     const options = extend(true, {}, this._baseOptions, opts);
     // force some options that we don't merge

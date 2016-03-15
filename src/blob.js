@@ -20,11 +20,11 @@ class Blob {
   /*
    * Creates a Blob.
    * @param {string} opts.content - The content of the Blob. Could be a File or Blob object in the browser.
-   * @param {string} opts.name - The name of the Blob. It overrides the one from content.name.
-   * @param {string} opts.mimeType - The mime-type of the Blob. It overrides the one from content.type.
-   * @param {string} opts.size - The size of the Blob. It overrides the one from content.size.
+   * @param {string} [opts.name] - The name of the Blob. It overrides the one from content.name.
+   * @param {string} [opts.mimeType] - The mime-type of the Blob. It overrides the one from content.type.
+   * @param {string} [opts.size] - The size of the Blob. It overrides the one from content.size.
    */
-  constructor(opts = {}) {
+  constructor(opts) {
     this.content = opts.content;
     this.name = opts.name || this.content.name;
     this.mimeType = opts.mimeType || this.content.type;

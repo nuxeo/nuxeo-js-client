@@ -34,8 +34,9 @@ class Users extends Base {
   /**
    * Creates a Users object.
    * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Users object.
    */
-  constructor(opts = {}) {
+  constructor(opts) {
     super(opts);
     this._nuxeo = opts.nuxeo;
   }
@@ -43,7 +44,7 @@ class Users extends Base {
   /**
    * Fetches an user given an username.
    * @param {string} username - The username.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the {@link User}.
    */
   fetch(username, opts = {}) {
@@ -60,7 +61,7 @@ class Users extends Base {
   /**
    * Creates an user.
    * @param {object} user - The user to be created.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the created {@link User}.
    */
   create(user, opts = {}) {
@@ -80,7 +81,7 @@ class Users extends Base {
   /**
    * Updates an user. Assumes that the user object has an id field.
    * @param {object} user - The user to be updated.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the updated {@link User}.
    */
   update(user, opts = {}) {
@@ -102,7 +103,7 @@ class Users extends Base {
   /**
    * Deletes an user given an username.
    * @param {string} username - The username.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
   delete(username, opts = {}) {

@@ -36,6 +36,7 @@ class Workflows extends Base {
   /**
    * Creates a Workflows object.
    * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Workflows object.
    */
   constructor(opts = {}) {
     super(opts);
@@ -48,7 +49,7 @@ class Workflows extends Base {
    * @param {object} [workflowOpts] - Configuration options for the start of the workflow.
    * @param {Array} [workflowOpts.attachedDocumentIds] - The attached documents id for the workflow.
    * @param {object} [workflowOpts.variables] - The initial variables of the workflow.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the started `Workflow` object.
    */
   start(workflowModelName, workflowOpts = {}, opts = {}) {
@@ -70,7 +71,7 @@ class Workflows extends Base {
   /**
    * Fetches a workflow given a workflow instance id.
    * @param {string} workflowInstanceId - The workflow instance id.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the `Workflow` object.
    */
   fetch(workflowInstanceId, opts = {}) {
@@ -87,7 +88,7 @@ class Workflows extends Base {
  /**
   * Deletes a workflow instance given a workflow instance id.
   * @param {string} workflowInstanceId - The workflow instance id.
-  * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+  * @param {object} [opts] - Options overriding the ones from this object.
   * @returns {Promise} A Promise object resolved with the result of the DELETE request.
   */
   delete(workflowInstanceId, opts = {}) {
@@ -100,7 +101,7 @@ class Workflows extends Base {
   /**
    * Fetches the workflows started by the current user.
    * @param {string} workflowModelName - The workflow model name.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the started workflows.
    */
   fetchStartedWorkflows(workflowModelName, opts = {}) {
@@ -123,7 +124,7 @@ class Workflows extends Base {
    * @param {object} [tasksOpts.actorId] - The actor id.
    * @param {object} [tasksOpts.workflowInstanceId] - The workflow id.
    * @param {object} [tasksOpts.workflowModelName] - The workflow model name.
-   * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A promise object resolved with the tasks.
    */
   fetchTasks(tasksOpts = {}, opts = {}) {

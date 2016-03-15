@@ -21,7 +21,8 @@ const GROUP_PATH = 'group';
  *  }
  * });
  * nuxeo.groups()
- *   .fetch('administrators').then(function(res) {
+ *   .fetch('administrators')
+ *   .then(function(res) {
  *     // res.groupname === 'administrators'
  *     // res.grouplabel === 'Administrators group'
  *   })
@@ -34,8 +35,9 @@ class Groups extends Base {
   /**
    * Creates a Groups object.
    * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Groups object.
    */
-  constructor(opts = {}) {
+  constructor(opts) {
     super(opts);
     this._nuxeo = opts.nuxeo;
   }
@@ -43,7 +45,7 @@ class Groups extends Base {
   /**
    * Fetches a group given a groupname.
    * @param {string} groupname - The groupname.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the {@link Group}.
    */
   fetch(groupname, opts = {}) {
@@ -60,7 +62,7 @@ class Groups extends Base {
   /**
    * Creates a group.
    * @param {object} user - The group to be created.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the created {@link Group}.
    */
   create(group, opts = {}) {
@@ -83,7 +85,7 @@ class Groups extends Base {
   /**
    * Updates a group. Assumes that the group object has an groupname field.
    * @param {object} group - The group to be updated.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the updated {@link Group}.
    */
   update(group, opts = {}) {
@@ -107,7 +109,7 @@ class Groups extends Base {
   /**
    * Deletes a group given a groupname.
    * @param {string} groupname - The groupname.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
   delete(groupname, opts = {}) {

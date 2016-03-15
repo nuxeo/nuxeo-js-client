@@ -37,6 +37,7 @@ class Request extends Base {
   /**
    * Creates a Request.
    * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this groups object.
    * @param {string} opts.path - The initial path of the request.
    * @param {string} opts.queryParams - The initial query parameters of the request.
    * @param {string} opts.url - The REST API URL.
@@ -82,7 +83,7 @@ class Request extends Base {
 
   /**
    * Performs a POST request.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the request.
    */
   post(opts = {}) {
@@ -92,7 +93,7 @@ class Request extends Base {
 
   /**
    * Performs a PUT request.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the request.
    */
   put(opts = {}) {
@@ -102,7 +103,7 @@ class Request extends Base {
 
   /**
    * Performs a DELETE request.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from this object.
    * @returns {Promise} A Promise object resolved with the result of the request.
    */
   delete(opts = {}) {
@@ -112,7 +113,7 @@ class Request extends Base {
 
   /**
    * Performs a Request.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} opts - Options overriding the ones from this object.
    * @param {string} opts.method - The HTTP method.
    * @returns {Promise} A Promise object resolved with the result of the request.
    */
