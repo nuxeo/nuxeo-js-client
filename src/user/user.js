@@ -30,8 +30,8 @@ class User extends Base {
    *
    * @example
    * user.set({
-   *   'firstName': 'new first name',
-   *   'company': 'new company',
+   *   firstName: 'new first name',
+   *   company: 'new company',
    * });
    */
   set(properties) {

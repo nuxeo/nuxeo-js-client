@@ -24,14 +24,18 @@ const DEFAULT_OPTS = {
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
  *    username: 'Administrator',
- *    password: 'Administrator',
+ *    password: 'Administrator'
  *  }
  * });
  * var batch = nuxeo.batchUpload();
  * var nuxeoBlob = new Nuxeo.Blob(...);
- * batch.upload(nuxeoBlob).then((res) => {
- *    // res.blob instanceof BatchBlob === true
- *  });
+ * batch.upload(nuxeoBlob)
+ *   .then(function(res) {
+ *     // res.blob instanceof BatchBlob === true
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
  */
 class BatchUpload extends Base {
   /**
@@ -59,12 +63,16 @@ class BatchUpload extends Base {
    *
    * @example
    * ...
-   * nuxeoBatch.upload(blob1, blob2, blob3).then((res) => {
-   *   // res.batch === nuxeoBatch
-   *   // res.blobs[0] is the BatchBlob object related to blob1
-   *   // res.blobs[1] is the BatchBlob object related to blob2
-   *   // res.blobs[2] is the BatchBlob object related to blob3
-   * }).catch(error => throw new Error(error));
+   * nuxeoBatch.upload(blob1, blob2, blob3)
+   *   .then(function(res) {
+   *     // res.batch === nuxeoBatch
+   *     // res.blobs[0] is the BatchBlob object related to blob1
+   *     // res.blobs[1] is the BatchBlob object related to blob2
+   *     // res.blobs[2] is the BatchBlob object related to blob3
+   *   })
+   *   .catch(function(error) {
+   *     throw new Error(error);
+   *   });
    */
   upload(...blobs) {
     const promises = blobs.map((blob) => {
@@ -143,12 +151,16 @@ class BatchUpload extends Base {
    * @example
    * ...
    * nuxeoBatch.upload(blob1, blob2, blob3);
-   *  nuxeoBatch.done().then((res) => {
-   *   // res.batch === nuxeoBatch
-   *   // res.blobs[0] is the BatchBlob object related to blob1
-   *   // res.blobs[1] is the BatchBlob object related to blob2
-   *   // res.blobs[2] is the BatchBlob object related to blob3
-   * }).catch(error => throw new Error(error));
+   * nuxeoBatch.done()
+   *   .then(function(res) {
+   *     // res.batch === nuxeoBatch
+   *     // res.blobs[0] is the BatchBlob object related to blob1
+   *     // res.blobs[1] is the BatchBlob object related to blob2
+   *     // res.blobs[2] is the BatchBlob object related to blob3
+   *   })
+   *   .catch(function(error) {
+   *     throw new Error(error);
+   *   });
    */
   done() {
     const Promise = this._nuxeo.Promise;

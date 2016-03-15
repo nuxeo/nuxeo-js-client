@@ -17,14 +17,17 @@ const GROUP_PATH = 'group';
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
  *    username: 'Administrator',
- *    password: 'Administrator',
+ *    password: 'Administrator'
  *  }
  * });
  * nuxeo.groups()
- *   .fetch('administrators').then((res) => {
+ *   .fetch('administrators').then(function(res) {
  *     // res.groupname === 'administrators'
  *     // res.grouplabel === 'Administrators group'
- *   }).catch(error => throw new Error(error));
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error));
+ *   });
  */
 
 class Groups extends Base {

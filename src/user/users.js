@@ -21,10 +21,14 @@ const USER_PATH = 'user';
  *  }
  * });
  * nuxeo.users()
- *   .fetch('Administrator').then((res) => {
+ *   .fetch('Administrator')
+ *   .then(function(res) => {
  *     // res.id === 'Administrator'
  *     // res.properties.username === 'Administrator'
- *   }).catch(error => throw new Error(error));
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
  */
 class Users extends Base {
   /**

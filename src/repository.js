@@ -19,14 +19,18 @@ function computePath(ref) {
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
  *    username: 'Administrator',
- *    password: 'Administrator',
+ *    password: 'Administrator'
  *  }
  * });
  * nuxeo.repository('default')
- *   .fetch('/default-domain').then((res) => {
+ *   .fetch('/default-domain')
+ *   .then(fucntion(res) {
  *     // res.uid !== null
  *     // res.type === 'Domain'
- *   }).catch(error => throw new Error(error));
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
  */
 class Repository extends Base {
   /**

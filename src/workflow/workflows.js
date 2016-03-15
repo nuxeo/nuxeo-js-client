@@ -23,10 +23,14 @@ const TASK_PATH = 'task';
  *  }
  * });
  * nuxeo.workflows()
- *   .start('SerialDocumentReview').then((res) => {
+ *   .start('SerialDocumentReview')
+ *   .then(function(res) {
  *     // res['entity-type'] === 'workflow'
  *     // res.workflowModelName === 'SerialDocumentReview'
- *   }).catch(error => throw new Error(error));
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
  */
 class Workflows extends Base {
   /**

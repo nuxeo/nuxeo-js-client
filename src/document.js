@@ -344,16 +344,18 @@ class Document extends Base {
    * Fetches the lock status of the document.
    * @example
    * // if the doc is locked
-   * doc.fetchLockStatus().then((status) => {
-   *   // status.lockOwner === 'Administrator'
-   *   // status.lockCreated === '2011-10-23T12:00:00.00Z'
-   * })
+   * doc.fetchLockStatus()
+   *   .then(function(status) {
+   *     // status.lockOwner === 'Administrator'
+   *     // status.lockCreated === '2011-10-23T12:00:00.00Z'
+   *   });
    * @example
    * // if the doc is not locked
-   * doc.fetchLockStatus().then((status) => {
-   *   // status.lockOwner === undefined
-   *   // status.lockCreated === undefined
-   * })
+   * doc.fetchLockStatus()
+   *   .then(function(status) {
+   *     // status.lockOwner === undefined
+   *     // status.lockCreated === undefined
+   *   });
    * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
    * @returns {Promise} A promise object resolved with true or false.
    */

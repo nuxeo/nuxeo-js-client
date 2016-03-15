@@ -15,14 +15,18 @@ import DirectoryEntry from './entry';
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
  *    username: 'Administrator',
- *    password: 'Administrator',
+ *    password: 'Administrator'
  *  }
  * });
  * nuxeo.directory('nature')
- *   .fetch('article').then((res) => {
+ *   .fetch('article')
+ *   .then(function(res) {
  *     // res.properties.id === 'article'
  *     // res.properties.label === 'article	label.directories.nature.article'
- *   }).catch(error => throw new Error(error));
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error));
+ *   });
  */
 class Directory extends Base {
   /**

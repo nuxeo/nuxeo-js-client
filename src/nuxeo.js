@@ -41,12 +41,14 @@ const DEFAULT_OPTS = {
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
  *    username: 'Administrator',
- *    password: 'Administrator',
+ *    password: 'Administrator'
  *  }
  * });
- * nuxeo.request('path/').get().then((doc) => {
- *   // doc.uid !== null
- * });
+ * nuxeo.request('path/')
+ *   .get()
+ *   .then(function(doc) {
+ *     // doc.uid !== null
+ *   });
  */
 class Nuxeo extends Base {
   /**

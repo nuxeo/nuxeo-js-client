@@ -19,7 +19,7 @@ import FormData from './deps/form-data';
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
  *    username: 'Administrator',
- *    password: 'Administrator',
+ *    password: 'Administrator'
  *  }
  * });
  * nuxeo.operation('Document.GetChild')
@@ -27,10 +27,14 @@ import FormData from './deps/form-data';
  *   .params({
  *     name: 'workspaces',
  *   })
- *   .execute().then((res) => {
-       // res.uid !== null
+ *   .execute()
+ *   .then(function(res) {
+ *     // res.uid !== null
  *     // res.title === 'Workspaces'
- *   }).catch(error => throw new Error(error));
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
  */
 class Operation extends Base {
   /**

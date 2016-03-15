@@ -20,14 +20,18 @@ const defaultOptions = {
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
  *    username: 'Administrator',
- *    password: 'Administrator',
+ *    password: 'Administrator'
  *  }
  * });
  * nuxeo.request('/path/default-domain')
- *   .get().then((res) => {
+ *   .get()
+ *   .then(function(res) {
  *     // res.uid !== null
  *     // res.type === 'Domain'
- *   }).catch(error => throw new Error(error));
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
  */
 class Request extends Base {
   /**

@@ -22,8 +22,8 @@ After installing [Node.js](http://nodejs.org/#download), use `npm` to install th
 Then, use the following `require` statement to have access to the same API than the browser client:
 
 ```javascript
-const Nuxeo = require('nuxeo');
-const nuxeo = new Nuxeo();
+var Nuxeo = require('nuxeo');
+var nuxeo = new Nuxeo();
 ```
 
 #### Bower Powered Applications
@@ -35,7 +35,7 @@ The `nuxeo` client can be also installed through bower:
 When added to your page, `Nuxeo` is available as a global variable.
 
 ```javascript
-const nuxeo = new Nuxeo();
+var nuxeo = new Nuxeo();
 ```
 
 #### Angular Applications
@@ -62,11 +62,13 @@ or, the preferred way, configure the Promise library class to be `$q`.
 ```javascript
 // wrap promises
 ...
-$q.when(nuxeo.request('/path/').get()).then(res => $scope.res = res);
+$q.when(nuxeo.request('/path/').get()).then(function(res) {
+  $scope.res = res;
+});
 // use $q as the Promise library class
 ...
 .service('nuxeo', function($q) {
-  Nuxeo.promiseLibrary($q)
+  Nuxeo.promiseLibrary($q);
   return new Nuxeo({
     baseURL: 'http://localhost:8080/nuxeo/',
     auth: {
@@ -89,10 +91,10 @@ This quick start guide will show how to do basics operations using the client.
 ### Creating a Client
 
 ```javascript
-const nuxeo = new Nuxeo({
+var nuxeo = new Nuxeo({
   auth: {
     username: 'Administrator',
-    password: 'Administrator',
+    password: 'Administrator'
   },
 });
 ```
@@ -100,11 +102,11 @@ const nuxeo = new Nuxeo({
 To connect to a different Nuxeo Platform Instance, you can use the following:
 
 ```javascript
-const nuxeo = new Nuxeo({
+var nuxeo = new Nuxeo({
   auth: {
     baseURL: 'http://demo.nuxeo.com/nuxeo/',
     username: 'Administrator',
-    password: 'Administrator',
+    password: 'Administrator'
   },
 });
 ```
@@ -116,10 +118,10 @@ All API calls return a Promise object:
 ```javascript
 nuxeo.operation('Document.GetChildren')
   .execute()
-  .then((docs) => {
+  .then(function(docs) {
     // work with docs
   })
-  .catch((error) => {
+  .catch(function(error) {
     // something went wrong
     throw error;
   });
@@ -145,10 +147,12 @@ nuxeo.operation('Document.Create')
   })
   .input('/')
   .execute()
-  .then((doc) => {
+  .then(function(doc) {
       console.log('Created ' + doc.title + ' folder');
   })
-  .catch(error => throw error);
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 ### Request
@@ -162,10 +166,12 @@ Fetching the Administrator user:
 ```javascript
 nuxeo.request('user/Administrator')
   .get()
-  .then((user) => {
+  .then(function(user) {
     console.log(user);
   })
-  .catch(error => throw error);
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 Fetching the whole list of Natures:
@@ -173,8 +179,12 @@ Fetching the whole list of Natures:
 ```javascript
 nuxeo.request('directory/nature')
   .get()
-  .then(data => console.log(JSON.stringify(data.entries, null, 2)))
-  .catch(error => throw error);
+  .then(function(data) {
+    console.log(JSON.stringify(data.entries, null, 2))
+  })
+  .catch(function(error) {
+    throw error
+  });
 ```
 
 ### Repository API
@@ -186,24 +196,28 @@ The `Repository` object allows you to work with document.
 Creating a `Repository` object:
 
 ```javascript
-const defaultRepository = nuxeo.repository(); // 'default' repository
+var defaultRepository = nuxeo.repository(); // 'default' repository
 ...
-const testRepository = nuxeo.repository('test'); // 'test' repository
+var testRepository = nuxeo.repository('test'); // 'test' repository
 ...
 ```
 
 Fetching the Root document:
 
 ```javascript
-nuxeo.repository().fetch('/').then((doc) => {
-  console.log(doc);
-}).catch(error => throw error);
+nuxeo.repository().fetch('/')
+  .then(function(doc) {
+    console.log(doc);
+  })
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 Creating a new folder:
 
 ```javascript
-const newFolder = {
+var newFolder = {
   'entity-type': 'document',
   name: 'a-folder',
   type: 'Folder',
@@ -213,8 +227,12 @@ const newFolder = {
 };
 nuxeo.repository()
   .create('/', newFolder)
-  .then((doc) => console.log(doc))
-  .catch(error => throw error);
+  .then(function(doc) {
+    console.log(doc);
+  })
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 Deleting a document:
@@ -222,7 +240,7 @@ Deleting a document:
 ```javascript
 nuxeo.repository()
   .delete('/a-folder')
-  .then((res) => {
+  .then(function(res) {
     // res.status === 204
   });
 ```
@@ -239,10 +257,12 @@ Retrieving a `Document` object:
 ```javascript
 nuxeo.repository()
   .fetch('/')
-  .then((doc) => {
+  .then(function(doc) {
     // doc instanceof Nuxeo.Document === true
   })
-  .catch(error => throw error);
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 Set a document property:
@@ -262,15 +282,17 @@ Save an updated document:
 ```javascript
 nuxeo.repository()
   .fetch('/')
-  .then((doc) => {
+  .then(function(doc) {
     // doc.title !== 'foo'
     doc.set({ 'dc:title': 'foo' });
     return doc.save();
   })
-  .then((doc) => {
+  .then(function(doc) => {
     // doc.title === 'foo'
   })
-  .catch(error => throw error);
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 ### BatchUpload
@@ -284,11 +306,11 @@ Create a Nuxeo.Blob to be uploaded:
 
 ```javascript
 // on the browser, assuming you have a File object 'file'
-const blob = new Nuxeo.Blob({ content: file });
+var blob = new Nuxeo.Blob({ content: file });
 // the name, mimeType and size will be extracted from the file object itself, you can still override them.
 ...
 // on Node.js, assuming you have a Stream 'file'
-const blob = new Nuxeo.Blob({ content: file, name: 'foo.txt', mimeType: 'plain/text', size: 10 })
+var blob = new Nuxeo.Blob({ content: file, name: 'foo.txt', mimeType: 'plain/text', size: 10 })
 ```
 
 Upload a blob:
@@ -296,11 +318,13 @@ Upload a blob:
 ```javascript
 nuxeo.batchUpload()
   .upload(blob)
-  .then(({ batch, blob }) => {
-    // blob instanceof Nuxeo.BatchBlob
-    console.log(blob);
+  .then(function(res) {
+    // res.blob instanceof Nuxeo.BatchBlob
+    console.log(res.blob);
   })
-  .catch(error => throw error);
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 Attach an uploaded blob to a document:
@@ -308,15 +332,18 @@ Attach an uploaded blob to a document:
 ```javascript
 nuxeo.batchUpload()
   .upload(blob)
-  .then(({ batch, blob }) => {
+  .then(function(res) {
     return nuxeo.operation('Blob.AttachOnDocument')
       .param('document', '/a-file')
-      .input(blob)
+      .input(res.blob)
       .execute({ schemas: ['dublincore', 'file']});
-    }).then((doc) => {
+  })
+  .then(function(doc) {
     console.log(doc.properties[file:content]);
   })
-  .catch(error => throw error);
+  .catch(function(error) {
+    throw error;
+  });
 ```
 
 ## Contributing
