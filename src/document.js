@@ -4,6 +4,7 @@ import extend from 'extend';
 import join from './deps/utils/join';
 import Base from './base';
 import Workflow from './workflow/workflow';
+import constants from './deps/constants';
 
 /**
  * The `Document` class wraps a document.
@@ -250,7 +251,7 @@ class Document extends Base {
     }
 
     const options = this._computeOptions(opts);
-    options.enrichers = { document: ['acls'] };
+    options.enrichers = { document: [constants.enricher.document.ACLS] };
     return this._repository
       .fetch(this.uid, options)
       .then((doc) => {
@@ -276,7 +277,7 @@ class Document extends Base {
     }
 
     const options = this._computeOptions(opts);
-    options.enrichers = { document: ['permissions'] };
+    options.enrichers = { document: [constants.enricher.document.PERMISSIONS] };
     return this._repository
       .fetch(this.uid, options)
       .then((doc) => {
@@ -376,7 +377,6 @@ class Document extends Base {
    */
   lock(opts = {}) {
     const options = this._computeOptions(opts);
-    options.enrichers = { document: ['permissions'] };
     return this._nuxeo.operation('Document.Lock')
       .input(this.uid)
       .execute(opts)

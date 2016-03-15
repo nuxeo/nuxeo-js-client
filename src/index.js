@@ -18,6 +18,7 @@ import DirectoryEntry from './directory/entry';
 import Workflows from './workflow/workflows';
 import Workflow from './workflow/workflow';
 import Task from './workflow/task';
+import constants from './deps/constants';
 import Promise from './deps/promise';
 
 Nuxeo.Base = Base;
@@ -37,6 +38,7 @@ Nuxeo.DirectoryEntry = DirectoryEntry;
 Nuxeo.Workflows = Workflows;
 Nuxeo.Workflow = Workflow;
 Nuxeo.Task = Task;
+Nuxeo.constants = constants;
 
 Nuxeo.promiseLibrary(Promise);
 
