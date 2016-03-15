@@ -39,7 +39,7 @@ class Operation extends Base {
    * @param {string} opts.id - The ID of the operation.
    * @param {string} opts.url - The automation URL.
    */
-  constructor(opts = {}) {
+  constructor(opts) {
     const options = extend(true, {}, opts);
     super(options);
     this._nuxeo = options.nuxeo;
@@ -99,30 +99,15 @@ class Operation extends Base {
    * @returns {Promise} A Promise object resolved with the result of the Operation.
    */
   execute(opts = {}) {
-    const schemas = opts.schemas || this._schemas;
-
-    let headers = extend(true, {}, this._headers);
-    if (schemas.length > 0) {
-      headers['X-NXDocumentProperties'] = schemas.join(',');
-    }
-    const repositoryName = opts.repositoryName || this._repositoryName;
-    if (repositoryName !== undefined) {
-      headers['X-NXRepository'] = repositoryName;
-    }
-    headers['Content-Type'] = this._computeContentTypeHeader(this._automationParams.input);
-    headers = extend(true, headers, opts.headers);
-
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = this._computeContentTypeHeader(this._automationParams.input);
+    const options = this._computeOptions(opts);
     let finalOptions = {
-      headers,
       method: 'POST',
       url: this._computeRequestURL(),
       body: this._computeRequestBody(),
-      timeout: this._timeout,
-      transactionTimeout: this._transactionTimeout,
-      httpTimeout: this._httpTimeout,
     };
-    finalOptions = extend(true, finalOptions, opts);
-
+    finalOptions = extend(true, finalOptions, options);
     return this._nuxeo.fetch(finalOptions);
   }
 

@@ -44,17 +44,13 @@ class Groups extends Base {
    * @returns {Promise} A Promise object resolved with the {@link Group}.
    */
   fetch(groupname, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(GROUP_PATH, groupname);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then((res) => {
-        return new Group(res, {
-          groups: this,
-        });
+        options.groups = this;
+        return new Group(res, options);
       });
   }
 
@@ -72,16 +68,12 @@ class Groups extends Base {
       memberUsers: group.memberUsers,
       memberGroups: group.memberGroups,
     };
+    const options = this._computeOptions(opts);
     return this._nuxeo.request(GROUP_PATH)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .post(opts)
+      .post(options)
       .then((res) => {
-        return new Group(res, {
-          groups: this,
-        });
+        options.groups = this;
+        return new Group(res, options);
       });
   }
 
@@ -99,17 +91,13 @@ class Groups extends Base {
       memberUsers: group.memberUsers,
       memberGroups: group.memberGroups,
     };
+    const options = this._computeOptions(opts);
     const path = join(GROUP_PATH, group.groupname);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .put(opts)
+      .put(options)
       .then((res) => {
-        return new Group(res, {
-          groups: this,
-        });
+        options.groups = this;
+        return new Group(res, options);
       });
   }
 
@@ -120,13 +108,10 @@ class Groups extends Base {
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
   delete(groupname, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(GROUP_PATH, groupname);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .delete(opts);
+      .delete(options);
   }
 }
 

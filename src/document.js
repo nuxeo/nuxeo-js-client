@@ -2,6 +2,7 @@
 
 import extend from 'extend';
 import join from './deps/utils/join';
+import Base from './base';
 import Workflow from './workflow/workflow';
 
 /**
@@ -9,7 +10,7 @@ import Workflow from './workflow/workflow';
  *
  * **Cannot directly be instantiated**
  */
-class Document {
+class Document extends Base {
   /**
    * Creates a Document.
    * @param {object} doc - The initial document object. This Document object will be extended with doc properties.
@@ -17,6 +18,7 @@ class Document {
    * @param {object} opts.repository - The {@link Repository} object linked to this document.
    */
   constructor(doc, opts) {
+    super(opts);
     this._nuxeo = opts.nuxeo;
     this._repository = opts.repository;
     this.properties = {};
@@ -54,12 +56,13 @@ class Document {
    * @param {object} [opts] - Options overriding the ones from the underlying Repository object.
    * @returns {Promise} A promise object resolved with the updated document.
    */
-  save(opts) {
+  save(opts = {}) {
+    const options = this._computeOptions(opts);
     return this._repository.update({
       'entity-type': 'document',
       uid: this.uid,
       properties: this._dirtyProperties,
-    }, opts);
+    }, options);
   }
 
   /**
@@ -83,6 +86,7 @@ class Document {
       options = xpath;
       blobXPath = 'blobholder:0';
     }
+    options = this._computeOptions(options);
     const path = join('id', this.uid, '@blob', blobXPath);
     return this._nuxeo.request(path).get(options);
   }
@@ -95,18 +99,18 @@ class Document {
    * @returns {Promise} A promise object resolved with the moved document.
    */
   move(dst, name, opts = {}) {
+    const options = this._computeOptions(opts);
     return this._nuxeo.operation('Document.Move')
       .input(this.uid)
       .params({
         name,
         target: dst,
       })
-      .execute(opts)
+      .execute(options)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this._repository,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this._repository;
+        return new Document(res, options);
       });
   }
 
@@ -117,17 +121,17 @@ class Document {
    * @returns {Promise} A promise object resolved with the updated document.
    */
   followTransition(transitionName, opts = {}) {
+    const options = this._computeOptions(opts);
     return this._nuxeo.operation('Document.FollowLifecycleTransition')
       .input(this.uid)
       .params({
         value: transitionName,
       })
-      .execute(opts)
+      .execute(options)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this._repository,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this._repository;
+        return new Document(res, options);
       });
   }
 
@@ -142,7 +146,8 @@ class Document {
    * @param {object} [opts] - Options overriding the ones from the underlying Nuxeo object.
    * @returns {Promise} A promise object resolved with the response.
    */
-  convert(convertOpts, opts) {
+  convert(convertOpts, opts = {}) {
+    const options = this._computeOptions(opts);
     const xpath = convertOpts.xpath || 'blobholder:0';
     const path = join('id', this.uid, '@blob', xpath, '@convert');
     return this._nuxeo.request(path)
@@ -151,7 +156,7 @@ class Document {
         type: convertOpts.type,
         format: convertOpts.format,
       })
-      .get(opts);
+      .get(options);
   }
 
   /**
@@ -165,14 +170,14 @@ class Document {
       workflowModelName,
       'entity-type': 'workflow',
     };
+    const options = this._computeOptions(opts);
     const path = join('id', this.uid, '@workflow');
     return this._nuxeo.request(path)
-      .post(opts)
+      .post(options)
       .then((workflow) => {
-        return new Workflow(workflow, {
-          nuxeo: this._nuxeo,
-          documentId: this.uid,
-        });
+        options.nuxeo = this._nuxeo;
+        options.documentId = this.uid;
+        return new Workflow(workflow, options);
       });
   }
 
@@ -182,15 +187,15 @@ class Document {
    * @returns {Promise} A promise object resolved with the started workflows.
    */
   fetchWorkflows(opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join('id', this.uid, '@workflow');
     return this._nuxeo.request(path)
-      .get(opts)
+      .get(options)
       .then(({ entries }) => {
+        options.nuxeo = this._nuxeo;
+        options.documentId = this.uid;
         const workflows = entries.map((workflow) => {
-          return new Workflow(workflow, {
-            nuxeo: this._nuxeo,
-            documentId: this.uid,
-          });
+          return new Workflow(workflow, options);
         });
         return workflows;
       });
@@ -207,9 +212,10 @@ class Document {
       return Promise.resolve(this.contextParameters.renditions);
     }
 
-    const finalOptions = extend(true, { headers: { 'enrichers-document': 'renditions' } }, opts);
+    const options = this._computeOptions(opts);
+    options.enrichers = { document: ['renditions'] };
     return this._repository
-      .fetch(this.uid, finalOptions)
+      .fetch(this.uid, options)
       .then((doc) => {
         if (!this.contextParameters) {
           this.contextParameters = {};
@@ -226,9 +232,10 @@ class Document {
    * @returns {Promise} A promise object resolved with the response.
    */
   fetchRendition(name, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join('id', this.uid, '@rendition', name);
     return this._nuxeo.request(path)
-      .get(opts);
+      .get(options);
   }
 
   /**
@@ -242,9 +249,10 @@ class Document {
       return Promise.resolve(this.contextParameters.acls);
     }
 
-    const finalOptions = extend(true, { headers: { 'enrichers-document': 'acls' } }, opts);
+    const options = this._computeOptions(opts);
+    options.enrichers = { document: ['acls'] };
     return this._repository
-      .fetch(this.uid, finalOptions)
+      .fetch(this.uid, options)
       .then((doc) => {
         if (!this.contextParameters) {
           this.contextParameters = {};
@@ -267,9 +275,10 @@ class Document {
       return Promise.resolve(this.contextParameters.permissions.indexOf(name) !== -1);
     }
 
-    const finalOptions = extend(true, { headers: { 'enrichers-document': 'permissions' } }, opts);
+    const options = this._computeOptions(opts);
+    options.enrichers = { document: ['permissions'] };
     return this._repository
-      .fetch(this.uid, finalOptions)
+      .fetch(this.uid, options)
       .then((doc) => {
         if (!this.contextParameters) {
           this.contextParameters = {};
@@ -296,15 +305,15 @@ class Document {
    * @returns {Promise} A promise object resolved with the updated document.
    */
   addPermission(params, opts = {}) {
+    const options = this._computeOptions(opts);
     return this._nuxeo.operation('Document.AddPermission')
       .input(this.uid)
       .params(params)
-      .execute(opts)
+      .execute(options)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this._repository,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this._repository;
+        return new Document(res, options);
       });
   }
 
@@ -318,15 +327,15 @@ class Document {
    * @returns {Promise} A promise object resolved with the updated document.
    */
   removePermission(params, opts = {}) {
+    const options = this._computeOptions(opts);
     return this._nuxeo.operation('Document.RemovePermission')
       .input(this.uid)
       .params(params)
-      .execute(opts)
+      .execute(options)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this._repository,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this._repository;
+        return new Document(res, options);
       });
   }
 
@@ -348,9 +357,10 @@ class Document {
    * @returns {Promise} A promise object resolved with true or false.
    */
   fetchLockStatus(opts = {}) {
-    const finalOptions = extend(true, { headers: { 'fetch-document': 'lock' } }, opts);
+    const options = this._computeOptions(opts);
+    options.fetchProperties = { document: ['lock'] };
     return this._repository
-      .fetch(this.uid, finalOptions)
+      .fetch(this.uid, options)
       .then((doc) => {
         return {
           lockOwner: doc.lockOwner,
@@ -365,14 +375,15 @@ class Document {
    * @returns {Promise} A promise object resolved with the updated document.
    */
   lock(opts = {}) {
+    const options = this._computeOptions(opts);
+    options.enrichers = { document: ['permissions'] };
     return this._nuxeo.operation('Document.Lock')
       .input(this.uid)
       .execute(opts)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this._repository,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this._repository;
+        return new Document(res, options);
       });
   }
 
@@ -382,14 +393,14 @@ class Document {
    * @returns {Promise} A promise object resolved with the updated document.
    */
   unlock(opts = {}) {
+    const options = this._computeOptions(opts);
     return this._nuxeo.operation('Document.Unlock')
       .input(this.uid)
       .execute(opts)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this._repository,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this._repository;
+        return new Document(res, options);
       });
   }
 
@@ -410,10 +421,11 @@ class Document {
    * @returns {Promise} A promise object resolved with audit entries.
    */
   fetchAudit(queryOpts = {}, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join('id', this.uid, '@audit');
     return this._nuxeo.request(path)
       .queryParams(queryOpts)
-      .get(opts);
+      .get(options);
   }
 }
 

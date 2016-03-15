@@ -44,21 +44,15 @@ class Repository extends Base {
    * @param {object} opts - Options overriding the ones from the Request object.
    * @returns {Promise} A Promise object resolved with the {@link Document}.
    */
-  fetch(ref, opts) {
+  fetch(ref, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = computePath(ref);
     return this._nuxeo.request(path)
-      .repositoryName(this._repositoryName)
-      .schemas(this._schemas)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then((doc) => {
-        return new Document(doc, {
-          nuxeo: this._nuxeo,
-          repository: this,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this;
+        return new Document(doc, options);
       });
   }
 
@@ -76,20 +70,14 @@ class Repository extends Base {
       name: doc.name,
       properties: doc.properties,
     };
+    const options = this._computeOptions(opts);
     const path = computePath(parentRef);
     return this._nuxeo.request(path)
-      .repositoryName(this._repositoryName)
-      .schemas(this._schemas)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .post(opts)
+      .post(options)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this;
+        return new Document(res, options);
       });
   }
 
@@ -105,20 +93,14 @@ class Repository extends Base {
       uid: doc.uid,
       properties: doc.properties,
     };
+    const options = this._computeOptions(opts);
     const path = join('id', doc.uid);
     return this._nuxeo.request(path)
-      .repositoryName(this._repositoryName)
-      .schemas(this._schemas)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .put(opts)
+      .put(options)
       .then((res) => {
-        return new Document(res, {
-          nuxeo: this._nuxeo,
-          repository: this,
-        });
+        options.nuxeo = this._nuxeo;
+        options.repository = this;
+        return new Document(res, options);
       });
   }
 
@@ -129,16 +111,10 @@ class Repository extends Base {
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
   delete(ref, opts) {
+    const options = this._computeOptions(opts);
     const path = computePath(ref);
-
     return this._nuxeo.request(path)
-      .repositoryName(this._repositoryName)
-      .schemas(this._schemas)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .delete(opts);
+      .delete(options);
   }
 
   /**
@@ -157,22 +133,16 @@ class Repository extends Base {
      @returns {Promise} A Promise object resolved with the list of documents.
    */
   query(queryOpts, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join('query', queryOpts.query ? 'NXQL' : queryOpts.pageProvider);
     return this._nuxeo.request(path)
-      .repositoryName(this._repositoryName)
-      .schemas(this._schemas)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
       .queryParams(queryOpts)
-      .get(opts)
+      .get(options)
       .then(({ entries }) => {
+        options.nuxeo = this._nuxeo;
+        options.repository = this;
         const docs = entries.map((doc) => {
-          return new Document(doc, {
-            nuxeo: this._nuxeo,
-            repository: this,
-          });
+          return new Document(doc, options);
         });
         return docs;
       });

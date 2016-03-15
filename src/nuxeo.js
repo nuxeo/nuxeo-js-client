@@ -61,6 +61,7 @@ class Nuxeo extends Base {
     this._baseURL = options.baseURL;
     this._restURL = join(this._baseURL, options.apiPath);
     this._automationURL = join(this._restURL, AUTOMATION);
+    this._auth = options.auth;
     this.connected = false;
     this.Promise = Nuxeo.Promise || Promise;
     this._activeRequests = 0;
@@ -75,12 +76,9 @@ class Nuxeo extends Base {
     let finalOptions = {
       method: 'POST',
       url: join(this._automationURL, 'login'),
-      headers: this._headers,
-      timeout: this._timeout,
-      transactionTimeout: this._transactionTimeout,
-      httpTimeout: this._httpTimeout,
     };
     finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return this.fetch(finalOptions)
       .then((res) => {
         return this.request('user')
@@ -100,47 +98,10 @@ class Nuxeo extends Base {
    * To be used when doing any call on Nuxeo Platform.
    */
   fetch(opts = {}) {
-    let options = {
-      method: 'GET',
-      headers: {},
-      json: true,
-      timeout: 30000,
-      cache: false,
-      resolveWithFullResponse: false,
-      auth: this._auth,
-    };
-    options = extend(true, {}, options, opts);
-    options = computeAuthentication(options);
-
-    const transactionTimeout = options.transactionTimeout || options.timeout;
-    const httpTimeout = options.httpTimeout || (5 + transactionTimeout);
-    options.headers['Nuxeo-Transaction-Timeout'] = transactionTimeout;
-    options.timeout = httpTimeout;
-    delete options.transactionTimeout;
-    delete options.httpTimeout;
-
-    if (options.json) {
-      options.headers.Accept = 'application/json';
-      options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
-      // do not stringify FormData
-      if (typeof options.body === 'object' && !(options.body instanceof FormData)) {
-        options.body = JSON.stringify(options.body);
-      }
-    }
-
-    if (options.method === 'GET') {
-      delete options.headers['Content-Type'];
-    }
-
-    let url = options.url;
-    if (options.queryParams) {
-      url += url.indexOf('?') === -1 ? '?' : '';
-      url += queryString.stringify(options.queryParams);
-    }
-
+    const options = this._computeFetchOptions(opts);
     return new this.Promise((resolve, reject) => {
       this._activeRequests++;
-      doFetch(url, {
+      doFetch(options.url, {
         method: options.method,
         headers: options.headers,
         body: options.body,
@@ -170,6 +131,61 @@ class Nuxeo extends Base {
     });
   }
 
+  _computeFetchOptions(opts) {
+    let options = {
+      method: 'GET',
+      headers: {},
+      json: true,
+      timeout: 30000,
+      cache: false,
+      resolveWithFullResponse: false,
+      auth: this._auth,
+    };
+    options = extend(true, {}, options, opts);
+    options = computeAuthentication(options);
+
+    if (options.schemas.length > 0) {
+      options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
+    }
+    if (opts.repositoryName !== undefined) {
+      options.headers['X-NXRepository'] = options.repositoryName;
+    }
+
+    for (const key of Object.keys(options.enrichers)) {
+      options.headers[`enrichers-${key}`] = options.enrichers[key].join(',');
+    }
+    for (const key of Object.keys(options.fetchProperties)) {
+      options.headers[`fetch-${key}`] = options.fetchProperties[key].join(',');
+    }
+    if (options.depth) {
+      options.headers.depth = options.depth;
+    }
+
+    const transactionTimeout = options.transactionTimeout || options.timeout;
+    const httpTimeout = options.httpTimeout || (5 + transactionTimeout);
+    options.headers['Nuxeo-Transaction-Timeout'] = transactionTimeout;
+    options.timeout = httpTimeout;
+
+    if (options.json) {
+      options.headers.Accept = 'application/json';
+      options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
+      // do not stringify FormData
+      if (typeof options.body === 'object' && !(options.body instanceof FormData)) {
+        options.body = JSON.stringify(options.body);
+      }
+    }
+
+    if (options.method === 'GET') {
+      delete options.headers['Content-Type'];
+    }
+
+    if (options.queryParams) {
+      options.url += options.url.indexOf('?') === -1 ? '?' : '';
+      options.url += queryString.stringify(options.queryParams);
+    }
+    return options;
+  }
+
   /**
    * Creates a new {@link Operation} object.
    * @param {string} id - The operation ID.
@@ -181,14 +197,9 @@ class Nuxeo extends Base {
       id,
       nuxeo: this,
       url: this._automationURL,
-      repositoryName: this._repositoryName,
-      headers: this._headers,
-      timeout: this._timeout,
-      httpTimeout: this._httpTimeout,
-      transactionTimeout: this._transactionTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, opts);
-    finalOptions.schemas = opts.schemas || this._schemas;
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return new Operation(finalOptions);
   }
 
@@ -203,14 +214,9 @@ class Nuxeo extends Base {
       path,
       nuxeo: this,
       url: this._restURL,
-      repositoryName: this._repositoryName,
-      headers: this._headers,
-      timeout: this._timeout,
-      httpTimeout: this._httpTimeout,
-      transactionTimeout: this._transactionTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, opts);
-    finalOptions.schemas = opts.schemas || this._schemas;
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return new Request(finalOptions);
   }
 
@@ -220,24 +226,22 @@ class Nuxeo extends Base {
    * @param {object} opts - Options overriding the ones from the Nuxeo object.
    * @returns {Repository}
    */
-  repository(name = this._repositoryName, opts = {}) {
-    let options = opts;
+  repository(name = null, opts = {}) {
     let repositoryName = name;
-    if (typeof name === 'object') {
-      options = name;
-      repositoryName = this._repositoryName;
+    let options = opts;
+    if (typeof repositoryName === 'object') {
+      options = repositoryName;
+      repositoryName = null;
     }
 
     let finalOptions = {
-      repositoryName,
       nuxeo: this,
-      headers: this._headers,
-      timeout: this._timeout,
-      httpTimeout: this._httpTimeout,
-      transactionTimeout: this._transactionTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, options);
-    finalOptions.schemas = options.schemas || this._schemas;
+    if (repositoryName) {
+      finalOptions.repositoryName = repositoryName;
+    }
+    finalOptions = extend(true, finalOptions, options);
+    finalOptions = this._computeOptions(finalOptions);
     return new Repository(finalOptions);
   }
 
@@ -250,12 +254,9 @@ class Nuxeo extends Base {
     let finalOptions = {
       nuxeo: this,
       url: this._restURL,
-      headers: this._headers,
-      timeout: this._timeout,
-      transactionTimeout: this._transactionTimeout,
-      httpTimeout: this._httpTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, opts);
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return new BatchUpload(finalOptions);
   }
 
@@ -267,12 +268,9 @@ class Nuxeo extends Base {
   users(opts = {}) {
     let finalOptions = {
       nuxeo: this,
-      headers: this._headers,
-      timeout: this._timeout,
-      transactionTimeout: this._transactionTimeout,
-      httpTimeout: this._httpTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, opts);
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return new Users(finalOptions);
   }
 
@@ -284,12 +282,9 @@ class Nuxeo extends Base {
   groups(opts = {}) {
     let finalOptions = {
       nuxeo: this,
-      headers: this._headers,
-      timeout: this._timeout,
-      transactionTimeout: this._transactionTimeout,
-      httpTimeout: this._httpTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, opts);
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return new Groups(finalOptions);
   }
 
@@ -303,12 +298,9 @@ class Nuxeo extends Base {
     let finalOptions = {
       directoryName: name,
       nuxeo: this,
-      headers: this._headers,
-      timeout: this._timeout,
-      transactionTimeout: this._transactionTimeout,
-      httpTimeout: this._httpTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, opts);
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return new Directory(finalOptions);
   }
 
@@ -322,12 +314,9 @@ class Nuxeo extends Base {
     let finalOptions = {
       repositoryName,
       nuxeo: this,
-      headers: this._headers,
-      timeout: this._timeout,
-      httpTimeout: this._httpTimeout,
-      transactionTimeout: this._transactionTimeout,
     };
-    finalOptions = extend(true, {}, finalOptions, opts);
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
     return new Workflows(finalOptions);
   }
 }

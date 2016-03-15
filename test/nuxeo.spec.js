@@ -64,8 +64,8 @@ describe('Nuxeo', () => {
 
     it('should inherit configuration from Nuxeo', () => {
       const op = nuxeo.operation('Document.Update');
-      expect(op._schemas).to.be.eql(['dublincore', 'common']);
-      expect(op._headers).to.be.eql({ foo: 'bar' });
+      expect(op._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
+      expect(op._baseOptions.headers).to.be.eql({ foo: 'bar' });
       expect(op._url).to.be.equal('http://localhost:8080/nuxeo/api/v1/automation/');
     });
 
@@ -76,9 +76,8 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(op._schemas).to.be.eql(['file']);
-      expect(op._headers).to.be.eql({
-        foo: 'bar',
+      expect(op._baseOptions.schemas).to.be.eql(['file']);
+      expect(op._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
     });
@@ -95,8 +94,8 @@ describe('Nuxeo', () => {
 
     it('should inherit configuration from Nuxeo', () => {
       const request = nuxeo.request('/path/default-domain');
-      expect(request._schemas).to.be.eql(['dublincore', 'common']);
-      expect(request._headers).to.be.eql({ foo: 'bar' });
+      expect(request._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
+      expect(request._baseOptions.headers).to.be.eql({ foo: 'bar' });
       expect(request._url).to.be.equal('http://localhost:8080/nuxeo/api/v1/');
     });
 
@@ -107,9 +106,8 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(request._schemas).to.be.eql(['file']);
-      expect(request._headers).to.be.eql({
-        foo: 'bar',
+      expect(request._baseOptions.schemas).to.be.eql(['file']);
+      expect(request._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
     });
@@ -120,20 +118,20 @@ describe('Nuxeo', () => {
       const repository = nuxeo.repository();
       expect(repository).to.be.an.instanceof(Nuxeo.Repository);
       expect(repository).to.be.an.instanceof(Nuxeo.Base);
-      expect(repository._repositoryName).to.be.equal('default');
+      expect(repository._baseOptions.repositoryName).to.be.equal('default');
       expect(repository._nuxeo).to.be.equal(nuxeo);
 
       const fooRepository = nuxeo.repository('foo');
       expect(fooRepository).to.be.an.instanceof(Nuxeo.Repository);
       expect(fooRepository).to.be.an.instanceof(Nuxeo.Base);
-      expect(fooRepository._repositoryName).to.be.equal('foo');
+      expect(fooRepository._baseOptions.repositoryName).to.be.equal('foo');
       expect(fooRepository._nuxeo).to.be.equal(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const repository = nuxeo.repository();
-      expect(repository._schemas).to.be.eql(['dublincore', 'common']);
-      expect(repository._headers).to.be.eql({ foo: 'bar' });
+      expect(repository._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
+      expect(repository._baseOptions.headers).to.be.eql({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -143,9 +141,8 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(repository._schemas).to.be.eql(['file']);
-      expect(repository._headers).to.be.eql({
-        foo: 'bar',
+      expect(repository._baseOptions.schemas).to.be.eql(['file']);
+      expect(repository._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
     });
@@ -160,7 +157,7 @@ describe('Nuxeo', () => {
 
     it('should inherit configuration from Nuxeo', () => {
       const batch = nuxeo.batchUpload();
-      expect(batch._headers).to.be.eql({ foo: 'bar' });
+      expect(batch._baseOptions.headers).to.be.eql({ foo: 'bar' });
       expect(batch._url).to.be.equal('http://localhost:8080/nuxeo/api/v1/upload/');
     });
 
@@ -170,8 +167,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(op._headers).to.be.eql({
-        foo: 'bar',
+      expect(op._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
     });
@@ -187,7 +183,7 @@ describe('Nuxeo', () => {
 
     it('should inherit configuration from Nuxeo', () => {
       const users = nuxeo.users();
-      expect(users._headers).to.be.eql({ foo: 'bar' });
+      expect(users._baseOptions.headers).to.be.eql({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -196,8 +192,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(users._headers).to.be.eql({
-        foo: 'bar',
+      expect(users._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
     });
@@ -213,7 +208,7 @@ describe('Nuxeo', () => {
 
     it('should inherit configuration from Nuxeo', () => {
       const groups = nuxeo.groups();
-      expect(groups._headers).to.be.eql({ foo: 'bar' });
+      expect(groups._baseOptions.headers).to.be.eql({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -222,8 +217,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(groups._headers).to.be.eql({
-        foo: 'bar',
+      expect(groups._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
     });
@@ -240,7 +234,7 @@ describe('Nuxeo', () => {
 
     it('should inherit configuration from Nuxeo', () => {
       const directory = nuxeo.directory();
-      expect(directory._headers).to.be.eql({ foo: 'bar' });
+      expect(directory._baseOptions.headers).to.be.eql({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -249,8 +243,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(directory._headers).to.be.eql({
-        foo: 'bar',
+      expect(directory._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
     });
@@ -261,19 +254,19 @@ describe('Nuxeo', () => {
       const workflows = nuxeo.workflows();
       expect(workflows).to.be.an.instanceof(Nuxeo.Workflows);
       expect(workflows).to.be.an.instanceof(Nuxeo.Base);
-      expect(workflows._repositoryName).to.be.equal('default');
+      expect(workflows._baseOptions.repositoryName).to.be.equal('default');
       expect(workflows._nuxeo).to.be.equal(nuxeo);
 
       const fooWorkflows = nuxeo.workflows('foo');
       expect(fooWorkflows).to.be.an.instanceof(Nuxeo.Workflows);
       expect(fooWorkflows).to.be.an.instanceof(Nuxeo.Base);
-      expect(fooWorkflows._repositoryName).to.be.equal('foo');
+      expect(fooWorkflows._baseOptions.repositoryName).to.be.equal('foo');
       expect(fooWorkflows._nuxeo).to.be.equal(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const workflows = nuxeo.workflows();
-      expect(workflows._headers).to.be.eql({ foo: 'bar' });
+      expect(workflows._baseOptions.headers).to.be.eql({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -282,10 +275,30 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(workflows._headers).to.be.eql({
-        foo: 'bar',
+      expect(workflows._baseOptions.headers).to.be.eql({
         bar: 'foo',
       });
+    });
+  });
+
+  describe('#_computeFetchOptions', () => {
+    it('should compute needed headers', () => {
+      const repo = nuxeo.repository();
+      repo.enrichers({
+        document: ['acls', 'permissions'],
+        user: ['groups'],
+      });
+      repo.enricher('group', 'members');
+      repo.fetchProperty('document', 'dc:creator');
+      repo.fetchProperty('document', 'dc:subject');
+      repo.depth('children');
+      const options = nuxeo._computeFetchOptions(repo._computeOptions());
+      expect(options.headers).to.exist();
+      expect(options.headers['enrichers-document']).to.be.equal('acls,permissions');
+      expect(options.headers['enrichers-user']).to.be.equal('groups');
+      expect(options.headers['enrichers-group']).to.be.equal('members');
+      expect(options.headers['fetch-document']).to.be.equal('dc:creator,dc:subject');
+      expect(options.headers.depth).to.be.equal('children');
     });
   });
 });

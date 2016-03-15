@@ -54,17 +54,12 @@ class Workflows extends Base {
       attachedDocumentIds: workflowOpts.attachedDocumentIds,
       variables: workflowOpts.variables,
     };
+    const options = this._computeOptions(opts);
     return this._nuxeo.request(WORKFLOW_PATH)
-      .repositoryName(this._repositoryName)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .post(opts)
+      .post(options)
       .then((res) => {
-        return new Workflow(res, {
-          nuxeo: this._nuxeo,
-        });
+        options.nuxeo = this._nuxeo;
+        return new Workflow(res, options);
       });
   }
 
@@ -75,18 +70,13 @@ class Workflows extends Base {
    * @returns {Promise} A promise object resolved with the `Workflow` object.
    */
   fetch(workflowInstanceId, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(WORKFLOW_PATH, workflowInstanceId);
     return this._nuxeo.request(path)
-      .repositoryName(this._repositoryName)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then((res) => {
-        return new Workflow(res, {
-          nuxeo: this._nuxeo,
-        });
+        options.nuxeo = this._nuxeo;
+        return new Workflow(res, options);
       });
   }
 
@@ -97,14 +87,10 @@ class Workflows extends Base {
   * @returns {Promise} A Promise object resolved with the result of the DELETE request.
   */
   delete(workflowInstanceId, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(WORKFLOW_PATH, workflowInstanceId);
     return this._nuxeo.request(path)
-      .repositoryName(this._repositoryName)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .delete(opts);
+      .delete(options);
   }
 
   /**
@@ -114,19 +100,14 @@ class Workflows extends Base {
    * @returns {Promise} A promise object resolved with the started workflows.
    */
   fetchStartedWorkflows(workflowModelName, opts = {}) {
+    const options = this._computeOptions(opts);
     return this._nuxeo.request(WORKFLOW_PATH)
       .queryParams({ workflowModelName })
-      .repositoryName(this._repositoryName)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then(({ entries }) => {
+        options.nuxeo = this._nuxeo;
         const workflows = entries.map((workflow) => {
-          return new Workflow(workflow, {
-            nuxeo: this._nuxeo,
-          });
+          return new Workflow(workflow, options);
         });
         return workflows;
       });
@@ -142,23 +123,18 @@ class Workflows extends Base {
    * @returns {Promise} A promise object resolved with the tasks.
    */
   fetchTasks(tasksOpts = {}, opts = {}) {
+    const options = this._computeOptions(opts);
     return this._nuxeo.request(TASK_PATH)
       .queryParams({
         userId: tasksOpts.actorId,
         workflowInstanceId: tasksOpts.workflowInstanceId,
         workflowModelName: tasksOpts.workflowModelName,
       })
-      .repositoryName(this._repositoryName)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then(({ entries }) => {
+        options.nuxeo = this._nuxeo;
         const tasks = entries.map((task) => {
-          return new Task(task, {
-            nuxeo: this._nuxeo,
-          });
+          return new Task(task, options);
         });
         return tasks;
       });

@@ -31,7 +31,7 @@ gulp.task('build:node', ['lint'], () => {
 
 gulp.task('build:browser', ['lint'], () => {
   return browserify({
-    entries: ['src/index.js'],
+    entries: [require.resolve('babel-polyfill'), 'src/index.js'],
     standalone: 'Nuxeo',
   })
   .transform(babelify)

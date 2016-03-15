@@ -1,6 +1,7 @@
 'use strict';
 
 import extend from 'extend';
+import Base from '../base';
 import join from '../deps/utils/join';
 
 const TASK_PATH = 'task';
@@ -10,7 +11,7 @@ const TASK_PATH = 'task';
  *
  * **Cannot directly be instantiated**
  */
-class Task {
+class Task extends Base {
   /**
    * Creates a `Task`.
    * @param {object} task - The initial task object. This Task object will be extended with task properties.
@@ -19,6 +20,7 @@ class Task {
    * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
    */
   constructor(task, opts) {
+    super(opts);
     this._nuxeo = opts.nuxeo;
     this._documentId = opts.documentId;
     extend(true, this, task);
@@ -52,9 +54,10 @@ class Task {
       id: this.id,
       comment: taskOpts.comment,
     };
+    const options = this._computeOptions(opts);
     const path = join(TASK_PATH, this.id, action);
     return this._nuxeo.request(path)
-      .put(opts);
+      .put(options);
   }
 
   /**
@@ -66,13 +69,14 @@ class Task {
    * @returns {Promise} A promise object resolved with nothing.
    */
   reassign(actors, taskOpts = {}, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(TASK_PATH, this.id, 'reassign');
     return this._nuxeo.request(path)
       .queryParams({
         actors,
         comment: taskOpts.comment,
       })
-      .put(opts);
+      .put(options);
   }
 
   /**
@@ -84,13 +88,14 @@ class Task {
    * @returns {Promise} A promise object resolved with nothing.
    */
   delegate(actors, taskOpts = {}, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(TASK_PATH, this.id, 'delegate');
     return this._nuxeo.request(path)
       .queryParams({
         delegatedActors: actors,
         comment: taskOpts.comment,
       })
-      .put(opts);
+      .put(options);
   }
 }
 

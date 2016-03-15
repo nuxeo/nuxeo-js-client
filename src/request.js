@@ -113,33 +113,21 @@ class Request extends Base {
    * @returns {Promise} A Promise object resolved with the result of the request.
    */
   execute(opts = {}) {
-    const schemas = opts.schemas || this._schemas;
-
-    let headers = extend(true, {}, this._headers);
-    if (schemas.length > 0) {
-      headers['X-NXDocumentProperties'] = schemas.join(',');
-    }
-    headers = extend(true, headers, opts.headers);
-
+    const options = this._computeOptions(opts);
     let url = this._url;
-    const repositoryName = opts.repositoryName || this._repositoryName;
+    const repositoryName = options.repositoryName;
     if (repositoryName !== undefined) {
-      url = join(url, 'repo', this._repositoryName);
+      url = join(url, 'repo', repositoryName);
     }
     url = join(url, this._path);
 
     let finalOptions = {
       url,
-      headers,
       queryParams: this._queryParams,
-      timeout: this._timeout,
-      transactionTimeout: this._transactionTimeout,
-      httpTimeout: this._httpTimeout,
     };
-    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = extend(true, finalOptions, options);
     return this._nuxeo.fetch(finalOptions);
   }
-
 }
 
 export default Request;

@@ -1,6 +1,7 @@
 'use strict';
 
 import extend from 'extend';
+import Base from '../base';
 import Task from './task';
 import join from '../deps/utils/join';
 
@@ -11,7 +12,7 @@ const WORKFLOW_PATH = 'workflow';
  *
  * **Cannot directly be instantiated**
  */
-class Workflow {
+class Workflow extends Base {
   /**
    * Creates a `Workflow`.
    * @param {object} workflow - The initial workflow object. This User object will be extended with workflow properties.
@@ -20,6 +21,7 @@ class Workflow {
    * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
    */
   constructor(workflow, opts) {
+    super(opts);
     this._nuxeo = opts.nuxeo;
     this._documentId = opts.documentId;
     extend(true, this, workflow);
@@ -31,14 +33,14 @@ class Workflow {
    * @returns {Promise} A promise object resolved with the tasks.
    */
   fetchTasks(opts) {
+    const options = this._computeOptions(opts);
     return this._buildTasksRequest()
-      .get(opts)
+      .get(options)
       .then(({ entries }) => {
+        options.nuxeo = this._nuxeo;
+        options.documentId = this.uid;
         const tasks = entries.map((task) => {
-          return new Task(task, {
-            nuxeo: this._nuxeo,
-            documentId: this.uid,
-          });
+          return new Task(task, options);
         });
         return tasks;
       });
@@ -50,9 +52,10 @@ class Workflow {
    * @returns {Promise} A promise object resolved with the workflow graph.
    */
   fetchGraph(opts) {
+    const options = this._computeOptions(opts);
     const path = join(WORKFLOW_PATH, this.id, 'graph');
     return this._nuxeo.request(path)
-      .get(opts);
+      .get(options);
   }
 
   /**

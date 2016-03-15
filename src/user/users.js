@@ -43,17 +43,13 @@ class Users extends Base {
    * @returns {Promise} A Promise object resolved with the {@link User}.
    */
   fetch(username, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(USER_PATH, username);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then((res) => {
-        return new User(res, {
-          users: this,
-        });
+        options.users = this;
+        return new User(res, options);
       });
   }
 
@@ -68,16 +64,12 @@ class Users extends Base {
       'entity-type': 'user',
       properties: user.properties,
     };
+    const options = this._computeOptions(opts);
     return this._nuxeo.request(USER_PATH)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .post(opts)
+      .post(options)
       .then((res) => {
-        return new User(res, {
-          users: this,
-        });
+        options.users = this;
+        return new User(res, options);
       });
   }
 
@@ -93,17 +85,13 @@ class Users extends Base {
       id: user.id,
       properties: user.properties,
     };
+    const options = this._computeOptions(opts);
     const path = join(USER_PATH, user.id);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
       .put(opts)
       .then((res) => {
-        return new User(res, {
-          users: this,
-        });
+        options.users = this;
+        return new User(res, options);
       });
   }
 
@@ -114,13 +102,10 @@ class Users extends Base {
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
   delete(username, opts = {}) {
+    const options = this._computeOptions(opts);
     const path = join(USER_PATH, username);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .delete(opts);
+      .delete(options);
   }
 }
 

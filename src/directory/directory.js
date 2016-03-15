@@ -39,21 +39,19 @@ class Directory extends Base {
 
   /**
    * Fetches all directory entries.
-   * @param {object} opts - Options overriding the ones from the Request object.
+   * @param {object} [opts] - Options overriding the ones from the Request object.
    * @returns {Promise} A Promise object resolved with the entries.
    */
-  fetchAll(opts) {
+  fetchAll(opts = {}) {
+    const options = this._computeOptions(opts);
     const path = this._path;
     return this._nuxeo.request(path)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then((res) => {
+        options.nuxeo = this._nuxeo;
+        options.directory = this;
         const entries = res.entries.map((entry) => {
-          return new DirectoryEntry(entry, {
-            nuxeo: this._nuxeo,
-            directory: this,
-          });
+          return new DirectoryEntry(entry, options);
         });
         return entries;
       });
@@ -66,18 +64,14 @@ class Directory extends Base {
    * @returns {Promise} A Promise object resolved with the {@link DirectoryEntry}.
    */
   fetch(id, opts) {
+    const options = this._computeOptions(opts);
     const path = join(this._path, id);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .get(opts)
+      .get(options)
       .then((res) => {
-        return new DirectoryEntry(res, {
-          nuxeo: this._nuxeo,
-          directory: this,
-        });
+        options.nuxeo = this._nuxeo;
+        options.directory = this;
+        return new DirectoryEntry(res, options);
       });
   }
 
@@ -93,18 +87,14 @@ class Directory extends Base {
       directoryName: this._directoryName,
       properties: entry.properties,
     };
+    const options = this._computeOptions(opts);
     const path = this._path;
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
       .post(opts)
       .then((res) => {
-        return new DirectoryEntry(res, {
-          nuxeo: this._nuxeo,
-          directory: this,
-        });
+        options.nuxeo = this._nuxeo;
+        options.directory = this;
+        return new DirectoryEntry(res, options);
       });
   }
 
@@ -120,18 +110,14 @@ class Directory extends Base {
       directoryName: this._directoryName,
       properties: entry.properties,
     };
+    const options = this._computeOptions(opts);
     const path = join(this._path, entry.properties.id);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .put(opts)
+      .put(options)
       .then((res) => {
-        return new DirectoryEntry(res, {
-          nuxeo: this._nuxeo,
-          directory: this,
-        });
+        options.nuxeo = this._nuxeo;
+        options.directory = this;
+        return new DirectoryEntry(res, options);
       });
   }
 
@@ -142,13 +128,10 @@ class Directory extends Base {
    * @returns {Promise} A Promise object resolved with the result of the DELETE request.
    */
   delete(id, opts) {
+    const options = this._computeOptions(opts);
     const path = join(this._path, id);
     return this._nuxeo.request(path)
-      .headers(this._headers)
-      .timeout(this._timeout)
-      .httpTimeout(this._httpTimeout)
-      .transactionTimeout(this._transactionTimeout)
-      .delete(opts);
+      .delete(options);
   }
 }
 

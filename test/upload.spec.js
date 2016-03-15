@@ -71,7 +71,7 @@ describe('Upload', () => {
       const blob1 = createTextBlob('foo', 'foo.txt');
       const blob2 = createTextBlob('bar', 'bar.txt');
 
-      b.upload(blob1, blob2).then(({ batch }) => {
+      return b.upload(blob1, blob2).then(({ batch }) => {
         return batch.fetchBlob(1);
       }).then(({ batch, blob }) => {
         expect(blob).to.be.an.instanceof(Nuxeo.BatchBlob);
@@ -89,16 +89,16 @@ describe('Upload', () => {
       const blob1 = createTextBlob('foo', 'foo.txt');
       const blob2 = createTextBlob('bar', 'bar.txt');
 
-      b.upload(blob1, blob2).then(({ batch }) => {
+      return b.upload(blob1, blob2).then(({ batch }) => {
         return batch.fetchBlobs();
       }).then(({ batch, blobs }) => {
         expect(blobs).to.be.an.instanceof(Array);
         expect(blobs.length).to.equal(2);
         expect(blobs[0]['upload-batch']).to.equal(batch._batchId);
-        expect(blobs[0]['upload-fileId']).to.equal(0);
+        expect(blobs[0]['upload-fileId']).to.equal('0');
         expect(blobs[0].name).to.equal('foo.txt');
         expect(blobs[1]['upload-batch']).to.equal(batch._batchId);
-        expect(blobs[1]['upload-fileId']).to.equal(1);
+        expect(blobs[1]['upload-fileId']).to.equal('1');
         expect(blobs[0].size).to.equal(3);
         expect(blobs[1].name).to.equal('bar.txt');
         expect(blobs[1].size).to.equal(3);

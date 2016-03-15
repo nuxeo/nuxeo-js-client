@@ -1,13 +1,14 @@
 'use strict';
 
 import extend from 'extend';
+import Base from '../base';
 
 /**
  * The `DirectoryEntry` class wraps a directory entry.
  *
  * **Cannot directly be instantiated**
  */
-class DirectoryEntry {
+class DirectoryEntry extends Base {
   /**
    * Creates a DirectoryEntry.
    * @param {object} entry - The initial entry object.
@@ -16,6 +17,7 @@ class DirectoryEntry {
    * @param {string} opts.directory - The {@link Directory} object linked to this entry.
    */
   constructor(entry, opts) {
+    super(opts);
     this._nuxeo = opts.nuxeo;
     this._directory = opts.directory;
     this.properties = {};
@@ -52,13 +54,14 @@ class DirectoryEntry {
 
   /**
    * Saves the entry. It updates only the 'dirty properties' set through the {@link DirectoryEntry#set} method.
-   * @param {object} opts - Options overriding the ones from the Document object.
+   * @param {object} [opts] - Options overriding the ones from the Document object.
    * @returns {Promise} A promise object resolved with the updated entry.
    */
-  save(opts) {
+  save(opts = {}) {
+    const options = this._computeOptions(opts);
     return this._directory.update({
       properties: this._dirtyProperties,
-    }, opts);
+    }, options);
   }
 }
 

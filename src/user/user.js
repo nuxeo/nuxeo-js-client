@@ -1,13 +1,14 @@
 'use strict';
 
 import extend from 'extend';
+import Base from '../base';
 
 /**
  * The `User` class wraps an user.
  *
  * **Cannot directly be instantiated**
  */
-class User {
+class User extends Base {
   /**
    * Creates a User.
    * @param {object} user - The initial user object. This User object will be extended with user properties.
@@ -15,6 +16,7 @@ class User {
    * @param {string} opts.users - The {@link Users} object linked to this user.
    */
   constructor(user, opts) {
+    super(opts);
     this._users = opts.users;
     this.properties = {};
     this._dirtyProperties = {};
@@ -48,14 +50,15 @@ class User {
 
   /**
    * Saves the user. It updates only the 'dirty properties' set through the {@link User#set} method.
-   * @param {object} opts - Options overriding the ones from the User object.
+   * @param {object} [opts] - Options overriding the ones from the User object.
    * @returns {Promise} A promise object resolved with the updated user.
    */
-  save(opts) {
+  save(opts = {}) {
+    const options = this._computeOptions(opts);
     return this._users.update({
       id: this.id,
       properties: this._dirtyProperties,
-    }, opts);
+    }, options);
   }
 }
 
