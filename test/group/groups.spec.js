@@ -24,8 +24,7 @@ describe('Groups', () => {
   describe('#create', () => {
     it('should create a new foo group', () => {
       const newGroup = {
-        'entity-type': 'group',
-        groupname: 'foo',
+        groupname: FOO_GROUPNAME,
         grouplabel: 'Foo',
         memberUsers: ['Administrator'],
       };

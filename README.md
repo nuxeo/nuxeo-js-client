@@ -82,6 +82,10 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
 ...
 ```
 
+## Documentation
+
+Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/latest/).
+
 ## Requirements
 
 The Nuxeo JavaScript client works only with Nuxeo Platform >= LTS 2015.
@@ -106,9 +110,9 @@ To connect to a different Nuxeo Platform Instance, you can use the following:
 
 ```javascript
 var nuxeo = new Nuxeo({
+  baseURL: 'http://demo.nuxeo.com/nuxeo/',
   auth: {
     method: 'basic',
-    baseURL: 'http://demo.nuxeo.com/nuxeo/',
     username: 'Administrator',
     password: 'Administrator'
   },
@@ -117,7 +121,7 @@ var nuxeo = new Nuxeo({
 
 ### Promise Based Calls
 
-All API calls return a Promise object:
+All API calls made on the server return a Promise object.
 
 ```javascript
 nuxeo.operation('Document.GetChildren')
@@ -138,9 +142,11 @@ When something went wrong, the `error` is an `Error` object with a `response` fi
 `Operation` object allows you to execute an operation
 (or operation chain).
 
+See the [Operation](https://nuxeo.github.io/nuxeo-js-client/latest/Operation.html) documentation.
+
 #### Samples
 
-Calling an operation to create a new folder in the Root document:
+__Call an operation to create a new folder in the Root document__
 
 ```javascript
 nuxeo.operation('Document.Create')
@@ -163,9 +169,11 @@ nuxeo.operation('Document.Create')
 
 The `Request` object allows you to call the Nuxeo REST API.
 
+See the [Request](https://nuxeo.github.io/nuxeo-js-client/latest/Request.html) documentation.
+
 #### Samples
 
-Fetching the Administrator user:
+__Fetch the Administrator user__
 
 ```javascript
 nuxeo.request('user/Administrator')
@@ -178,7 +186,7 @@ nuxeo.request('user/Administrator')
   });
 ```
 
-Fetching the whole list of Natures:
+__Fetch the whole list of Natures__
 
 ```javascript
 nuxeo.request('directory/nature')
@@ -191,13 +199,15 @@ nuxeo.request('directory/nature')
   });
 ```
 
-### Repository API
+### Repository
 
 The `Repository` object allows you to work with document.
 
+See the [Repository](https://nuxeo.github.io/nuxeo-js-client/latest/Repository.html) documentation.
+
 #### Samples
 
-Creating a `Repository` object:
+__Create a `Repository` object__
 
 ```javascript
 var defaultRepository = nuxeo.repository(); // 'default' repository
@@ -206,7 +216,7 @@ var testRepository = nuxeo.repository('test'); // 'test' repository
 ...
 ```
 
-Fetching the Root document:
+__Fetch the Root document__
 
 ```javascript
 nuxeo.repository().fetch('/')
@@ -218,7 +228,7 @@ nuxeo.repository().fetch('/')
   });
 ```
 
-Creating a new folder:
+__Create a new folder__
 
 ```javascript
 var newFolder = {
@@ -239,7 +249,7 @@ nuxeo.repository()
   });
 ```
 
-Deleting a document:
+__Delete a document__
 
 ```javascript
 nuxeo.repository()
@@ -254,9 +264,11 @@ nuxeo.repository()
 `Repository` object returns and works with `Document` objects. `Document` objects exposes a simpler API
 to work with a document.
 
+See the [Document](https://nuxeo.github.io/nuxeo-js-client/latest/Document.html) documentation.
+
 #### Samples
 
-Retrieving a `Document` object:
+__Retrieve a `Document` object__
 
 ```javascript
 nuxeo.repository()
@@ -269,19 +281,19 @@ nuxeo.repository()
   });
 ```
 
-Set a document property:
+__Set a document property__
 
 ```javascript
 doc.set({ 'dc:title': 'foo' });
 ```
 
-Get a document property:
+__Get a document property__
 
 ```javascript
 doc.get('dc:title');
 ```
 
-Save an updated document:
+__Save an updated document__
 
 ```javascript
 nuxeo.repository()
@@ -299,14 +311,73 @@ nuxeo.repository()
   });
 ```
 
+__Fetch the main Blob of a document__
+
+```javascript
+doc.fetchBlob()
+  .then(function(res) {
+    // in the browser, use res.blob() to work with the converted PDF
+    // in Node.js, use res.body
+  });
+```
+
+__Convert a document main Blob to PDF__
+
+```javascript
+doc.convert({ format: 'pdf' })
+  .then(function(res) {
+    // in the browser, use res.blob() to work with the converted PDF
+    // in Node.js, use res.body
+  });
+```
+
+__Fetch the 'thumbnail' rendition__
+
+```javascript
+doc.fetchRendition('thumbnail')
+  .then(function(res) {
+    // in the browser, use res.blob() to work with the rendition
+    // in Node.js, use res.body
+  });
+```
+
+__Start a workflow__
+
+```javascript
+doc.startWorkflow('SerialDocumentReview')
+  .then(function(workflow) {
+    // workflow instance of Nuxeo.Workflow
+  });
+```
+
+__Complete a workflow task__
+
+```javascript
+workflow.fetchTasks()
+  .then(function(tasks) {
+    return tasks[0];
+  })
+  .then(function(tasks) {
+    task.variable('participants', ['user:Administrator'])
+      .variable('assignees', ['user:Administrator'])
+      .variable('end_date', '2011-10-23T12:00:00.00Z');
+    return task.complete('start_review', { comment: 'a comment' });
+  })
+  .then((task) => {
+    // task.state === 'ended'
+  })
+```
+
 ### BatchUpload
 
 The `BatchUpload` object allows you to upload blobs to a Nuxeo Platform instance, and use them as operation input or
 as document property value.
 
+See the [BatchUpload](https://nuxeo.github.io/nuxeo-js-client/latest/BatchUpload.html) documentation.
+
 #### Samples
 
-Create a Nuxeo.Blob to be uploaded:
+__Create a Nuxeo.Blob to be uploaded__
 
 ```javascript
 // on the browser, assuming you have a File object 'file'
@@ -317,7 +388,7 @@ var blob = new Nuxeo.Blob({ content: file });
 var blob = new Nuxeo.Blob({ content: file, name: 'foo.txt', mimeType: 'plain/text', size: 10 })
 ```
 
-Upload a blob:
+__Upload a blob__
 
 ```javascript
 nuxeo.batchUpload()
@@ -331,7 +402,7 @@ nuxeo.batchUpload()
   });
 ```
 
-Attach an uploaded blob to a document:
+__Attach an uploaded blob to a document__
 
 ```javascript
 nuxeo.batchUpload()
@@ -348,6 +419,150 @@ nuxeo.batchUpload()
   .catch(function(error) {
     throw error;
   });
+```
+
+### Users
+
+The `Users` object allows you to work with users.
+
+See the [Users](https://nuxeo.github.io/nuxeo-js-client/latest/Users.html) and
+[User](https://nuxeo.github.io/nuxeo-js-client/latest/User.html) documentation.
+
+#### Samples
+
+__Fetch an user__
+
+```javascript
+nuxeo.users()
+  .fetch('Administrator')
+  .then(function(user) {
+    // user.id === 'Administrator'
+  });
+```
+
+__Create a new user__
+
+```javascript
+var newUser = {
+  properties: {
+    username: 'leela',
+    firstName: 'Leela',
+    company: 'Futurama',
+    email: 'leela@futurama.com',
+  },
+};
+nuxeo.users()
+  .create(newUser)
+  .then(function(user) {
+    // user.id === 'leela'
+  });
+```
+
+__Delete an user__
+
+```javascript
+nuxeo.users()
+  .delete('leela').then(function(res) {
+    // res.status === 204
+  });
+```
+
+### Groups
+
+The `Groups` object allows you to work with groups.
+
+See the [Groups](https://nuxeo.github.io/nuxeo-js-client/latest/Groups.html) and
+[Group](https://nuxeo.github.io/nuxeo-js-client/latest/Group.html) documentation.
+
+#### Samples
+
+__Fetch a group__
+
+```javascript
+nuxeo.groups().fetch('administrators')
+  .then(function(group) {
+    // group.groupname === 'administrators'
+  });
+```
+
+__Create a new group__
+
+```javascript
+var newGroup = {
+  groupname: 'foo',
+  grouplabel: 'Foo',
+};
+nuxeo.groups()
+  .create(newGroup)
+  .then(function(group) {
+    // group.groupname === 'foo';
+  });
+```
+
+__Delete a group__
+
+```javascript
+nuxeo.groups()
+  .delete('foo').then(function(res) {
+    // res.status === 204
+  });
+```
+
+### Directory
+
+The `Directory` object allows you to work with directories.
+
+See the [Directory](https://nuxeo.github.io/nuxeo-js-client/latest/Directory.html) and
+[DirectoryEntry](https://nuxeo.github.io/nuxeo-js-client/latest/DirectoryEntry.html) documentation.
+
+#### Samples
+
+__Fetch all entries of a directory__
+
+```javascript
+nuxeo.directory('nature')
+  .fetchAll()
+  .then(function(entries) {
+    // entries instance of Array
+  });
+```
+
+__Fetch a given directory entry__
+
+```javascript
+nuxeo.directory('nature')
+  .fetch('article')
+  .then(function(entry) {
+    // entry.directoryName === 'nature'
+    // entry.properties.id === 'article'
+  });
+```
+
+__Create a new directory entry__
+
+```javascript
+var newEntry = {
+  properties: {
+    id: 'foo',
+    label: 'Foo',
+  },
+};
+nuxeo.directory('nature')
+  .create(newEntry)
+  .then(function(entry) {
+    // entry.directoryName === 'nature'
+    // entry.properties.id === 'foo'
+  });
+```
+
+__Delete a directory entry__
+
+```javascript
+nuxeo.directory('nature')
+ .delete('foo')
+ .then((res) => {
+   // res.status === 204
+ });
 ```
 
 ## Contributing

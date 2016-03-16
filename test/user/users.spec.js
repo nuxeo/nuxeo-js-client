@@ -23,7 +23,6 @@ describe('Users', () => {
   describe('#create', () => {
     it('should create a new leela user', () => {
       const newUser = {
-        'entity-type': 'user',
         properties: {
           username: LEELA_USERNAME,
           firstName: 'Leela',
