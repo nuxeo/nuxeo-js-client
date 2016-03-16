@@ -32,8 +32,13 @@ npm publish
 # freeze dependencies versions
 npm shrinkwrap --dev
 
+# update README links to point to the released doc
+sed -i.bak "s|nuxeo-js-client/latest|nuxeo-js-client/$VERSION|g" README.md
+rm README.md.bak
+
 git add -f dist lib
 git add npm-shrinkwrap.json
+git add README.md
 git commit -m "Release $VERSION"
 git tag v$VERSION
 
@@ -43,17 +48,12 @@ cp -r doc /tmp/nuxeo.js-doc
 git checkout gh-pages
 # copy doc for the released version
 cp -r /tmp/nuxeo.js-doc $VERSION
-# always point to the latest doc
-cat << EOF > index.html
-<html>
-<head>
-  <meta http-equiv="refresh" content="0; url=http://nuxeo.github.io/nuxeo-js-client/$VERSION/index.html" />
-</head>
-<body></body>
-</html>
-EOF
+# copy doc for the latest version
+rm -rf latest
+cp -r /tmp/nuxeo.js-doc latest
 
 git add $VERSION
+git add latest
 git add index.html
 git commit -m "Add documentation for release $VERSION"
 
