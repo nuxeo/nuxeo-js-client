@@ -48,6 +48,7 @@ After adding `nuxeo` through Bower, you can easily create a service that will re
   return new Nuxeo({
     baseURL: 'http://localhost:8080/nuxeo/',
     auth: {
+      method: 'basic',
       username: 'Administrator',
       password: 'Administrator'
     }
@@ -72,6 +73,7 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
   return new Nuxeo({
     baseURL: 'http://localhost:8080/nuxeo/',
     auth: {
+      method: 'basic',
       username: 'Administrator',
       password: 'Administrator'
     }
@@ -93,6 +95,7 @@ This quick start guide will show how to do basics operations using the client.
 ```javascript
 var nuxeo = new Nuxeo({
   auth: {
+    method: 'basic',
     username: 'Administrator',
     password: 'Administrator'
   },
@@ -104,6 +107,7 @@ To connect to a different Nuxeo Platform Instance, you can use the following:
 ```javascript
 var nuxeo = new Nuxeo({
   auth: {
+    method: 'basic',
     baseURL: 'http://demo.nuxeo.com/nuxeo/',
     username: 'Administrator',
     password: 'Administrator'

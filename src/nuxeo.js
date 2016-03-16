@@ -24,11 +24,7 @@ const DEFAULT_OPTS = {
   baseURL: 'http://localhost:8080/nuxeo/',
   apiPath: API_PATH_V1,
   promiseLibrary: null,
-  auth: {
-    method: 'basic',
-    username: null,
-    password: null,
-  },
+  auth: null,
 };
 
 /**
@@ -40,6 +36,7 @@ const DEFAULT_OPTS = {
  * var nuxeo = new Nuxeo({
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
+ *    method: 'basic',
  *    username: 'Administrator',
  *    password: 'Administrator'
  *  }
@@ -104,33 +101,38 @@ class Nuxeo extends Base {
     const options = this._computeFetchOptions(opts);
     return new this.Promise((resolve, reject) => {
       this._activeRequests++;
-      doFetch(options.url, {
+
+      const fetchOptions = {
         method: options.method,
         headers: options.headers,
         body: options.body,
-        credentials: 'include',
-      }).then((res) => {
-        this._activeRequests--;
-        if (!(/^2/.test('' + res.status))) {
-          const error = new Error(res.statusText);
-          error.response = res;
-          return reject(error);
-        }
+      };
+      if (!this._auth) {
+        fetchOptions.credentials = 'include';
+      }
+      doFetch(options.url, fetchOptions)
+        .then((res) => {
+          this._activeRequests--;
+          if (!(/^2/.test('' + res.status))) {
+            const error = new Error(res.statusText);
+            error.response = res;
+            return reject(error);
+          }
 
-        if (options.resolveWithFullResponse || res.status === 204) {
+          if (options.resolveWithFullResponse || res.status === 204) {
+            return resolve(res);
+          }
+
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.indexOf('application/json') === 0) {
+            // TODO add marshallers
+            return resolve(res.json());
+          }
           return resolve(res);
-        }
-
-        const contentType = res.headers.get('content-type');
-        if (contentType && contentType.indexOf('application/json') === 0) {
-          // TODO add marshallers
-          return resolve(res.json());
-        }
-        return resolve(res);
-      }).catch((error) => {
-        this._activeRequests--;
-        return reject(error);
-      });
+        }).catch((error) => {
+          this._activeRequests--;
+          return reject(error);
+        });
     });
   }
 
@@ -142,10 +144,9 @@ class Nuxeo extends Base {
       timeout: 30000,
       cache: false,
       resolveWithFullResponse: false,
-      auth: this._auth,
     };
     options = extend(true, {}, options, opts);
-    options = computeAuthentication(options);
+    options.headers = computeAuthentication(this._auth, options.headers);
 
     if (options.schemas.length > 0) {
       options.headers['X-NXDocumentProperties'] = options.schemas.join(',');

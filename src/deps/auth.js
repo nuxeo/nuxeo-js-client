@@ -17,16 +17,18 @@ import { btoa } from './utils/base64';
 //   },
 // };
 
-export default function computeAuthentication(opts) {
-  switch (opts.auth.method) {
-    case 'basic':
-      if (opts.auth.username && opts.auth.password) {
-        const authorization = 'Basic ' + btoa(opts.auth.username + ':' + opts.auth.password);
-        opts.headers.Authorization = authorization;
-      }
-      break;
-    default:
-      // do nothing
+export default function computeAuthentication(auth, headers) {
+  if (auth) {
+    switch (auth.method) {
+      case 'basic':
+        if (auth.username && auth.password) {
+          const authorization = 'Basic ' + btoa(auth.username + ':' + auth.password);
+          headers.Authorization = authorization;
+        }
+        break;
+      default:
+        // do nothing
+    }
   }
-  return opts;
+  return headers;
 }

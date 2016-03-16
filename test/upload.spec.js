@@ -7,7 +7,7 @@ describe('Upload', () => {
   let nuxeoBatch;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     nuxeoBatch = nuxeo.batchUpload();
   });
 

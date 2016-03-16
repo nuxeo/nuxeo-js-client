@@ -16,6 +16,7 @@ const GROUP_PATH = 'group';
  * var nuxeo = new Nuxeo({
  *  baseUrl: 'http://localhost:8080/nuxeo',
  *  auth: {
+ *    method: 'basic',
  *    username: 'Administrator',
  *    password: 'Administrator'
  *  }

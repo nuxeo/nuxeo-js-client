@@ -7,7 +7,7 @@ describe('Group', () => {
   let groups;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     groups = nuxeo.groups();
 
     return groups.create({

@@ -22,7 +22,7 @@ describe('Document', () => {
   let repository;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     repository = nuxeo.repository({
       schemas: ['dublincore'],
     });
@@ -374,7 +374,7 @@ describe('Document', () => {
           permission: 'Read',
         }))
         .then(() => {
-          return new Nuxeo({ auth: { username: 'leela', password: 'leela1' } });
+          return new Nuxeo({ auth: { method: 'basic', username: 'leela', password: 'leela1' } });
         })
         .then(n => n.repository().fetch(FILE_TEST_PATH))
         .then(doc => doc.hasPermission('Write'))

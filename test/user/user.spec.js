@@ -7,7 +7,7 @@ describe('User', () => {
   let users;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     users = nuxeo.users();
 
     return users.create({

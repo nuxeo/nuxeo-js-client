@@ -17,6 +17,7 @@ describe('Operation', () => {
   before(() => {
     nuxeo = new Nuxeo({
       auth: {
+        method: 'basic',
         username: 'Administrator',
         password: 'Administrator',
       },

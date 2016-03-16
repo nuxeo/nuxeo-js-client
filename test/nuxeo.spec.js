@@ -8,6 +8,7 @@ describe('Nuxeo', () => {
   before(() => {
     nuxeo = new Nuxeo({
       auth: {
+        method: 'basic',
         username: 'Administrator',
         password: 'Administrator',
       },
@@ -27,15 +28,14 @@ describe('Nuxeo', () => {
     expect(n._baseURL).to.be.equal('http://localhost:8080/nuxeo/');
     expect(n._restURL).to.be.equal('http://localhost:8080/nuxeo/api/v1/');
     expect(n._automationURL).to.be.equal('http://localhost:8080/nuxeo/api/v1/automation/');
-    expect(n._auth.method).to.be.equal('basic');
-    expect(n._auth.username).to.be.null();
-    expect(n._auth.password).to.be.null();
+    expect(n._auth).to.be.null();
   });
 
   it('should allow overriding default values when being created', () => {
     const n = new Nuxeo({
       baseURL: 'http://localhost:9000/nuxeo/',
       auth: {
+        method: 'basic',
         username: 'Administrator',
         password: 'Administrator',
       },
