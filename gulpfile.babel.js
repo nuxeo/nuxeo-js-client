@@ -113,5 +113,8 @@ gulp.task('it', () => {
 gulp.task('prepublish', ['nsp', 'test']);
 
 gulp.task('nsp', (done) => {
-  nsp({ package: __dirname + '/package.json' }, done);
+  nsp({
+    shrinkwrap: __dirname + '/npm-shrinkwrap.json',
+    package: __dirname + '/package.json',
+  }, done);
 });

@@ -25,12 +25,13 @@ if [ -d "$NODE_MODULES" ]; then
 fi
 npm install
 
-# build, test and publish
-gulp prepublish
-npm publish
-
 # freeze dependencies versions
 npm shrinkwrap --dev
+
+# build, test and publish
+gulp prepublish
+
+npm publish
 
 # update README links to point to the released doc
 sed -i.bak "s|nuxeo-js-client/latest|nuxeo-js-client/$VERSION|g" README.md
