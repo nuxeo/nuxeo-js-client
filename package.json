@@ -73,6 +73,9 @@
     "./src/deps/promise.js": "./src/deps/promise-browser.js",
     "./src/deps/form-data.js": "./src/deps/form-data-browser.js"
   },
+  "react-native": {
+    "isomorphic-fetch": "./lib/deps/react-native-fetch.js"
+  },
   "files": [
     "lib",
     "dist"
