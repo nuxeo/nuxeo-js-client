@@ -71,7 +71,6 @@
   },
   "browser": {
     "./src/deps/promise.js": "./src/deps/promise-browser.js",
-    "./src/deps/utils/buffer.js": "./src/deps/utils/buffer-browser.js",
     "./src/deps/form-data.js": "./src/deps/form-data-browser.js"
   },
   "files": [

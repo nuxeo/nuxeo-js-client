@@ -1,3 +1,5 @@
 'use strict';
 
-export default Buffer;
+const buff = typeof Buffer !== 'undefined' ? Buffer : require('buffer/').Buffer;
+
+export default buff;
