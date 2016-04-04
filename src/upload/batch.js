@@ -116,7 +116,7 @@ class BatchUpload extends Base {
         },
       };
       const options = this._computeOptions(opts);
-      return this._nuxeo.fetch(options);
+      return this._nuxeo._http(options);
     }).then((res) => {
       res.batchId = this._batchId;
       res.index = uploadIndex;
@@ -138,7 +138,7 @@ class BatchUpload extends Base {
       return Promise.resolve(this);
     }
     const options = this._computeOptions(opts);
-    return this._nuxeo.fetch(options).then((res) => {
+    return this._nuxeo._http(options).then((res) => {
       this._batchId = res.batchId;
       return this;
     });
@@ -220,7 +220,7 @@ class BatchUpload extends Base {
     };
     options = extend(true, options, opts);
     options = this._computeOptions(options);
-    return this._nuxeo.fetch(options).then((res) => {
+    return this._nuxeo._http(options).then((res) => {
       res.batchId = this._batchId;
       res.index = index;
       return {
@@ -246,7 +246,7 @@ class BatchUpload extends Base {
     };
     options = extend(true, options, opts);
     options = this._computeOptions(options);
-    return this._nuxeo.fetch(options).then((blobs) => {
+    return this._nuxeo._http(options).then((blobs) => {
       const batchBlobs = blobs.map((blob, index) => {
         blob.batchId = this._batchId;
         blob.index = index;

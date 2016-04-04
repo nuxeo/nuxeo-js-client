@@ -1,5 +1,5 @@
 'use strict';
 
-require('isomorphic-fetch');
+import fetch from 'node-fetch';
 
 export default fetch;
