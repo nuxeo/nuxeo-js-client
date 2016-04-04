@@ -27,9 +27,10 @@
     "es6-promise": "^3.0.2",
     "extend": "^3.0.0",
     "form-data": "^1.0.0-rc1",
-    "isomorphic-fetch": "^2.2.0",
+    "node-fetch": "^1.4.1",
     "promise-queue": "^2.2.2",
-    "query-string": "^3.0.0"
+    "query-string": "^3.0.0",
+    "whatwg-fetch": "^0.11.0"
   },
   "devDependencies": {
     "babel-core": "^6.4.0",
@@ -71,10 +72,13 @@
   },
   "browser": {
     "./src/deps/promise.js": "./src/deps/promise-browser.js",
-    "./src/deps/form-data.js": "./src/deps/form-data-browser.js"
+    "./src/deps/form-data.js": "./src/deps/form-data-browser.js",
+    "./src/deps/fetch.js": "./src/deps/fetch-browser.js",
+    "./src/deps/utils/buffer.js": "./src/deps/utils/buffer-browser.js"
   },
   "react-native": {
-    "isomorphic-fetch": "./lib/deps/react-native-fetch.js"
+    "./lib/deps/fetch.js": "./lib/deps/fetch-react-native.js",
+    "./lib/deps/utils/buffer.js": "./lib/deps/utils/buffer-browser.js"
   },
   "files": [
     "lib",

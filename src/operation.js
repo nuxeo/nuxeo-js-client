@@ -114,7 +114,7 @@ class Operation extends Base {
       body: this._computeRequestBody(),
     };
     finalOptions = extend(true, finalOptions, options);
-    return this._nuxeo.fetch(finalOptions);
+    return this._nuxeo._http(finalOptions);
   }
 
   _computeContentTypeHeader(input) {

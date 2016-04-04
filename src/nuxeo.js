@@ -79,7 +79,7 @@ class Nuxeo extends Base {
     };
     finalOptions = extend(true, finalOptions, opts);
     finalOptions = this._computeOptions(finalOptions);
-    return this.fetch(finalOptions)
+    return this._http(finalOptions)
       .then((res) => {
         return this.request('user')
           .path(res.username)
@@ -93,11 +93,11 @@ class Nuxeo extends Base {
   }
 
   /**
-   * Do a fetch request.
+   * Does a http request.
    *
    * To be used when doing any call on Nuxeo Platform.
    */
-  fetch(opts = {}) {
+  _http(opts = {}) {
     const options = this._computeFetchOptions(opts);
     return new this.Promise((resolve, reject) => {
       this._activeRequests++;
