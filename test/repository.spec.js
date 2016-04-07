@@ -75,8 +75,13 @@ describe('Repository', () => {
       return repository.query({
         query: 'SELECT * FROM Document WHERE ecm:primaryType = \'Domain\'',
       })
-      .then((docs) => {
-        expect(docs.length).to.be.equal(1);
+      .then((res) => {
+        const { entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages } = res;
+        expect(entries.length).to.be.equal(1);
+        expect(resultsCount).to.be.equal(1);
+        expect(currentPageSize).to.be.equal(1);
+        expect(currentPageIndex).to.be.equal(0);
+        expect(numberOfPages).to.be.equal(1);
       });
     });
 
@@ -88,8 +93,13 @@ describe('Repository', () => {
             queryParams: [doc.uid],
           });
         })
-        .then((docs) => {
-          expect(docs.length).to.be.equal(3);
+        .then((res) => {
+          const { entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages } = res;
+          expect(entries.length).to.be.equal(3);
+          expect(resultsCount).to.be.equal(3);
+          expect(currentPageSize).to.be.equal(3);
+          expect(currentPageIndex).to.be.equal(0);
+          expect(numberOfPages).to.be.equal(1);
         });
     });
 
@@ -99,7 +109,7 @@ describe('Repository', () => {
         .then((doc) => {
           docId = doc.uid;
           return repository.query({
-            pageProvider: 'CURRENT_DOC_CHILDREN',
+            pageProvider: 'document_content',
             queryParams: [docId],
             pageSize: 1,
             currentPageIndex: 0,
@@ -107,9 +117,13 @@ describe('Repository', () => {
             sortOrder: 'asc',
           });
         })
-        .then((docs) => {
-          expect(docs.length).to.be.equal(1);
-          expect(docs[0].title).to.be.equal('Sections');
+        .then((res) => {
+          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          expect(entries.length).to.be.equal(1);
+          expect(currentPageSize).to.be.equal(1);
+          expect(currentPageIndex).to.be.equal(0);
+          expect(isNextPageAvailable).to.be.true();
+          expect(entries[0].title).to.be.equal('Sections');
         })
         .then(() => {
           return repository.query({
@@ -121,9 +135,13 @@ describe('Repository', () => {
             sortOrder: 'asc',
           });
         })
-        .then((docs) => {
-          expect(docs.length).to.be.equal(1);
-          expect(docs[0].title).to.be.equal('Templates');
+        .then((res) => {
+          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          expect(entries.length).to.be.equal(1);
+          expect(currentPageSize).to.be.equal(1);
+          expect(currentPageIndex).to.be.equal(1);
+          expect(isNextPageAvailable).to.be.true();
+          expect(entries[0].title).to.be.equal('Templates');
         })
         .then(() => {
           return repository.query({
@@ -135,9 +153,29 @@ describe('Repository', () => {
             sortOrder: 'asc',
           });
         })
-        .then((docs) => {
-          expect(docs.length).to.be.equal(1);
-          expect(docs[0].title).to.be.equal('Workspaces');
+        .then((res) => {
+          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          expect(entries.length).to.be.equal(1);
+          expect(currentPageSize).to.be.equal(1);
+          expect(currentPageIndex).to.be.equal(2);
+          expect(isNextPageAvailable).to.be.true();
+          expect(entries[0].title).to.be.equal('Workspaces');
+        }).then(() => {
+          return repository.query({
+            pageProvider: 'CURRENT_DOC_CHILDREN',
+            queryParams: [docId],
+            pageSize: 1,
+            currentPageIndex: 3,
+            sortBy: 'dc:title',
+            sortOrder: 'asc',
+          });
+        })
+        .then((res) => {
+          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          expect(entries.length).to.be.equal(0);
+          expect(currentPageSize).to.be.equal(0);
+          expect(currentPageIndex).to.be.equal(3);
+          expect(isNextPageAvailable).to.be.false();
         });
     });
   });

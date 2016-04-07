@@ -137,7 +137,8 @@ class Repository extends Base {
    * @param {string} [queryOpts.sortBy] - The sort by info.
    * @param {string} [queryOpts.sortOrder] - The sort order info.
    * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A Promise object resolved with the list of documents.
+   * @returns {Promise} A Promise object resolved with the response where the entries are replaced
+   *                    with Document objetcs.
    */
   query(queryOpts, opts = {}) {
     const options = this._computeOptions(opts);
@@ -145,13 +146,15 @@ class Repository extends Base {
     return this._nuxeo.request(path)
       .queryParams(queryOpts)
       .get(options)
-      .then(({ entries }) => {
+      .then((res) => {
+        const { entries } = res;
         options.nuxeo = this._nuxeo;
         options.repository = this;
         const docs = entries.map((doc) => {
           return new Document(doc, options);
         });
-        return docs;
+        res.entries = docs;
+        return res;
       });
   }
 }
