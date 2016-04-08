@@ -10,7 +10,8 @@ cp -r dist /tmp/push_stable/
 git checkout -f stable
 git merge origin/master -s recursive -X theirs --no-edit
 
-mv -f /tmp/push_stable/* .
+cp -r /tmp/push_stable/lib .
+cp -r /tmp/push_stable/dist .
 
 git add -f dist lib
 git commit -m $'Update stable branch\n $JOB_NAME#$BUILD_NUMBER'
