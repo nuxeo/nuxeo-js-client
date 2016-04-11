@@ -10239,84 +10239,21 @@ var Base = function () {
       }
       if (opts.enrichers) {
         options.enrichers = {};
-        var _iteratorNormalCompletion4 = true;
-        var _didIteratorError4 = false;
-        var _iteratorError4 = undefined;
-
-        try {
-          for (var _iterator4 = Object.keys(opts.enrichers)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-            var key = _step4.value;
-
-            options.enrichers[key] = opts.enrichers[key];
-          }
-        } catch (err) {
-          _didIteratorError4 = true;
-          _iteratorError4 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-              _iterator4.return();
-            }
-          } finally {
-            if (_didIteratorError4) {
-              throw _iteratorError4;
-            }
-          }
-        }
+        Object.keys(opts.enrichers).forEach(function (key) {
+          options.enrichers[key] = opts.enrichers[key];
+        });
       }
       if (opts.fetchProperties) {
         options.fetchProperties = {};
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
-
-        try {
-          for (var _iterator5 = Object.keys(opts.fetchProperties)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var _key = _step5.value;
-
-            options.fetchProperties[_key] = opts.fetchProperties[_key];
-          }
-        } catch (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-              _iterator5.return();
-            }
-          } finally {
-            if (_didIteratorError5) {
-              throw _iteratorError5;
-            }
-          }
-        }
+        Object.keys(opts.fetchProperties).forEach(function (key) {
+          options.fetchProperties[key] = opts.fetchProperties[key];
+        });
       }
       if (opts.headers) {
         options.headers = {};
-        var _iteratorNormalCompletion6 = true;
-        var _didIteratorError6 = false;
-        var _iteratorError6 = undefined;
-
-        try {
-          for (var _iterator6 = Object.keys(opts.headers)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-            var _key2 = _step6.value;
-
-            options.headers[_key2] = opts.headers[_key2];
-          }
-        } catch (err) {
-          _didIteratorError6 = true;
-          _iteratorError6 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion6 && _iterator6.return) {
-              _iterator6.return();
-            }
-          } finally {
-            if (_didIteratorError6) {
-              throw _iteratorError6;
-            }
-          }
-        }
+        Object.keys(opts.headers).forEach(function (key) {
+          options.headers[key] = opts.headers[key];
+        });
       }
       return options;
     }
@@ -12020,56 +11957,12 @@ var Nuxeo = function (_Base) {
         options.headers['X-NXRepository'] = options.repositoryName;
       }
 
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = Object.keys(options.enrichers)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var key = _step.value;
-
-          options.headers['enrichers-' + key] = options.enrichers[key].join(',');
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
-
-      try {
-        for (var _iterator2 = Object.keys(options.fetchProperties)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var _key = _step2.value;
-
-          options.headers['fetch-' + _key] = options.fetchProperties[_key].join(',');
-        }
-      } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
-          }
-        } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
-          }
-        }
-      }
-
+      Object.keys(opts.enrichers).forEach(function (key) {
+        options.headers['enrichers-' + key] = options.enrichers[key].join(',');
+      });
+      Object.keys(opts.fetchProperties).forEach(function (key) {
+        options.headers['fetch-' + key] = options.fetchProperties[key].join(',');
+      });
       if (options.depth) {
         options.headers.depth = options.depth;
       }
