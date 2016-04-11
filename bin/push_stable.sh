@@ -8,6 +8,7 @@ cp -r lib /tmp/push_stable/
 cp -r dist /tmp/push_stable/
 
 git checkout -f stable
+git pull origin stable
 git merge origin/master -s recursive -X theirs --no-edit
 
 cp -r /tmp/push_stable/lib .
