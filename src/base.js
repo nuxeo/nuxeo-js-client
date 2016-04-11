@@ -184,21 +184,21 @@ class Base {
     }
     if (opts.enrichers) {
       options.enrichers = {};
-      for (const key of Object.keys(opts.enrichers)) {
+      Object.keys(opts.enrichers).forEach((key) => {
         options.enrichers[key] = opts.enrichers[key];
-      }
+      });
     }
     if (opts.fetchProperties) {
       options.fetchProperties = {};
-      for (const key of Object.keys(opts.fetchProperties)) {
+      Object.keys(opts.fetchProperties).forEach((key) => {
         options.fetchProperties[key] = opts.fetchProperties[key];
-      }
+      });
     }
     if (opts.headers) {
       options.headers = {};
-      for (const key of Object.keys(opts.headers)) {
+      Object.keys(opts.headers).forEach((key) => {
         options.headers[key] = opts.headers[key];
-      }
+      });
     }
     return options;
   }
