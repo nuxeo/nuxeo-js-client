@@ -155,12 +155,12 @@ class Nuxeo extends Base {
       options.headers['X-NXRepository'] = options.repositoryName;
     }
 
-    for (const key of Object.keys(options.enrichers)) {
+    Object.keys(opts.enrichers).forEach((key) => {
       options.headers[`enrichers-${key}`] = options.enrichers[key].join(',');
-    }
-    for (const key of Object.keys(options.fetchProperties)) {
+    });
+    Object.keys(opts.fetchProperties).forEach((key) => {
       options.headers[`fetch-${key}`] = options.fetchProperties[key].join(',');
-    }
+    });
     if (options.depth) {
       options.headers.depth = options.depth;
     }
