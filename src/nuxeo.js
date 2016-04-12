@@ -14,7 +14,7 @@ import join from './deps/utils/join';
 import Promise from './deps/promise';
 import queryString from 'query-string';
 import FormData from './deps/form-data';
-import computeAuthentication from './deps/auth';
+import auth from './auth/auth';
 import doFetch from './deps/fetch';
 
 const API_PATH_V1 = 'api/v1/';
@@ -146,7 +146,7 @@ class Nuxeo extends Base {
       resolveWithFullResponse: false,
     };
     options = extend(true, {}, options, opts);
-    options.headers = computeAuthentication(this._auth, options.headers);
+    options.headers = auth.computeAuthentication(this._auth, options.headers);
 
     if (options.schemas.length > 0) {
       options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
@@ -323,6 +323,25 @@ class Nuxeo extends Base {
     finalOptions = this._computeOptions(finalOptions);
     return new Workflows(finalOptions);
   }
+
+  requestAuthenticationToken(applicationName, deviceId, deviceDescription, permission, opts = {}) {
+    let finalOptions = {
+      method: 'GET',
+      url: join(this._baseURL, 'authentication', 'token'),
+      queryParams: {
+        applicationName,
+        deviceId,
+        deviceDescription,
+        permission,
+      },
+    };
+    finalOptions = extend(true, finalOptions, opts);
+    finalOptions = this._computeOptions(finalOptions);
+    return this._http(finalOptions)
+      .then((res) => {
+        return res.text();
+      });
+  }
 }
 
 /**
@@ -330,6 +349,10 @@ class Nuxeo extends Base {
  */
 Nuxeo.promiseLibrary = (promiseLibrary) => {
   Nuxeo.Promise = promiseLibrary;
+};
+
+Nuxeo.registerAuthenticator = (authenticator) => {
+  auth.registerAuthenticator(authenticator);
 };
 
 export default Nuxeo;
