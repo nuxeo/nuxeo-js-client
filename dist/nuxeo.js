@@ -9931,6 +9931,67 @@ module.exports = function (str) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+var authenticators = {};
+
+exports.default = {
+  registerAuthenticator: function registerAuthenticator(authenticator) {
+    authenticators[authenticator.method] = authenticator.computeAuthentication;
+  },
+
+  computeAuthentication: function computeAuthentication(auth, headers) {
+    if (auth) {
+      var authenticator = authenticators[auth.method];
+      if (authenticator) {
+        authenticator(auth, headers);
+      }
+    }
+    return headers;
+  }
+};
+module.exports = exports['default'];
+
+},{}],304:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _base = require('../deps/utils/base64');
+
+exports.default = {
+  method: 'basic',
+  computeAuthentication: function computeAuthentication(auth, headers) {
+    if (auth.username && auth.password) {
+      var authorization = 'Basic ' + (0, _base.btoa)(auth.username + ':' + auth.password);
+      headers.Authorization = authorization;
+    }
+  }
+};
+module.exports = exports['default'];
+
+},{"../deps/utils/base64":312}],305:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {
+  method: 'token',
+  computeAuthentication: function computeAuthentication(auth, headers) {
+    if (auth.token) {
+      headers['X-Authentication-Token'] = auth.token;
+    }
+  }
+};
+module.exports = exports['default'];
+
+},{}],306:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -10265,7 +10326,7 @@ var Base = function () {
 exports.default = Base;
 module.exports = exports['default'];
 
-},{"extend":293}],304:[function(require,module,exports){
+},{"extend":293}],307:[function(require,module,exports){
 'use strict';
 
 /**
@@ -10311,49 +10372,7 @@ function Blob(opts) {
 exports.default = Blob;
 module.exports = exports['default'];
 
-},{}],305:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = computeAuthentication;
-
-var _base = require('./utils/base64');
-
-// const auth = {
-//   proxy: {
-//     DEFAULT_HEADER_NAME: 'Auth-User',
-//   },
-//   portal: {
-//     TOKEN_SEPARATOR: ':',
-//     headerNames: {
-//       RANDOM: 'NX_RD',
-//       TIMESTAMP: 'NX_TS',
-//       TOKEN: 'NX_TOKEN',
-//       USER: 'NX_USER',
-//     },
-//   },
-// };
-
-function computeAuthentication(auth, headers) {
-  if (auth) {
-    switch (auth.method) {
-      case 'basic':
-        if (auth.username && auth.password) {
-          var authorization = 'Basic ' + (0, _base.btoa)(auth.username + ':' + auth.password);
-          headers.Authorization = authorization;
-        }
-        break;
-      default:
-      // do nothing
-    }
-  }
-  return headers;
-}
-module.exports = exports['default'];
-
-},{"./utils/base64":310}],306:[function(require,module,exports){
+},{}],308:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10382,7 +10401,7 @@ exports.default = {
 };
 module.exports = exports['default'];
 
-},{}],307:[function(require,module,exports){
+},{}],309:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10392,7 +10411,7 @@ require('whatwg-fetch');
 exports.default = self.fetch.bind(self);
 module.exports = exports['default'];
 
-},{"whatwg-fetch":302}],308:[function(require,module,exports){
+},{"whatwg-fetch":302}],310:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10401,7 +10420,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = FormData;
 module.exports = exports['default'];
 
-},{}],309:[function(require,module,exports){
+},{}],311:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10419,7 +10438,7 @@ _es6Promise2.default.polyfill();
 exports.default = Promise;
 module.exports = exports['default'];
 
-},{"es6-promise":292}],310:[function(require,module,exports){
+},{"es6-promise":292}],312:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10437,7 +10456,7 @@ function btoa(str) {
   return new _buffer2.default(str).toString('base64');
 }
 
-},{"./buffer":311}],311:[function(require,module,exports){
+},{"./buffer":313}],313:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10449,7 +10468,7 @@ var _buffer = require('buffer/');
 exports.default = _buffer.Buffer;
 module.exports = exports['default'];
 
-},{"buffer/":291}],312:[function(require,module,exports){
+},{"buffer/":291}],314:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10466,7 +10485,7 @@ function join() {
 }
 module.exports = exports['default'];
 
-},{}],313:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10667,7 +10686,7 @@ var Directory = function (_Base) {
 exports.default = Directory;
 module.exports = exports['default'];
 
-},{"../base":303,"../deps/utils/join":312,"./entry":314}],314:[function(require,module,exports){
+},{"../base":306,"../deps/utils/join":314,"./entry":316}],316:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10779,7 +10798,7 @@ var DirectoryEntry = function (_Base) {
 exports.default = DirectoryEntry;
 module.exports = exports['default'];
 
-},{"../base":303,"extend":293}],315:[function(require,module,exports){
+},{"../base":306,"extend":293}],317:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11341,7 +11360,7 @@ var Document = function (_Base) {
 exports.default = Document;
 module.exports = exports['default'];
 
-},{"./base":303,"./deps/constants":306,"./deps/utils/join":312,"./workflow/workflow":328,"extend":293}],316:[function(require,module,exports){
+},{"./base":306,"./deps/constants":308,"./deps/utils/join":314,"./workflow/workflow":330,"extend":293}],318:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11421,7 +11440,7 @@ var Group = function (_Base) {
 exports.default = Group;
 module.exports = exports['default'];
 
-},{"../base":303,"extend":293}],317:[function(require,module,exports){
+},{"../base":306,"extend":293}],319:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11600,7 +11619,7 @@ var Groups = function (_Base) {
 exports.default = Groups;
 module.exports = exports['default'];
 
-},{"../base":303,"../deps/utils/join":312,"./group":316}],318:[function(require,module,exports){
+},{"../base":306,"../deps/utils/join":314,"./group":318}],320:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11687,6 +11706,14 @@ var _promise = require('./deps/promise');
 
 var _promise2 = _interopRequireDefault(_promise);
 
+var _basicAuthenticator = require('./auth/basic-authenticator');
+
+var _basicAuthenticator2 = _interopRequireDefault(_basicAuthenticator);
+
+var _tokenAuthenticator = require('./auth/token-authenticator');
+
+var _tokenAuthenticator2 = _interopRequireDefault(_tokenAuthenticator);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _nuxeo2.default.Base = _base2.default;
@@ -11711,10 +11738,13 @@ _nuxeo2.default.version = '0.25.0';
 
 _nuxeo2.default.promiseLibrary(_promise2.default);
 
+_nuxeo2.default.registerAuthenticator(_basicAuthenticator2.default);
+_nuxeo2.default.registerAuthenticator(_tokenAuthenticator2.default);
+
 exports.default = _nuxeo2.default;
 module.exports = exports['default'];
 
-},{"./base":303,"./blob":304,"./deps/constants":306,"./deps/promise":309,"./directory/directory":313,"./directory/entry":314,"./document":315,"./group/group":316,"./group/groups":317,"./nuxeo":319,"./operation":320,"./repository":321,"./request":322,"./upload/batch":323,"./upload/blob":324,"./user/user":325,"./user/users":326,"./workflow/task":327,"./workflow/workflow":328,"./workflow/workflows":329}],319:[function(require,module,exports){
+},{"./auth/basic-authenticator":304,"./auth/token-authenticator":305,"./base":306,"./blob":307,"./deps/constants":308,"./deps/promise":311,"./directory/directory":315,"./directory/entry":316,"./document":317,"./group/group":318,"./group/groups":319,"./nuxeo":321,"./operation":322,"./repository":323,"./request":324,"./upload/batch":325,"./upload/blob":326,"./user/user":327,"./user/users":328,"./workflow/task":329,"./workflow/workflow":330,"./workflow/workflows":331}],321:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11781,7 +11811,7 @@ var _formData = require('./deps/form-data');
 
 var _formData2 = _interopRequireDefault(_formData);
 
-var _auth = require('./deps/auth');
+var _auth = require('./auth/auth');
 
 var _auth2 = _interopRequireDefault(_auth);
 
@@ -11948,7 +11978,7 @@ var Nuxeo = function (_Base) {
         resolveWithFullResponse: false
       };
       options = (0, _extend2.default)(true, {}, options, opts);
-      options.headers = (0, _auth2.default)(this._auth, options.headers);
+      options.headers = _auth2.default.computeAuthentication(this._auth, options.headers);
 
       if (options.schemas.length > 0) {
         options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
@@ -12167,6 +12197,27 @@ var Nuxeo = function (_Base) {
       finalOptions = this._computeOptions(finalOptions);
       return new _workflows2.default(finalOptions);
     }
+  }, {
+    key: 'requestAuthenticationToken',
+    value: function requestAuthenticationToken(applicationName, deviceId, deviceDescription, permission) {
+      var opts = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
+
+      var finalOptions = {
+        method: 'GET',
+        url: (0, _join2.default)(this._baseURL, 'authentication', 'token'),
+        queryParams: {
+          applicationName: applicationName,
+          deviceId: deviceId,
+          deviceDescription: deviceDescription,
+          permission: permission
+        }
+      };
+      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return this._http(finalOptions).then(function (res) {
+        return res.text();
+      });
+    }
   }]);
 
   return Nuxeo;
@@ -12181,10 +12232,14 @@ Nuxeo.promiseLibrary = function (promiseLibrary) {
   Nuxeo.Promise = promiseLibrary;
 };
 
+Nuxeo.registerAuthenticator = function (authenticator) {
+  _auth2.default.registerAuthenticator(authenticator);
+};
+
 exports.default = Nuxeo;
 module.exports = exports['default'];
 
-},{"./base":303,"./deps/auth":305,"./deps/fetch":307,"./deps/form-data":308,"./deps/promise":309,"./deps/utils/join":312,"./directory/directory":313,"./group/groups":317,"./operation":320,"./repository":321,"./request":322,"./upload/batch":323,"./user/users":326,"./workflow/workflows":329,"extend":293,"query-string":300}],320:[function(require,module,exports){
+},{"./auth/auth":303,"./base":306,"./deps/fetch":309,"./deps/form-data":310,"./deps/promise":311,"./deps/utils/join":314,"./directory/directory":315,"./group/groups":319,"./operation":322,"./repository":323,"./request":324,"./upload/batch":325,"./user/users":328,"./workflow/workflows":331,"extend":293,"query-string":300}],322:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12482,7 +12537,7 @@ var Operation = function (_Base) {
 exports.default = Operation;
 module.exports = exports['default'];
 
-},{"./base":303,"./blob":304,"./deps/form-data":308,"./deps/utils/join":312,"./upload/batch":323,"./upload/blob":324,"extend":293}],321:[function(require,module,exports){
+},{"./base":306,"./blob":307,"./deps/form-data":310,"./deps/utils/join":314,"./upload/batch":325,"./upload/blob":326,"extend":293}],323:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12707,7 +12762,7 @@ var Repository = function (_Base) {
 exports.default = Repository;
 module.exports = exports['default'];
 
-},{"./base":303,"./deps/utils/join":312,"./document":315}],322:[function(require,module,exports){
+},{"./base":306,"./deps/utils/join":314,"./document":317}],324:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12917,7 +12972,7 @@ var Request = function (_Base) {
 exports.default = Request;
 module.exports = exports['default'];
 
-},{"./base":303,"./deps/utils/join":312,"extend":293}],323:[function(require,module,exports){
+},{"./base":306,"./deps/utils/join":314,"extend":293}],325:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13265,7 +13320,7 @@ var BatchUpload = function (_Base) {
 exports.default = BatchUpload;
 module.exports = exports['default'];
 
-},{"../base":303,"../deps/utils/join":312,"./blob":324,"extend":293,"promise-queue":297}],324:[function(require,module,exports){
+},{"../base":306,"../deps/utils/join":314,"./blob":326,"extend":293,"promise-queue":297}],326:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13300,7 +13355,7 @@ var BatchBlob = function BatchBlob() {
 exports.default = BatchBlob;
 module.exports = exports['default'];
 
-},{"extend":293}],325:[function(require,module,exports){
+},{"extend":293}],327:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13410,7 +13465,7 @@ var User = function (_Base) {
 exports.default = User;
 module.exports = exports['default'];
 
-},{"../base":303,"extend":293}],326:[function(require,module,exports){
+},{"../base":306,"extend":293}],328:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13584,7 +13639,7 @@ var Users = function (_Base) {
 exports.default = Users;
 module.exports = exports['default'];
 
-},{"../base":303,"../deps/utils/join":312,"./user":325}],327:[function(require,module,exports){
+},{"../base":306,"../deps/utils/join":314,"./user":327}],329:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13739,7 +13794,7 @@ var Task = function (_Base) {
 exports.default = Task;
 module.exports = exports['default'];
 
-},{"../base":303,"../deps/utils/join":312,"extend":293}],328:[function(require,module,exports){
+},{"../base":306,"../deps/utils/join":314,"extend":293}],330:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13869,7 +13924,7 @@ var Workflow = function (_Base) {
 exports.default = Workflow;
 module.exports = exports['default'];
 
-},{"../base":303,"../deps/utils/join":312,"./task":327,"extend":293}],329:[function(require,module,exports){
+},{"../base":306,"../deps/utils/join":314,"./task":329,"extend":293}],331:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14089,5 +14144,5 @@ var Workflows = function (_Base) {
 exports.default = Workflows;
 module.exports = exports['default'];
 
-},{"../base":303,"../deps/utils/join":312,"./task":327,"./workflow":328}]},{},[1,318])(318)
+},{"../base":306,"../deps/utils/join":314,"./task":329,"./workflow":330}]},{},[1,320])(320)
 });
