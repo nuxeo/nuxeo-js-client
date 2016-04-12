@@ -20,6 +20,8 @@ import Workflow from './workflow/workflow';
 import Task from './workflow/task';
 import constants from './deps/constants';
 import Promise from './deps/promise';
+import basicAuthenticator from './auth/basic-authenticator';
+import tokenAuthenticator from './auth/token-authenticator';
 
 Nuxeo.Base = Base;
 Nuxeo.Operation = Operation;
@@ -42,5 +44,8 @@ Nuxeo.constants = constants;
 Nuxeo.version = '__VERSION__';
 
 Nuxeo.promiseLibrary(Promise);
+
+Nuxeo.registerAuthenticator(basicAuthenticator);
+Nuxeo.registerAuthenticator(tokenAuthenticator);
 
 export default Nuxeo;
