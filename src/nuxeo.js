@@ -12,7 +12,7 @@ import Directory from './directory/directory';
 import Workflows from './workflow/workflows';
 import join from './deps/utils/join';
 import Promise from './deps/promise';
-import queryString from 'query-string';
+import qs from 'querystring';
 import FormData from './deps/form-data';
 import auth from './auth/auth';
 import doFetch from './deps/fetch';
@@ -148,19 +148,25 @@ class Nuxeo extends Base {
     options = extend(true, {}, options, opts);
     options.headers = auth.computeAuthentication(this._auth, options.headers);
 
-    if (options.schemas.length > 0) {
+    if (options.schemas && options.schemas.length > 0) {
       options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
     }
     if (opts.repositoryName !== undefined) {
       options.headers['X-NXRepository'] = options.repositoryName;
     }
 
-    Object.keys(opts.enrichers).forEach((key) => {
-      options.headers[`enrichers-${key}`] = options.enrichers[key].join(',');
-    });
-    Object.keys(opts.fetchProperties).forEach((key) => {
-      options.headers[`fetch-${key}`] = options.fetchProperties[key].join(',');
-    });
+    if (opts.enrichers) {
+      Object.keys(opts.enrichers).forEach((key) => {
+        options.headers[`enrichers-${key}`] = options.enrichers[key].join(',');
+      });
+    }
+
+    if (opts.fetchProperties) {
+      Object.keys(opts.fetchProperties).forEach((key) => {
+        options.headers[`fetch-${key}`] = options.fetchProperties[key].join(',');
+      });
+    }
+
     if (options.depth) {
       options.headers.depth = options.depth;
     }
@@ -185,7 +191,7 @@ class Nuxeo extends Base {
 
     if (options.queryParams) {
       options.url += options.url.indexOf('?') === -1 ? '?' : '';
-      options.url += queryString.stringify(options.queryParams);
+      options.url += qs.stringify(options.queryParams);
     }
     return options;
   }

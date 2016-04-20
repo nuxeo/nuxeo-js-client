@@ -29,7 +29,7 @@
     "form-data": "^1.0.0-rc1",
     "node-fetch": "^1.4.1",
     "promise-queue": "^2.2.2",
-    "query-string": "^3.0.0",
+    "querystring": "^0.2.0",
     "whatwg-fetch": "^0.11.0"
   },
   "devDependencies": {
