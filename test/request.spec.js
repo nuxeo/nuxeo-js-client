@@ -66,7 +66,7 @@ describe('Request', () => {
       .then((res) => {
         if (res.url.length > 0) {
           // url is empty on FF
-          expect(res.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/repo/default/path/default-domain/workspaces/ws-js-tests?bar=bar&foo=foo');
+          expect(res.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/repo/default/path/default-domain/workspaces/ws-js-tests?foo=foo&bar=bar');
         }
       });
   });

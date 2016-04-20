@@ -306,5 +306,16 @@ describe('Nuxeo', () => {
       expect(options.headers['fetch-document']).to.be.equal('dc:creator,dc:subject');
       expect(options.headers.depth).to.be.equal('children');
     });
+
+    it('should keep query parameters ordered', () => {
+      const defaultOptions = {
+        url: 'http://localhost:8080/nuxeo',
+        queryParams: {
+          param: [1, 2, 3],
+        },
+      };
+      const options = nuxeo._computeFetchOptions(defaultOptions);
+      expect(options.url).to.be.equal('http://localhost:8080/nuxeo?param=1&param=2&param=3');
+    });
   });
 });
