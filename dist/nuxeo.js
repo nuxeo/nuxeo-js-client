@@ -9457,84 +9457,189 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 
 },{}],300:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
-var strictUriEncode = require('strict-uri-encode');
+// If obj.hasOwnProperty has been overridden, then calling
+// obj.hasOwnProperty(prop) will break.
+// See: https://github.com/joyent/node/issues/1707
 
-exports.extract = function (str) {
-	return str.split('?')[1] || '';
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+module.exports = function (qs, sep, eq, options) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  var regexp = /\+/g;
+  qs = qs.split(sep);
+
+  var maxKeys = 1000;
+  if (options && typeof options.maxKeys === 'number') {
+    maxKeys = options.maxKeys;
+  }
+
+  var len = qs.length;
+  // maxKeys <= 0 means that we should not limit keys count
+  if (maxKeys > 0 && len > maxKeys) {
+    len = maxKeys;
+  }
+
+  for (var i = 0; i < len; ++i) {
+    var x = qs[i].replace(regexp, '%20'),
+        idx = x.indexOf(eq),
+        kstr,
+        vstr,
+        k,
+        v;
+
+    if (idx >= 0) {
+      kstr = x.substr(0, idx);
+      vstr = x.substr(idx + 1);
+    } else {
+      kstr = x;
+      vstr = '';
+    }
+
+    k = decodeURIComponent(kstr);
+    v = decodeURIComponent(vstr);
+
+    if (!hasOwnProperty(obj, k)) {
+      obj[k] = v;
+    } else if (isArray(obj[k])) {
+      obj[k].push(v);
+    } else {
+      obj[k] = [obj[k], v];
+    }
+  }
+
+  return obj;
 };
 
-exports.parse = function (str) {
-	if (typeof str !== 'string') {
-		return {};
-	}
-
-	str = str.trim().replace(/^(\?|#|&)/, '');
-
-	if (!str) {
-		return {};
-	}
-
-	return str.split('&').reduce(function (ret, param) {
-		var parts = param.replace(/\+/g, ' ').split('=');
-		// Firefox (pre 40) decodes `%3D` to `=`
-		// https://github.com/sindresorhus/query-string/pull/37
-		var key = parts.shift();
-		var val = parts.length > 0 ? parts.join('=') : undefined;
-
-		key = decodeURIComponent(key);
-
-		// missing `=` should be `null`:
-		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		val = val === undefined ? null : decodeURIComponent(val);
-
-		if (!ret.hasOwnProperty(key)) {
-			ret[key] = val;
-		} else if (Array.isArray(ret[key])) {
-			ret[key].push(val);
-		} else {
-			ret[key] = [ret[key], val];
-		}
-
-		return ret;
-	}, {});
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-exports.stringify = function (obj) {
-	return obj ? Object.keys(obj).sort().map(function (key) {
-		var val = obj[key];
+},{}],301:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-		if (val === undefined) {
-			return '';
-		}
-
-		if (val === null) {
-			return key;
-		}
-
-		if (Array.isArray(val)) {
-			return val.slice().sort().map(function (val2) {
-				return strictUriEncode(key) + '=' + strictUriEncode(val2);
-			}).join('&');
-		}
-
-		return strictUriEncode(key) + '=' + strictUriEncode(val);
-	}).filter(function (x) {
-		return x.length > 0;
-	}).join('&') : '';
-};
-
-},{"strict-uri-encode":301}],301:[function(require,module,exports){
 'use strict';
 
-module.exports = function (str) {
-	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
-		return '%' + c.charCodeAt(0).toString(16).toUpperCase();
-	});
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var stringifyPrimitive = function stringifyPrimitive(v) {
+  switch (typeof v === 'undefined' ? 'undefined' : _typeof(v)) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+};
+
+module.exports = function (obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  if (obj === null) {
+    obj = undefined;
+  }
+
+  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+    return map(objectKeys(obj), function (k) {
+      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+      if (isArray(obj[k])) {
+        return map(obj[k], function (v) {
+          return ks + encodeURIComponent(stringifyPrimitive(v));
+        }).join(sep);
+      } else {
+        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+      }
+    }).join(sep);
+  }
+
+  if (!name) return '';
+  return encodeURIComponent(stringifyPrimitive(name)) + eq + encodeURIComponent(stringifyPrimitive(obj));
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+function map(xs, f) {
+  if (xs.map) return xs.map(f);
+  var res = [];
+  for (var i = 0; i < xs.length; i++) {
+    res.push(f(xs[i], i));
+  }
+  return res;
+}
+
+var objectKeys = Object.keys || function (obj) {
+  var res = [];
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+  }
+  return res;
 };
 
 },{}],302:[function(require,module,exports){
+'use strict';
+
+exports.decode = exports.parse = require('./decode');
+exports.encode = exports.stringify = require('./encode');
+
+},{"./decode":300,"./encode":301}],303:[function(require,module,exports){
 'use strict';
 
 (function (self) {
@@ -9925,7 +10030,7 @@ module.exports = function (str) {
   self.fetch.polyfill = true;
 })(typeof self !== 'undefined' ? self : undefined);
 
-},{}],303:[function(require,module,exports){
+},{}],304:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9950,7 +10055,7 @@ exports.default = {
 };
 module.exports = exports['default'];
 
-},{}],304:[function(require,module,exports){
+},{}],305:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9970,7 +10075,7 @@ exports.default = {
 };
 module.exports = exports['default'];
 
-},{"../deps/utils/base64":312}],305:[function(require,module,exports){
+},{"../deps/utils/base64":313}],306:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9986,7 +10091,7 @@ exports.default = {
 };
 module.exports = exports['default'];
 
-},{}],306:[function(require,module,exports){
+},{}],307:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10326,7 +10431,7 @@ var Base = function () {
 exports.default = Base;
 module.exports = exports['default'];
 
-},{"extend":293}],307:[function(require,module,exports){
+},{"extend":293}],308:[function(require,module,exports){
 'use strict';
 
 /**
@@ -10372,7 +10477,7 @@ function Blob(opts) {
 exports.default = Blob;
 module.exports = exports['default'];
 
-},{}],308:[function(require,module,exports){
+},{}],309:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10401,7 +10506,7 @@ exports.default = {
 };
 module.exports = exports['default'];
 
-},{}],309:[function(require,module,exports){
+},{}],310:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10411,7 +10516,7 @@ require('whatwg-fetch');
 exports.default = self.fetch.bind(self);
 module.exports = exports['default'];
 
-},{"whatwg-fetch":302}],310:[function(require,module,exports){
+},{"whatwg-fetch":303}],311:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10420,7 +10525,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = FormData;
 module.exports = exports['default'];
 
-},{}],311:[function(require,module,exports){
+},{}],312:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10438,7 +10543,7 @@ _es6Promise2.default.polyfill();
 exports.default = Promise;
 module.exports = exports['default'];
 
-},{"es6-promise":292}],312:[function(require,module,exports){
+},{"es6-promise":292}],313:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10456,7 +10561,7 @@ function btoa(str) {
   return new _buffer2.default(str).toString('base64');
 }
 
-},{"./buffer":313}],313:[function(require,module,exports){
+},{"./buffer":314}],314:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10468,7 +10573,7 @@ var _buffer = require('buffer/');
 exports.default = _buffer.Buffer;
 module.exports = exports['default'];
 
-},{"buffer/":291}],314:[function(require,module,exports){
+},{"buffer/":291}],315:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10485,7 +10590,7 @@ function join() {
 }
 module.exports = exports['default'];
 
-},{}],315:[function(require,module,exports){
+},{}],316:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10686,7 +10791,7 @@ var Directory = function (_Base) {
 exports.default = Directory;
 module.exports = exports['default'];
 
-},{"../base":306,"../deps/utils/join":314,"./entry":316}],316:[function(require,module,exports){
+},{"../base":307,"../deps/utils/join":315,"./entry":317}],317:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10798,7 +10903,7 @@ var DirectoryEntry = function (_Base) {
 exports.default = DirectoryEntry;
 module.exports = exports['default'];
 
-},{"../base":306,"extend":293}],317:[function(require,module,exports){
+},{"../base":307,"extend":293}],318:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11360,7 +11465,7 @@ var Document = function (_Base) {
 exports.default = Document;
 module.exports = exports['default'];
 
-},{"./base":306,"./deps/constants":308,"./deps/utils/join":314,"./workflow/workflow":330,"extend":293}],318:[function(require,module,exports){
+},{"./base":307,"./deps/constants":309,"./deps/utils/join":315,"./workflow/workflow":331,"extend":293}],319:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11440,7 +11545,7 @@ var Group = function (_Base) {
 exports.default = Group;
 module.exports = exports['default'];
 
-},{"../base":306,"extend":293}],319:[function(require,module,exports){
+},{"../base":307,"extend":293}],320:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11619,7 +11724,7 @@ var Groups = function (_Base) {
 exports.default = Groups;
 module.exports = exports['default'];
 
-},{"../base":306,"../deps/utils/join":314,"./group":318}],320:[function(require,module,exports){
+},{"../base":307,"../deps/utils/join":315,"./group":319}],321:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11744,7 +11849,7 @@ _nuxeo2.default.registerAuthenticator(_tokenAuthenticator2.default);
 exports.default = _nuxeo2.default;
 module.exports = exports['default'];
 
-},{"./auth/basic-authenticator":304,"./auth/token-authenticator":305,"./base":306,"./blob":307,"./deps/constants":308,"./deps/promise":311,"./directory/directory":315,"./directory/entry":316,"./document":317,"./group/group":318,"./group/groups":319,"./nuxeo":321,"./operation":322,"./repository":323,"./request":324,"./upload/batch":325,"./upload/blob":326,"./user/user":327,"./user/users":328,"./workflow/task":329,"./workflow/workflow":330,"./workflow/workflows":331}],321:[function(require,module,exports){
+},{"./auth/basic-authenticator":305,"./auth/token-authenticator":306,"./base":307,"./blob":308,"./deps/constants":309,"./deps/promise":312,"./directory/directory":316,"./directory/entry":317,"./document":318,"./group/group":319,"./group/groups":320,"./nuxeo":322,"./operation":323,"./repository":324,"./request":325,"./upload/batch":326,"./upload/blob":327,"./user/user":328,"./user/users":329,"./workflow/task":330,"./workflow/workflow":331,"./workflow/workflows":332}],322:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -11803,9 +11908,9 @@ var _promise = require('./deps/promise');
 
 var _promise2 = _interopRequireDefault(_promise);
 
-var _queryString = require('query-string');
+var _querystring = require('querystring');
 
-var _queryString2 = _interopRequireDefault(_queryString);
+var _querystring2 = _interopRequireDefault(_querystring);
 
 var _formData = require('./deps/form-data');
 
@@ -11980,19 +12085,25 @@ var Nuxeo = function (_Base) {
       options = (0, _extend2.default)(true, {}, options, opts);
       options.headers = _auth2.default.computeAuthentication(this._auth, options.headers);
 
-      if (options.schemas.length > 0) {
+      if (options.schemas && options.schemas.length > 0) {
         options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
       }
       if (opts.repositoryName !== undefined) {
         options.headers['X-NXRepository'] = options.repositoryName;
       }
 
-      Object.keys(opts.enrichers).forEach(function (key) {
-        options.headers['enrichers-' + key] = options.enrichers[key].join(',');
-      });
-      Object.keys(opts.fetchProperties).forEach(function (key) {
-        options.headers['fetch-' + key] = options.fetchProperties[key].join(',');
-      });
+      if (opts.enrichers) {
+        Object.keys(opts.enrichers).forEach(function (key) {
+          options.headers['enrichers-' + key] = options.enrichers[key].join(',');
+        });
+      }
+
+      if (opts.fetchProperties) {
+        Object.keys(opts.fetchProperties).forEach(function (key) {
+          options.headers['fetch-' + key] = options.fetchProperties[key].join(',');
+        });
+      }
+
       if (options.depth) {
         options.headers.depth = options.depth;
       }
@@ -12017,7 +12128,7 @@ var Nuxeo = function (_Base) {
 
       if (options.queryParams) {
         options.url += options.url.indexOf('?') === -1 ? '?' : '';
-        options.url += _queryString2.default.stringify(options.queryParams);
+        options.url += _querystring2.default.stringify(options.queryParams);
       }
       return options;
     }
@@ -12239,7 +12350,7 @@ Nuxeo.registerAuthenticator = function (authenticator) {
 exports.default = Nuxeo;
 module.exports = exports['default'];
 
-},{"./auth/auth":303,"./base":306,"./deps/fetch":309,"./deps/form-data":310,"./deps/promise":311,"./deps/utils/join":314,"./directory/directory":315,"./group/groups":319,"./operation":322,"./repository":323,"./request":324,"./upload/batch":325,"./user/users":328,"./workflow/workflows":331,"extend":293,"query-string":300}],322:[function(require,module,exports){
+},{"./auth/auth":304,"./base":307,"./deps/fetch":310,"./deps/form-data":311,"./deps/promise":312,"./deps/utils/join":315,"./directory/directory":316,"./group/groups":320,"./operation":323,"./repository":324,"./request":325,"./upload/batch":326,"./user/users":329,"./workflow/workflows":332,"extend":293,"querystring":302}],323:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12537,7 +12648,7 @@ var Operation = function (_Base) {
 exports.default = Operation;
 module.exports = exports['default'];
 
-},{"./base":306,"./blob":307,"./deps/form-data":310,"./deps/utils/join":314,"./upload/batch":325,"./upload/blob":326,"extend":293}],323:[function(require,module,exports){
+},{"./base":307,"./blob":308,"./deps/form-data":311,"./deps/utils/join":315,"./upload/batch":326,"./upload/blob":327,"extend":293}],324:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12587,7 +12698,7 @@ function computePath(ref) {
  * });
  * nuxeo.repository('default')
  *   .fetch('/default-domain')
- *   .then(fucntion(res) {
+ *   .then(function(res) {
  *     // res.uid !== null
  *     // res.type === 'Domain'
  *   })
@@ -12762,7 +12873,7 @@ var Repository = function (_Base) {
 exports.default = Repository;
 module.exports = exports['default'];
 
-},{"./base":306,"./deps/utils/join":314,"./document":317}],324:[function(require,module,exports){
+},{"./base":307,"./deps/utils/join":315,"./document":318}],325:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12972,7 +13083,7 @@ var Request = function (_Base) {
 exports.default = Request;
 module.exports = exports['default'];
 
-},{"./base":306,"./deps/utils/join":314,"extend":293}],325:[function(require,module,exports){
+},{"./base":307,"./deps/utils/join":315,"extend":293}],326:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13320,7 +13431,7 @@ var BatchUpload = function (_Base) {
 exports.default = BatchUpload;
 module.exports = exports['default'];
 
-},{"../base":306,"../deps/utils/join":314,"./blob":326,"extend":293,"promise-queue":297}],326:[function(require,module,exports){
+},{"../base":307,"../deps/utils/join":315,"./blob":327,"extend":293,"promise-queue":297}],327:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13355,7 +13466,7 @@ var BatchBlob = function BatchBlob() {
 exports.default = BatchBlob;
 module.exports = exports['default'];
 
-},{"extend":293}],327:[function(require,module,exports){
+},{"extend":293}],328:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13465,7 +13576,7 @@ var User = function (_Base) {
 exports.default = User;
 module.exports = exports['default'];
 
-},{"../base":306,"extend":293}],328:[function(require,module,exports){
+},{"../base":307,"extend":293}],329:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13639,7 +13750,7 @@ var Users = function (_Base) {
 exports.default = Users;
 module.exports = exports['default'];
 
-},{"../base":306,"../deps/utils/join":314,"./user":327}],329:[function(require,module,exports){
+},{"../base":307,"../deps/utils/join":315,"./user":328}],330:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13794,7 +13905,7 @@ var Task = function (_Base) {
 exports.default = Task;
 module.exports = exports['default'];
 
-},{"../base":306,"../deps/utils/join":314,"extend":293}],330:[function(require,module,exports){
+},{"../base":307,"../deps/utils/join":315,"extend":293}],331:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13924,7 +14035,7 @@ var Workflow = function (_Base) {
 exports.default = Workflow;
 module.exports = exports['default'];
 
-},{"../base":306,"../deps/utils/join":314,"./task":329,"extend":293}],331:[function(require,module,exports){
+},{"../base":307,"../deps/utils/join":315,"./task":330,"extend":293}],332:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14144,5 +14255,5 @@ var Workflows = function (_Base) {
 exports.default = Workflows;
 module.exports = exports['default'];
 
-},{"../base":306,"../deps/utils/join":314,"./task":329,"./workflow":330}]},{},[1,320])(320)
+},{"../base":307,"../deps/utils/join":315,"./task":330,"./workflow":331}]},{},[1,321])(321)
 });
