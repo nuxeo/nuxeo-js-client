@@ -15,7 +15,7 @@ cp -r /tmp/push_stable/lib .
 cp -r /tmp/push_stable/dist .
 
 git add -f dist lib
-git commit -m $'Update stable branch\n $JOB_NAME#$BUILD_NUMBER'
+git commit -m "Update stable branch" -m "$JOB_NAME#$BUILD_NUMBER"
 
 rm -rf /tmp/push_stable/
 
