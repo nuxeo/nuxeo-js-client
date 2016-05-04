@@ -204,30 +204,6 @@ class Document extends Base {
   }
 
   /**
-   * Fetches the renditions list of this document.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A promise object resolved with the rendition definitions.
-   */
-  fetchRenditions(opts = {}) {
-    const Promise = this._nuxeo.Promise;
-    if (this.contextParameters && this.contextParameters.renditions) {
-      return Promise.resolve(this.contextParameters.renditions);
-    }
-
-    const options = this._computeOptions(opts);
-    options.enrichers = { document: ['renditions'] };
-    return this._repository
-      .fetch(this.uid, options)
-      .then((doc) => {
-        if (!this.contextParameters) {
-          this.contextParameters = {};
-        }
-        this.contextParameters.renditions = doc.contextParameters.renditions;
-        return this.contextParameters.renditions;
-      });
-  }
-
-  /**
    * Fetch a rendition from this document.
    * @param {string} name - The rendition name.
    * @param {object} [opts] - Options overriding the ones from this object.

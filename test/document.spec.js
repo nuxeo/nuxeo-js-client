@@ -287,19 +287,6 @@ describe('Document', () => {
     });
   });
 
-  describe('#fetchRenditions', () => {
-    it('should fetch the renditions list', () => {
-      return repository.fetch(WS_JS_TESTS_PATH)
-        .then(doc => doc.fetchRenditions())
-        .then((renditions) => {
-          expect(renditions.length).to.be.equal(3);
-          expect(renditions[0].name).to.be.equal('thumbnail');
-          expect(renditions[1].name).to.be.equal('xmlExport');
-          expect(renditions[2].name).to.be.equal('zipTreeExport');
-        });
-    });
-  });
-
   describe('#fetchRendition', () => {
     it('should fetch a rendition given its name', () => {
       return repository.fetch(FILE_TEST_PATH)
