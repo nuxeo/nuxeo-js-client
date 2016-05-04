@@ -250,11 +250,18 @@ describe('Operation', () => {
       });
 
       it('document list', () => {
-        return nuxeo.operation('Document.GetChildren')
-          .input('/default-domain')
-          .execute().then((res) => {
+        return nuxeo.repository().fetch('/default-domain')
+          .then((doc) => {
+            return nuxeo.operation('Repository.Query')
+              .param('query',
+                `SELECT * FROM Document WHERE ecm:parentId = '${doc.uid}'`
+                + ' AND ecm:mixinType != \'HiddenInNavigation\''
+                + ' AND ecm:isCheckedInVersion = 0 AND ecm:currentLifeCycleState != \'deleted\'')
+              .execute();
+          })
+          .then((res) => {
             expect(res['entity-type']).to.be.equal('documents');
-            expect(res.entries.length).to.be.equal(4);
+            expect(res.entries.length).to.be.equal(3);
           });
       });
 
