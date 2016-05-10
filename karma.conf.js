@@ -23,7 +23,9 @@ module.exports = (config) => {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Firefox', 'Chrome'],
+    // NXJS-70: enable back tests on FF when FF >= 38 will be available on QA
+    // browsers: ['Firefox', 'Chrome'],
+    browsers: ['Chrome'],
     singleRun: true,
     concurrency: 1,
   });
