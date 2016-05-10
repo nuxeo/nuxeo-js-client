@@ -14,6 +14,7 @@ import replace from 'gulp-replace';
 import fs from'fs';
 import path from 'path';
 import pkg from './package.json';
+import del from 'del';
 
 gulp.task('default', ['build'], () => {
 });
@@ -25,14 +26,26 @@ gulp.task('lint', () => {
     .pipe(eslint.failAfterError());
 });
 
-gulp.task('build:node', ['lint'], () => {
+gulp.task('clean:lib', () => {
+  return del([
+    'lib',
+  ]);
+});
+
+gulp.task('clean:dist', () => {
+  return del([
+    'dist',
+  ]);
+});
+
+gulp.task('build:node', ['clean:lib', 'lint'], () => {
   return gulp.src('src/**')
     .pipe(replace('__VERSION__', pkg.version))
     .pipe(babel())
     .pipe(gulp.dest('lib'));
 });
 
-gulp.task('build:browser', ['lint'], () => {
+gulp.task('build:browser', ['clean:dist', 'lint'], () => {
   return browserify({
     entries: [require.resolve('babel-polyfill'), 'src/index.js'],
     standalone: 'Nuxeo',
@@ -91,7 +104,7 @@ gulp.task('it:node', ['build:node'], () => {
     });
 });
 
-gulp.task('it:browser', ['build:node', 'build:browser'], (done) => {
+gulp.task('it:browser', ['build:browser'], (done) => {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true,
