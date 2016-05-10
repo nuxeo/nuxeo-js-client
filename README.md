@@ -26,11 +26,15 @@ After installing [Node.js](http://nodejs.org/#download), use `npm` to install th
 
     $ npm install nuxeo --save
 
+or, for the latest 1.x.x version:
+
+    $ npm install nuxeo@1 --save
+
 Then, use the following `require` statement to have access to the same API than the browser client:
 
 ```javascript
 var Nuxeo = require('nuxeo');
-var nuxeo = new Nuxeo();
+var nuxeo = new Nuxeo({ ... });
 ```
 
 #### Bower Powered Applications
@@ -39,10 +43,14 @@ The `nuxeo` client can be also installed through bower:
 
     $ bower install nuxeo --save
 
+or, for the latest 1.x.x version:
+
+    $ bower install nuxeo@1 --save
+
 When added to your page, `Nuxeo` is available as a global variable.
 
 ```javascript
-var nuxeo = new Nuxeo();
+var nuxeo = new Nuxeo({ ... });
 ```
 
 #### Angular Applications
