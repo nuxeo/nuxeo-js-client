@@ -11,6 +11,13 @@ This is an on-going project, supported by Nuxeo.
 
 ## Getting Started
 
+### Nuxeo Platform - JS Client Dependencies
+
+| Nuxeo Platform | JS Client |
+| -------------- |-----------|
+| LTS 2015       | >= 1.x.x  |
+| FT 8.x         | >= 2.x.x  |
+
 ### Installation
 
 #### Node.js Applications
