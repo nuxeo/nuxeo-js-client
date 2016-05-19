@@ -2,13 +2,14 @@
 
 set -e
 
-VERSION=$1
-if [ -z "$VERSION" ]; then
-  echo 'Usage: ./release.sh VERSION'
+BRANCH=$1
+VERSION=$2
+if [ -z "$BRANCH" ] || [ -z "$VERSION" ]; then
+  echo 'Usage: ./release.sh BRANCH VERSION'
   exit 1
 fi
 
-git checkout master
+git checkout $BRANCH
 
 # Update the version in package.json
 npm version $VERSION --git-tag-version=false
@@ -59,11 +60,11 @@ git add index.html
 git commit -m "Add documentation for release $VERSION"
 
 # cleanup
-git checkout master
+git checkout $BRANCH
 git branch -D release
 rm -r /tmp/nuxeo.js-doc
 
 # push everything
-git push origin master
+git push origin $BRANCH
 git push origin v$VERSION
 git push origin gh-pages
