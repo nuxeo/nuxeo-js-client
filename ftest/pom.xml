@@ -54,8 +54,7 @@
             <phase>post-integration-test</phase>
             <goals>
               <goal>build</goal>
-              <!-- NXJS-71: disable verify goal until the 'js-summary.xml' can be generated on a Nuxeo 7.10 -->
-              <!-- <goal>verify</goal> -->
+              <goal>verify</goal>
             </goals>
             <configuration>
               <targets>
