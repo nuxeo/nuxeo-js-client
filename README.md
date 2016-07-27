@@ -318,7 +318,7 @@ nuxeo.repository()
     doc.set({ 'dc:title': 'foo' });
     return doc.save();
   })
-  .then(function(doc) => {
+  .then(function(doc) {
     // doc.title === 'foo'
   })
   .catch(function(error) {
@@ -378,7 +378,7 @@ workflow.fetchTasks()
       .variable('end_date', '2011-10-23T12:00:00.00Z');
     return task.complete('start_review', { comment: 'a comment' });
   })
-  .then((task) => {
+  .then(function(task) {
     // task.state === 'ended'
   })
 ```
@@ -575,7 +575,7 @@ __Delete a directory entry__
 ```javascript
 nuxeo.directory('nature')
  .delete('foo')
- .then((res) => {
+ .then(function(res) {
    // res.status === 204
  });
 ```
