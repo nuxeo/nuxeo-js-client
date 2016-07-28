@@ -24,11 +24,9 @@ export function getTextFromBody(body) {
       if (support.readBlob) {
         const reader = new FileReader();
         reader.addEventListener('loadend', () => {
-          const dataView = new DataView(reader.result);
-          const decoder = new TextDecoder('utf-8');
-          resolve(decoder.decode(dataView));
+          resolve(reader.result);
         });
-        reader.readAsArrayBuffer(body);
+        reader.readAsText(body, 'utf-8');
       } else {
         resolve();
       }
