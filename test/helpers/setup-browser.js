@@ -6,5 +6,5 @@ window.expect = chai.expect;
 window.isBrowser = true;
 
 window.support = {
-  readBlob: 'FileReader' in window && 'TextDecoder' in window,
+  readBlob: 'FileReader' in window,
 };
