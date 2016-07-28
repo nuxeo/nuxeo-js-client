@@ -47,7 +47,7 @@ gulp.task('build:node', ['clean:lib', 'lint'], () => {
 
 gulp.task('build:browser', ['clean:dist', 'lint'], () => {
   return browserify({
-    entries: [require.resolve('babel-polyfill'), 'src/index.js'],
+    entries: 'src/index.js',
     standalone: 'Nuxeo',
   })
   .transform('browserify-versionify', {
