@@ -24,11 +24,13 @@ This is an on-going project, supported by Nuxeo.
 
 After installing [Node.js](http://nodejs.org/#download), use `npm` to install the `nuxeo` package:
 
-    $ npm install nuxeo --save
+* For the latest 2.x.x version:
 
-or, for the latest 1.x.x version:
+        $ npm install nuxeo@2 --save
 
-    $ npm install nuxeo@1 --save
+* For the latest 1.x.x version:
+
+        $ npm install nuxeo@1 --save
 
 Then, use the following `require` statement to have access to the same API than the browser client:
 
@@ -41,11 +43,13 @@ var nuxeo = new Nuxeo({ ... });
 
 The `nuxeo` client can be also installed through bower:
 
-    $ bower install nuxeo --save
+* For the latest 2.x.x version:
 
-or, for the latest 1.x.x version:
+        $ bower install nuxeo@2 --save
 
-    $ bower install nuxeo@1 --save
+* For the latest 1.x.x version:
+
+        $ bower install nuxeo@1 --save
 
 When added to your page, `Nuxeo` is available as a global variable.
 
