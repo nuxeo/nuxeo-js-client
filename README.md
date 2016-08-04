@@ -1,6 +1,6 @@
 ## Client Library for Nuxeo API
 
-[![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=nuxeo-js-client-master&style=flat)](http://qa.nuxeo.org/jenkins/job/nuxeo-js-client-master)
+[![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=/Client/nuxeo-js-client-1/&style=flat)](https://qa.nuxeo.org/jenkins/job/Client/job/nuxeo-js-client-1)
 [![npm version](https://img.shields.io/npm/v/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
 [![npm downloads](https://img.shields.io/npm/dm/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
 [![Dependency Status](https://img.shields.io/david/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client) [![devDependency Status](https://img.shields.io/david/dev/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client#info=devDependencies)
@@ -11,31 +11,50 @@ This is an on-going project, supported by Nuxeo.
 
 ## Getting Started
 
+### Nuxeo Platform - JS Client Dependencies
+
+| Nuxeo Platform | JS Client |
+| -------------- |-----------|
+| LTS 2015       | >= 1.x.x  |
+| FT 8.x         | >= 2.x.x  |
+
 ### Installation
 
 #### Node.js Applications
 
 After installing [Node.js](http://nodejs.org/#download), use `npm` to install the `nuxeo` package:
 
-    $ npm install nuxeo --save
+* For the latest 2.x.x version:
+
+        $ npm install nuxeo@2 --save
+
+* For the latest 1.x.x version:
+
+        $ npm install nuxeo@1 --save
 
 Then, use the following `require` statement to have access to the same API than the browser client:
 
 ```javascript
 var Nuxeo = require('nuxeo');
-var nuxeo = new Nuxeo();
+var nuxeo = new Nuxeo({ ... });
 ```
 
 #### Bower Powered Applications
 
 The `nuxeo` client can be also installed through bower:
 
-    $ bower install nuxeo --save
+* For the latest 2.x.x version:
+
+        $ bower install nuxeo@2 --save
+
+* For the latest 1.x.x version:
+
+        $ bower install nuxeo@1 --save
 
 When added to your page, `Nuxeo` is available as a global variable.
 
 ```javascript
-var nuxeo = new Nuxeo();
+var nuxeo = new Nuxeo({ ... });
 ```
 
 #### Angular Applications
@@ -125,6 +144,7 @@ All API calls made on the server return a Promise object.
 
 ```javascript
 nuxeo.operation('Document.GetChildren')
+  .input('/')
   .execute()
   .then(function(docs) {
     // work with docs
@@ -303,7 +323,7 @@ nuxeo.repository()
     doc.set({ 'dc:title': 'foo' });
     return doc.save();
   })
-  .then(function(doc) => {
+  .then(function(doc) {
     // doc.title === 'foo'
   })
   .catch(function(error) {
@@ -363,7 +383,7 @@ workflow.fetchTasks()
       .variable('end_date', '2011-10-23T12:00:00.00Z');
     return task.complete('start_review', { comment: 'a comment' });
   })
-  .then((task) => {
+  .then(function(task) {
     // task.state === 'ended'
   })
 ```
@@ -560,7 +580,7 @@ __Delete a directory entry__
 ```javascript
 nuxeo.directory('nature')
  .delete('foo')
- .then((res) => {
+ .then(function(res) {
    // res.status === 204
  });
 ```
