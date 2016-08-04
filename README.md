@@ -144,6 +144,7 @@ All API calls made on the server return a Promise object.
 
 ```javascript
 nuxeo.operation('Document.GetChildren')
+  .input('/')
   .execute()
   .then(function(docs) {
     // work with docs
