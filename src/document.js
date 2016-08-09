@@ -1,6 +1,7 @@
 'use strict';
 
 import extend from 'extend';
+import qs from 'querystring';
 import join from './deps/utils/join';
 import Base from './base';
 import Workflow from './workflow/workflow';
@@ -159,6 +160,33 @@ class Document extends Base {
         format: convertOpts.format,
       })
       .get(options);
+  }
+
+  /**
+   * Schedule a conversion of the Blob from this document.
+   * @param {object} convertOpts - Configuration options for the conversion.
+                                   At least one of the 'converter', 'type' or 'format' option must be defined.
+   * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
+   * @param {string} convertOpts.converter - Named converter to use.
+   * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
+   * @param {string} convertOpts.format - The destination format, such as 'pdf'.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A promise object resolved with the response.
+   */
+  scheduleConversion(convertOpts, opts = {}) {
+    const params = {
+      async: true,
+      converter: convertOpts.converter,
+      type: convertOpts.type,
+      format: convertOpts.format,
+    };
+    opts.body = qs.stringify(params);
+    const options = this._computeOptions(opts);
+    options.headers['Content-Type'] = 'multipart/form-data';
+    const xpath = convertOpts.xpath || 'blobholder:0';
+    const path = join('id', this.uid, '@blob', xpath, '@convert');
+    return this._nuxeo.request(path)
+      .post(options);
   }
 
   /**
