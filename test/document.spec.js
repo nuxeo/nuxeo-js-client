@@ -48,6 +48,7 @@ describe('Document', () => {
         password: 'leela1',
       },
     };
+
     return nuxeo.repository().create(WS_ROOT_PATH, newDoc)
       .then(() => nuxeo.repository().create(WS_JS_TESTS_PATH, newDoc2))
       .then(() => nuxeo.users().create(newUser));
@@ -275,6 +276,113 @@ describe('Document', () => {
       return repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
           return doc.convert({ xpath: 'file:content', type: 'text/html' });
+        })
+        .then((res) => isBrowser ? res.blob() : res.body)
+        .then((body) => {
+          return getTextFromBody(body);
+        })
+        .then((text) => {
+          expect(text.indexOf('<html>') >= 0).to.be.true();
+          expect(text.indexOf('foo') >= 0).to.be.true();
+        });
+    });
+  });
+
+  describe('#scheduleConversion', function f() {
+    function waitForConversion(pollingURL) {
+      return new Nuxeo.Promise((resolve, reject) => {
+        function isConversionDone() {
+          nuxeo._http({ url: pollingURL })
+            .then((res) => {
+              if (res.status === 200 && res.url.indexOf('/result') !== -1) {
+                // we got the result URL
+                resolve(res);
+              } else {
+                // let's try again
+                isConversionDone();
+              }
+            })
+            .catch(err => reject(err));
+        }
+        isConversionDone();
+      });
+    }
+
+    describe('should schedule a conversion of the main blob', () => {
+      it('using a destination format', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then((doc) => {
+            return doc.scheduleConversion({ format: 'html' });
+          })
+          .then((res) => {
+            expect(res['entity-type']).to.be.equal('conversionScheduled');
+            expect(res.conversionId).to.exist();
+            expect(res.pollingURL).to.exist();
+            return waitForConversion(res.pollingURL);
+          })
+          .then((res) => isBrowser ? res.blob() : res.body)
+          .then((body) => {
+            return getTextFromBody(body);
+          })
+          .then((text) => {
+            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('foo') >= 0).to.be.true();
+          });
+      });
+
+      it('using a destination mime type', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then((doc) => {
+            return doc.scheduleConversion({ type: 'text/html' });
+          })
+          .then((res) => {
+            expect(res['entity-type']).to.be.equal('conversionScheduled');
+            expect(res.conversionId).to.exist();
+            expect(res.pollingURL).to.exist();
+            return waitForConversion(res.pollingURL);
+          })
+          .then((res) => isBrowser ? res.blob() : res.body)
+          .then((body) => {
+            return getTextFromBody(body);
+          })
+          .then((text) => {
+            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('foo') >= 0).to.be.true();
+          });
+      });
+
+      it('using a given converter', () => {
+        return repository.fetch(FILE_TEST_PATH)
+          .then((doc) => {
+            return doc.scheduleConversion({ converter: 'office2html' });
+          })
+          .then((res) => {
+            expect(res['entity-type']).to.be.equal('conversionScheduled');
+            expect(res.conversionId).to.exist();
+            expect(res.pollingURL).to.exist();
+            return waitForConversion(res.pollingURL);
+          })
+          .then((res) => isBrowser ? res.blob() : res.body)
+          .then((body) => {
+            return getTextFromBody(body);
+          })
+          .then((text) => {
+            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('foo') >= 0).to.be.true();
+          });
+      });
+    });
+
+    it('should schedule a conversion of a blob given an xpath', () => {
+      return repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          return doc.scheduleConversion({ xpath: 'file:content', type: 'text/html' });
+        })
+        .then((res) => {
+          expect(res['entity-type']).to.be.equal('conversionScheduled');
+          expect(res.conversionId).to.exist();
+          expect(res.pollingURL).to.exist();
+          return waitForConversion(res.pollingURL);
         })
         .then((res) => isBrowser ? res.blob() : res.body)
         .then((body) => {
