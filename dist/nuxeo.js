@@ -4545,6 +4545,10 @@ var _extend = require('extend');
 
 var _extend2 = _interopRequireDefault(_extend);
 
+var _querystring = require('querystring');
+
+var _querystring2 = _interopRequireDefault(_querystring);
+
 var _join = require('./deps/utils/join');
 
 var _join2 = _interopRequireDefault(_join);
@@ -4761,6 +4765,37 @@ var Document = function (_Base) {
         type: convertOpts.type,
         format: convertOpts.format
       }).get(options);
+    }
+
+    /**
+     * Schedule a conversion of the Blob from this document.
+     * @param {object} convertOpts - Configuration options for the conversion.
+                                     At least one of the 'converter', 'type' or 'format' option must be defined.
+     * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
+     * @param {string} convertOpts.converter - Named converter to use.
+     * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
+     * @param {string} convertOpts.format - The destination format, such as 'pdf'.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the response.
+     */
+
+  }, {
+    key: 'scheduleConversion',
+    value: function scheduleConversion(convertOpts) {
+      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+      var params = {
+        async: true,
+        converter: convertOpts.converter,
+        type: convertOpts.type,
+        format: convertOpts.format
+      };
+      opts.body = _querystring2.default.stringify(params);
+      var options = this._computeOptions(opts);
+      options.headers['Content-Type'] = 'multipart/form-data';
+      var xpath = convertOpts.xpath || 'blobholder:0';
+      var path = (0, _join2.default)('id', this.uid, '@blob', xpath, '@convert');
+      return this._nuxeo.request(path).post(options);
     }
 
     /**
@@ -5092,7 +5127,7 @@ var Document = function (_Base) {
 exports.default = Document;
 module.exports = exports['default'];
 
-},{"./base":18,"./deps/constants":20,"./deps/utils/join":26,"./workflow/workflow":42,"extend":4}],30:[function(require,module,exports){
+},{"./base":18,"./deps/constants":20,"./deps/utils/join":26,"./workflow/workflow":42,"extend":4,"querystring":13}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
