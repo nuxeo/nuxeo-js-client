@@ -294,8 +294,7 @@ describe('Document', () => {
         function isConversionDone() {
           nuxeo._http({ url: pollingURL })
             .then((res) => {
-              if (res.status === 200 && res.url.indexOf('/result') !== -1) {
-                // we got the result URL
+              if (res.status === 'completed') {
                 resolve(res);
               } else {
                 // let's try again
@@ -318,8 +317,10 @@ describe('Document', () => {
             expect(res['entity-type']).to.be.equal('conversionScheduled');
             expect(res.conversionId).to.exist();
             expect(res.pollingURL).to.exist();
+            expect(res.resultURL).to.exist();
             return waitForConversion(res.pollingURL);
           })
+          .then((res) => nuxeo._http({ url: res.resultURL }))
           .then((res) => isBrowser ? res.blob() : res.body)
           .then((body) => {
             return getTextFromBody(body);
@@ -339,8 +340,10 @@ describe('Document', () => {
             expect(res['entity-type']).to.be.equal('conversionScheduled');
             expect(res.conversionId).to.exist();
             expect(res.pollingURL).to.exist();
+            expect(res.resultURL).to.exist();
             return waitForConversion(res.pollingURL);
           })
+          .then((res) => nuxeo._http({ url: res.resultURL }))
           .then((res) => isBrowser ? res.blob() : res.body)
           .then((body) => {
             return getTextFromBody(body);
@@ -360,8 +363,10 @@ describe('Document', () => {
             expect(res['entity-type']).to.be.equal('conversionScheduled');
             expect(res.conversionId).to.exist();
             expect(res.pollingURL).to.exist();
+            expect(res.resultURL).to.exist();
             return waitForConversion(res.pollingURL);
           })
+          .then((res) => nuxeo._http({ url: res.resultURL }))
           .then((res) => isBrowser ? res.blob() : res.body)
           .then((body) => {
             return getTextFromBody(body);
@@ -382,8 +387,10 @@ describe('Document', () => {
           expect(res['entity-type']).to.be.equal('conversionScheduled');
           expect(res.conversionId).to.exist();
           expect(res.pollingURL).to.exist();
+          expect(res.resultURL).to.exist();
           return waitForConversion(res.pollingURL);
         })
+        .then((res) => nuxeo._http({ url: res.resultURL }))
         .then((res) => isBrowser ? res.blob() : res.body)
         .then((body) => {
           return getTextFromBody(body);
