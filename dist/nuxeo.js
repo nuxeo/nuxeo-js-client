@@ -4206,6 +4206,20 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = flatten;
+function flatten(list) {
+  return list.reduce(function (a, b) {
+    return a.concat(Array.isArray(b) ? flatten(b) : b);
+  }, []);
+}
+module.exports = exports['default'];
+
+},{}],27:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.default = join;
 function join() {
   for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
@@ -4217,7 +4231,7 @@ function join() {
 }
 module.exports = exports['default'];
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4418,7 +4432,7 @@ var Directory = function (_Base) {
 exports.default = Directory;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":26,"./entry":28}],28:[function(require,module,exports){
+},{"../base":18,"../deps/utils/join":27,"./entry":29}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4530,7 +4544,7 @@ var DirectoryEntry = function (_Base) {
 exports.default = DirectoryEntry;
 module.exports = exports['default'];
 
-},{"../base":18,"extend":4}],29:[function(require,module,exports){
+},{"../base":18,"extend":4}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5127,7 +5141,7 @@ var Document = function (_Base) {
 exports.default = Document;
 module.exports = exports['default'];
 
-},{"./base":18,"./deps/constants":20,"./deps/utils/join":26,"./workflow/workflow":42,"extend":4,"querystring":13}],30:[function(require,module,exports){
+},{"./base":18,"./deps/constants":20,"./deps/utils/join":27,"./workflow/workflow":43,"extend":4,"querystring":13}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5207,7 +5221,7 @@ var Group = function (_Base) {
 exports.default = Group;
 module.exports = exports['default'];
 
-},{"../base":18,"extend":4}],31:[function(require,module,exports){
+},{"../base":18,"extend":4}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5386,7 +5400,7 @@ var Groups = function (_Base) {
 exports.default = Groups;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":26,"./group":30}],32:[function(require,module,exports){
+},{"../base":18,"../deps/utils/join":27,"./group":31}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5511,7 +5525,7 @@ _nuxeo2.default.registerAuthenticator(_tokenAuthenticator2.default);
 exports.default = _nuxeo2.default;
 module.exports = exports['default'];
 
-},{"./auth/basic-authenticator":16,"./auth/token-authenticator":17,"./base":18,"./blob":19,"./deps/constants":20,"./deps/promise":23,"./directory/directory":27,"./directory/entry":28,"./document":29,"./group/group":30,"./group/groups":31,"./nuxeo":33,"./operation":34,"./repository":35,"./request":36,"./upload/batch":37,"./upload/blob":38,"./user/user":39,"./user/users":40,"./workflow/task":41,"./workflow/workflow":42,"./workflow/workflows":43}],33:[function(require,module,exports){
+},{"./auth/basic-authenticator":16,"./auth/token-authenticator":17,"./base":18,"./blob":19,"./deps/constants":20,"./deps/promise":23,"./directory/directory":28,"./directory/entry":29,"./document":30,"./group/group":31,"./group/groups":32,"./nuxeo":34,"./operation":35,"./repository":36,"./request":37,"./upload/batch":38,"./upload/blob":39,"./user/user":40,"./user/users":41,"./workflow/task":42,"./workflow/workflow":43,"./workflow/workflows":44}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6012,7 +6026,7 @@ Nuxeo.registerAuthenticator = function (authenticator) {
 exports.default = Nuxeo;
 module.exports = exports['default'];
 
-},{"./auth/auth":15,"./base":18,"./deps/fetch":21,"./deps/form-data":22,"./deps/promise":23,"./deps/utils/join":26,"./directory/directory":27,"./group/groups":31,"./operation":34,"./repository":35,"./request":36,"./upload/batch":37,"./user/users":40,"./workflow/workflows":43,"extend":4,"querystring":13}],34:[function(require,module,exports){
+},{"./auth/auth":15,"./base":18,"./deps/fetch":21,"./deps/form-data":22,"./deps/promise":23,"./deps/utils/join":27,"./directory/directory":28,"./group/groups":32,"./operation":35,"./repository":36,"./request":37,"./upload/batch":38,"./user/users":41,"./workflow/workflows":44,"extend":4,"querystring":13}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6301,7 +6315,7 @@ var Operation = function (_Base) {
 exports.default = Operation;
 module.exports = exports['default'];
 
-},{"./base":18,"./blob":19,"./deps/form-data":22,"./deps/utils/join":26,"./upload/batch":37,"./upload/blob":38,"extend":4}],35:[function(require,module,exports){
+},{"./base":18,"./blob":19,"./deps/form-data":22,"./deps/utils/join":27,"./upload/batch":38,"./upload/blob":39,"extend":4}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6526,7 +6540,7 @@ var Repository = function (_Base) {
 exports.default = Repository;
 module.exports = exports['default'];
 
-},{"./base":18,"./deps/utils/join":26,"./document":29}],36:[function(require,module,exports){
+},{"./base":18,"./deps/utils/join":27,"./document":30}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6736,7 +6750,7 @@ var Request = function (_Base) {
 exports.default = Request;
 module.exports = exports['default'];
 
-},{"./base":18,"./deps/utils/join":26,"extend":4}],37:[function(require,module,exports){
+},{"./base":18,"./deps/utils/join":27,"extend":4}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6756,6 +6770,10 @@ var _base2 = _interopRequireDefault(_base);
 var _join = require('../deps/utils/join');
 
 var _join2 = _interopRequireDefault(_join);
+
+var _flatten = require('../deps/utils/flatten');
+
+var _flatten2 = _interopRequireDefault(_flatten);
 
 var _promiseQueue = require('promise-queue');
 
@@ -6865,7 +6883,8 @@ var BatchUpload = function (_Base) {
         blobs[_key] = arguments[_key];
       }
 
-      var promises = blobs.map(function (blob) {
+      var allBlobs = (0, _flatten2.default)(blobs);
+      var promises = allBlobs.map(function (blob) {
         var promise = _this2._queue.add(_this2._upload.bind(_this2, blob));
         _this2._promises.push(promise);
         return promise;
@@ -7084,7 +7103,7 @@ var BatchUpload = function (_Base) {
 exports.default = BatchUpload;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":26,"./blob":38,"extend":4,"promise-queue":8}],38:[function(require,module,exports){
+},{"../base":18,"../deps/utils/flatten":26,"../deps/utils/join":27,"./blob":39,"extend":4,"promise-queue":8}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7119,7 +7138,7 @@ var BatchBlob = function BatchBlob() {
 exports.default = BatchBlob;
 module.exports = exports['default'];
 
-},{"extend":4}],39:[function(require,module,exports){
+},{"extend":4}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7229,7 +7248,7 @@ var User = function (_Base) {
 exports.default = User;
 module.exports = exports['default'];
 
-},{"../base":18,"extend":4}],40:[function(require,module,exports){
+},{"../base":18,"extend":4}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7403,7 +7422,7 @@ var Users = function (_Base) {
 exports.default = Users;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":26,"./user":39}],41:[function(require,module,exports){
+},{"../base":18,"../deps/utils/join":27,"./user":40}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7558,7 +7577,7 @@ var Task = function (_Base) {
 exports.default = Task;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":26,"extend":4}],42:[function(require,module,exports){
+},{"../base":18,"../deps/utils/join":27,"extend":4}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7688,7 +7707,7 @@ var Workflow = function (_Base) {
 exports.default = Workflow;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":26,"./task":41,"extend":4}],43:[function(require,module,exports){
+},{"../base":18,"../deps/utils/join":27,"./task":42,"extend":4}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7908,5 +7927,5 @@ var Workflows = function (_Base) {
 exports.default = Workflows;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":26,"./task":41,"./workflow":42}]},{},[32])(32)
+},{"../base":18,"../deps/utils/join":27,"./task":42,"./workflow":43}]},{},[33])(33)
 });
