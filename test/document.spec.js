@@ -145,6 +145,32 @@ describe('Document', () => {
           expect(doc.get('file:content')['mime-type']).to.be.equal('text/plain');
         });
     });
+
+    it('should save a document with a property referencing an array of BatchBlobs', () => {
+      const batch = nuxeo.batchUpload();
+      const fooBlob = createTextBlob('foo', 'foo.txt');
+      const barBlob = createTextBlob('bar', 'bar.txt');
+
+      return nuxeo.Promise.all([batch.upload(fooBlob, barBlob), repository.fetch(FILE_TEST_PATH)])
+        .then((values) => {
+          const batchBlobs = values[0].blobs;
+          const doc = values[1];
+          doc.set({ 'files:files': batchBlobs.map((blob) => { return { file: blob }; }) });
+          return doc.save({ schemas: ['dublincore', 'files'] });
+        })
+        .then((doc) => {
+          const files = doc.get('files:files');
+          expect(files).to.exist();
+          const fooFile = files[0].file;
+          expect(fooFile.name).to.be.equal('foo.txt');
+          expect(fooFile.length).to.be.equal('3');
+          expect(fooFile['mime-type']).to.be.equal('text/plain');
+          const barFile = files[1].file;
+          expect(barFile.name).to.be.equal('bar.txt');
+          expect(barFile.length).to.be.equal('3');
+          expect(barFile['mime-type']).to.be.equal('text/plain');
+        });
+    });
   });
 
   describe('#fetchBlob', () => {
