@@ -3,6 +3,7 @@
 import extend from 'extend';
 import Base from '../base';
 import join from '../deps/utils/join';
+import flatten from '../deps/utils/flatten';
 import Queue from 'promise-queue';
 import BatchBlob from './blob';
 
@@ -77,7 +78,8 @@ class BatchUpload extends Base {
    *   });
    */
   upload(...blobs) {
-    const promises = blobs.map((blob) => {
+    const allBlobs = flatten(blobs);
+    const promises = allBlobs.map((blob) => {
       const promise = this._queue.add(this._upload.bind(this, blob));
       this._promises.push(promise);
       return promise;
