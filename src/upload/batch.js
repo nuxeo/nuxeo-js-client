@@ -91,7 +91,7 @@ class BatchUpload extends Base {
     const Promise = this._nuxeo.Promise;
     return Promise.all(promises).then((batchBlobs) => {
       return {
-        blobs: batchBlobs,
+        blobs: batchBlobs.map((batchBlob) => batchBlob.blob),
         batch: this,
       };
     });
@@ -170,7 +170,7 @@ class BatchUpload extends Base {
     const Promise = this._nuxeo.Promise;
     return Promise.all(this._promises).then((batchBlobs) => {
       return {
-        blobs: batchBlobs,
+        blobs: batchBlobs.map((batchBlob) => batchBlob.blob),
         batch: this,
       };
     });
