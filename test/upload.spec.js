@@ -89,7 +89,7 @@ describe('Upload', () => {
       const blob1 = createTextBlob('foo', 'foo.txt');
       const blob2 = createTextBlob('bar', 'bar.txt');
 
-      return b.upload(blob1, blob2).then(({ batch }) => {
+      return b.upload([blob1, [blob2]]).then(({ batch }) => {
         return batch.fetchBlobs();
       }).then(({ batch, blobs }) => {
         expect(blobs).to.be.an.instanceof(Array);
