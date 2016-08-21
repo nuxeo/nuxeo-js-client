@@ -6896,7 +6896,9 @@ var BatchUpload = function (_Base) {
       var Promise = this._nuxeo.Promise;
       return Promise.all(promises).then(function (batchBlobs) {
         return {
-          blobs: batchBlobs,
+          blobs: batchBlobs.map(function (batchBlob) {
+            return batchBlob.blob;
+          }),
           batch: _this2
         };
       });
@@ -6986,7 +6988,9 @@ var BatchUpload = function (_Base) {
       var Promise = this._nuxeo.Promise;
       return Promise.all(this._promises).then(function (batchBlobs) {
         return {
-          blobs: batchBlobs,
+          blobs: batchBlobs.map(function (batchBlob) {
+            return batchBlob.blob;
+          }),
           batch: _this5
         };
       });
