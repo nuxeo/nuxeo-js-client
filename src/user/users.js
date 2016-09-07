@@ -1,7 +1,6 @@
 'use strict';
 
 import Base from '../base';
-import User from './user';
 import join from '../deps/utils/join';
 
 const USER_PATH = 'user';
@@ -51,12 +50,9 @@ class Users extends Base {
   fetch(username, opts = {}) {
     const options = this._computeOptions(opts);
     const path = join(USER_PATH, username);
+    options.users = this;
     return this._nuxeo.request(path)
-      .get(options)
-      .then((res) => {
-        options.users = this;
-        return new User(res, options);
-      });
+      .get(options);
   }
 
   /**
@@ -71,12 +67,9 @@ class Users extends Base {
       properties: user.properties,
     };
     const options = this._computeOptions(opts);
+    options.users = this;
     return this._nuxeo.request(USER_PATH)
-      .post(options)
-      .then((res) => {
-        options.users = this;
-        return new User(res, options);
-      });
+      .post(options);
   }
 
   /**
@@ -93,12 +86,9 @@ class Users extends Base {
     };
     const options = this._computeOptions(opts);
     const path = join(USER_PATH, user.id);
+    options.users = this;
     return this._nuxeo.request(path)
-      .put(opts)
-      .then((res) => {
-        options.users = this;
-        return new User(res, options);
-      });
+      .put(options);
   }
 
   /**

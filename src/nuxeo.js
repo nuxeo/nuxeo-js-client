@@ -15,6 +15,7 @@ import Promise from './deps/promise';
 import qs from 'querystring';
 import FormData from './deps/form-data';
 import auth from './auth/auth';
+import Unmarshallers from './unmarshallers/unmarshallers';
 import doFetch from './deps/fetch';
 
 const API_PATH_V1 = 'api/v1/';
@@ -125,8 +126,8 @@ class Nuxeo extends Base {
 
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.indexOf('application/json') === 0) {
-            // TODO add marshallers
-            return resolve(res.json());
+            options.nuxeo = this;
+            return resolve(res.json().then(json => Unmarshallers.unmarshall(json, options, res)));
           }
           return resolve(res);
         }).catch((error) => {
@@ -359,6 +360,13 @@ Nuxeo.promiseLibrary = (promiseLibrary) => {
 
 Nuxeo.registerAuthenticator = (authenticator) => {
   auth.registerAuthenticator(authenticator);
+};
+
+/**
+ * Registers an Unmarshaller for a given entity type.
+ */
+Nuxeo.registerUnmarshaller = (entityType, unmarshaller) => {
+  Unmarshallers.registerUnmarshaller(entityType, unmarshaller);
 };
 
 export default Nuxeo;
