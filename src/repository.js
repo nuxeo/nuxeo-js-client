@@ -2,7 +2,6 @@
 
 import Base from './base';
 import join from './deps/utils/join';
-import Document from './document';
 
 function computePath(ref) {
   return join(ref.indexOf('/') === 0 ? 'path' : 'id', ref);
@@ -53,13 +52,9 @@ class Repository extends Base {
   fetch(ref, opts = {}) {
     const options = this._computeOptions(opts);
     const path = computePath(ref);
+    options.repository = this;
     return this._nuxeo.request(path)
-      .get(options)
-      .then((doc) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this;
-        return new Document(doc, options);
-      });
+      .get(options);
   }
 
   /**
@@ -78,13 +73,9 @@ class Repository extends Base {
     };
     const options = this._computeOptions(opts);
     const path = computePath(parentRef);
+    options.repository = this;
     return this._nuxeo.request(path)
-      .post(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this;
-        return new Document(res, options);
-      });
+      .post(options);
   }
 
   /**
@@ -101,13 +92,9 @@ class Repository extends Base {
     };
     const options = this._computeOptions(opts);
     const path = join('id', doc.uid);
+    options.repository = this;
     return this._nuxeo.request(path)
-      .put(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this;
-        return new Document(res, options);
-      });
+      .put(options);
   }
 
   /**
@@ -143,19 +130,10 @@ class Repository extends Base {
   query(queryOpts, opts = {}) {
     const options = this._computeOptions(opts);
     const path = join('query', queryOpts.query ? 'NXQL' : queryOpts.pageProvider);
+    options.repository = this;
     return this._nuxeo.request(path)
       .queryParams(queryOpts)
-      .get(options)
-      .then((res) => {
-        const { entries } = res;
-        options.nuxeo = this._nuxeo;
-        options.repository = this;
-        const docs = entries.map((doc) => {
-          return new Document(doc, options);
-        });
-        res.entries = docs;
-        return res;
-      });
+      .get(options);
   }
 }
 

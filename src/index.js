@@ -22,6 +22,16 @@ import constants from './deps/constants';
 import Promise from './deps/promise';
 import basicAuthenticator from './auth/basic-authenticator';
 import tokenAuthenticator from './auth/token-authenticator';
+import {
+  documentUnmarshaller,
+  documentsUnmarshaller,
+  workflowUnmarshaller,
+  workflowsUnmarshaller,
+  taskUnmarshaller,
+  tasksUnmarshaller,
+  userUnmarshaller,
+  groupUnmarshaller,
+} from './unmarshallers/unmarshallers';
 
 Nuxeo.Base = Base;
 Nuxeo.Operation = Operation;
@@ -47,5 +57,15 @@ Nuxeo.promiseLibrary(Promise);
 
 Nuxeo.registerAuthenticator(basicAuthenticator);
 Nuxeo.registerAuthenticator(tokenAuthenticator);
+
+// register default unmarshallers
+Nuxeo.registerUnmarshaller('document', documentUnmarshaller);
+Nuxeo.registerUnmarshaller('documents', documentsUnmarshaller);
+Nuxeo.registerUnmarshaller('workflow', workflowUnmarshaller);
+Nuxeo.registerUnmarshaller('workflows', workflowsUnmarshaller);
+Nuxeo.registerUnmarshaller('task', taskUnmarshaller);
+Nuxeo.registerUnmarshaller('tasks', tasksUnmarshaller);
+Nuxeo.registerUnmarshaller('user', userUnmarshaller);
+Nuxeo.registerUnmarshaller('group', groupUnmarshaller);
 
 export default Nuxeo;

@@ -2,7 +2,6 @@
 
 import extend from 'extend';
 import Base from '../base';
-import Task from './task';
 import join from '../deps/utils/join';
 
 const WORKFLOW_PATH = 'workflow';
@@ -34,16 +33,9 @@ class Workflow extends Base {
    */
   fetchTasks(opts = {}) {
     const options = this._computeOptions(opts);
+    options.documentId = this.uid;
     return this._buildTasksRequest()
-      .get(options)
-      .then(({ entries }) => {
-        options.nuxeo = this._nuxeo;
-        options.documentId = this.uid;
-        const tasks = entries.map((task) => {
-          return new Task(task, options);
-        });
-        return tasks;
-      });
+      .get(options);
   }
 
   /**
