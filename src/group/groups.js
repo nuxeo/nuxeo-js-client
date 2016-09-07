@@ -1,7 +1,6 @@
 'use strict';
 
 import Base from '../base';
-import Group from './group';
 import join from '../deps/utils/join';
 
 const GROUP_PATH = 'group';
@@ -52,12 +51,9 @@ class Groups extends Base {
   fetch(groupname, opts = {}) {
     const options = this._computeOptions(opts);
     const path = join(GROUP_PATH, groupname);
+    options.groups = this;
     return this._nuxeo.request(path)
-      .get(options)
-      .then((res) => {
-        options.groups = this;
-        return new Group(res, options);
-      });
+      .get(options);
   }
 
   /**
@@ -75,12 +71,9 @@ class Groups extends Base {
       memberGroups: group.memberGroups,
     };
     const options = this._computeOptions(opts);
+    options.groups = this;
     return this._nuxeo.request(GROUP_PATH)
-      .post(options)
-      .then((res) => {
-        options.groups = this;
-        return new Group(res, options);
-      });
+      .post(options);
   }
 
   /**
@@ -99,12 +92,9 @@ class Groups extends Base {
     };
     const options = this._computeOptions(opts);
     const path = join(GROUP_PATH, group.groupname);
+    options.groups = this;
     return this._nuxeo.request(path)
-      .put(options)
-      .then((res) => {
-        options.groups = this;
-        return new Group(res, options);
-      });
+      .put(options);
   }
 
   /**

@@ -4,7 +4,6 @@ import extend from 'extend';
 import qs from 'querystring';
 import join from './deps/utils/join';
 import Base from './base';
-import Workflow from './workflow/workflow';
 import constants from './deps/constants';
 
 /**
@@ -23,7 +22,7 @@ class Document extends Base {
   constructor(doc, opts) {
     super(opts);
     this._nuxeo = opts.nuxeo;
-    this._repository = opts.repository;
+    this._repository = opts.repository || this._nuxeo.repository(doc.repository, opts);
     this.properties = {};
     this._dirtyProperties = {};
     extend(true, this, doc);
@@ -103,18 +102,14 @@ class Document extends Base {
    */
   move(dst, name = null, opts = {}) {
     const options = this._computeOptions(opts);
+    options.repository = this._repository;
     return this._nuxeo.operation('Document.Move')
       .input(this.uid)
       .params({
         name,
         target: dst,
       })
-      .execute(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this._repository;
-        return new Document(res, options);
-      });
+      .execute(options);
   }
 
   /**
@@ -125,17 +120,13 @@ class Document extends Base {
    */
   followTransition(transitionName, opts = {}) {
     const options = this._computeOptions(opts);
+    options.repository = this._repository;
     return this._nuxeo.operation('Document.FollowLifecycleTransition')
       .input(this.uid)
       .params({
         value: transitionName,
       })
-      .execute(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this._repository;
-        return new Document(res, options);
-      });
+      .execute(options);
   }
 
   /**
@@ -202,13 +193,9 @@ class Document extends Base {
     };
     const options = this._computeOptions(opts);
     const path = join('id', this.uid, '@workflow');
+    options.documentId = this.uid;
     return this._nuxeo.request(path)
-      .post(options)
-      .then((workflow) => {
-        options.nuxeo = this._nuxeo;
-        options.documentId = this.uid;
-        return new Workflow(workflow, options);
-      });
+      .post(options);
   }
 
   /**
@@ -219,16 +206,9 @@ class Document extends Base {
   fetchWorkflows(opts = {}) {
     const options = this._computeOptions(opts);
     const path = join('id', this.uid, '@workflow');
+    options.documentId = this.uid;
     return this._nuxeo.request(path)
-      .get(options)
-      .then(({ entries }) => {
-        options.nuxeo = this._nuxeo;
-        options.documentId = this.uid;
-        const workflows = entries.map((workflow) => {
-          return new Workflow(workflow, options);
-        });
-        return workflows;
-      });
+      .get(options);
   }
 
   /**
@@ -336,15 +316,11 @@ class Document extends Base {
    */
   addPermission(params, opts = {}) {
     const options = this._computeOptions(opts);
+    options.repository = this._repository;
     return this._nuxeo.operation('Document.AddPermission')
       .input(this.uid)
       .params(params)
-      .execute(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this._repository;
-        return new Document(res, options);
-      });
+      .execute(options);
   }
 
   /**
@@ -358,15 +334,11 @@ class Document extends Base {
    */
   removePermission(params, opts = {}) {
     const options = this._computeOptions(opts);
+    options.repository = this._repository;
     return this._nuxeo.operation('Document.RemovePermission')
       .input(this.uid)
       .params(params)
-      .execute(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this._repository;
-        return new Document(res, options);
-      });
+      .execute(options);
   }
 
   /**
@@ -408,14 +380,10 @@ class Document extends Base {
    */
   lock(opts = {}) {
     const options = this._computeOptions(opts);
+    options.repository = this._repository;
     return this._nuxeo.operation('Document.Lock')
       .input(this.uid)
-      .execute(opts)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this._repository;
-        return new Document(res, options);
-      });
+      .execute(options);
   }
 
   /**
@@ -425,14 +393,10 @@ class Document extends Base {
    */
   unlock(opts = {}) {
     const options = this._computeOptions(opts);
+    options.repository = this._repository;
     return this._nuxeo.operation('Document.Unlock')
       .input(this.uid)
-      .execute(opts)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        options.repository = this._repository;
-        return new Document(res, options);
-      });
+      .execute(options);
   }
 
   /**

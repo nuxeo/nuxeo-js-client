@@ -244,6 +244,7 @@ describe('Operation', () => {
             name: 'workspaces',
           })
           .execute().then((res) => {
+            expect(res).to.be.instanceof(Nuxeo.Document);
             expect(res['entity-type']).to.be.equal('document');
             expect(res.properties['dc:title']).to.be.equal('Workspaces');
           });
@@ -262,6 +263,7 @@ describe('Operation', () => {
           .then((res) => {
             expect(res['entity-type']).to.be.equal('documents');
             expect(res.entries.length).to.be.equal(3);
+            expect(res.entries[0]).to.be.instanceof(Nuxeo.Document);
           });
       });
 
