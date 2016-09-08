@@ -14,7 +14,8 @@ import join from './deps/utils/join';
 import Promise from './deps/promise';
 import qs from 'querystring';
 import FormData from './deps/form-data';
-import auth from './auth/auth';
+import Authentication from './auth/auth';
+import Unmarshallers from './unmarshallers/unmarshallers';
 import doFetch from './deps/fetch';
 
 const API_PATH_V1 = 'api/v1/';
@@ -125,8 +126,8 @@ class Nuxeo extends Base {
 
           const contentType = res.headers.get('content-type');
           if (contentType && contentType.indexOf('application/json') === 0) {
-            // TODO add marshallers
-            return resolve(res.json());
+            options.nuxeo = this;
+            return resolve(res.json().then(json => Unmarshallers.unmarshall(json, options, res)));
           }
           return resolve(res);
         }).catch((error) => {
@@ -146,7 +147,7 @@ class Nuxeo extends Base {
       resolveWithFullResponse: false,
     };
     options = extend(true, {}, options, opts);
-    options.headers = auth.computeAuthentication(this._auth, options.headers);
+    options.headers = Authentication.computeAuthentication(this._auth, options.headers);
 
     if (options.schemas && options.schemas.length > 0) {
       options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
@@ -357,8 +358,18 @@ Nuxeo.promiseLibrary = (promiseLibrary) => {
   Nuxeo.Promise = promiseLibrary;
 };
 
-Nuxeo.registerAuthenticator = (authenticator) => {
-  auth.registerAuthenticator(authenticator);
+/**
+ * Registers an Authenticator for a given authentication method.
+ */
+Nuxeo.registerAuthenticator = (method, authenticator) => {
+  Authentication.registerAuthenticator(method, authenticator);
+};
+
+/**
+ * Registers an Unmarshaller for a given entity type.
+ */
+Nuxeo.registerUnmarshaller = (entityType, unmarshaller) => {
+  Unmarshallers.registerUnmarshaller(entityType, unmarshaller);
 };
 
 export default Nuxeo;

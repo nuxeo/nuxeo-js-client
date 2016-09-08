@@ -1,8 +1,6 @@
 'use strict';
 
 import Base from '../base';
-import Workflow from './workflow';
-import Task from './task';
 import join from '../deps/utils/join';
 
 const WORKFLOW_PATH = 'workflow';
@@ -62,11 +60,7 @@ class Workflows extends Base {
     };
     const options = this._computeOptions(opts);
     return this._nuxeo.request(WORKFLOW_PATH)
-      .post(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        return new Workflow(res, options);
-      });
+      .post(options);
   }
 
   /**
@@ -79,11 +73,7 @@ class Workflows extends Base {
     const options = this._computeOptions(opts);
     const path = join(WORKFLOW_PATH, workflowInstanceId);
     return this._nuxeo.request(path)
-      .get(options)
-      .then((res) => {
-        options.nuxeo = this._nuxeo;
-        return new Workflow(res, options);
-      });
+      .get(options);
   }
 
  /**
@@ -109,14 +99,7 @@ class Workflows extends Base {
     const options = this._computeOptions(opts);
     return this._nuxeo.request(WORKFLOW_PATH)
       .queryParams({ workflowModelName })
-      .get(options)
-      .then(({ entries }) => {
-        options.nuxeo = this._nuxeo;
-        const workflows = entries.map((workflow) => {
-          return new Workflow(workflow, options);
-        });
-        return workflows;
-      });
+      .get(options);
   }
 
   /**
@@ -136,14 +119,7 @@ class Workflows extends Base {
         workflowInstanceId: tasksOpts.workflowInstanceId,
         workflowModelName: tasksOpts.workflowModelName,
       })
-      .get(options)
-      .then(({ entries }) => {
-        options.nuxeo = this._nuxeo;
-        const tasks = entries.map((task) => {
-          return new Task(task, options);
-        });
-        return tasks;
-      });
+      .get(options);
   }
 }
 
