@@ -2822,13 +2822,46 @@ module.exports = Array.isArray || function (arr) {
 
 },{}],7:[function(require,module,exports){
 // shim for using process in browser
-
 var process = module.exports = {};
 
-// cached from whatever global is present so that test runners that stub it don't break things.
-var cachedSetTimeout = setTimeout;
-var cachedClearTimeout = clearTimeout;
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
 
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+(function () {
+    try {
+        cachedSetTimeout = setTimeout;
+    } catch (e) {
+        cachedSetTimeout = function () {
+            throw new Error('setTimeout is not defined');
+        }
+    }
+    try {
+        cachedClearTimeout = clearTimeout;
+    } catch (e) {
+        cachedClearTimeout = function () {
+            throw new Error('clearTimeout is not defined');
+        }
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        return setTimeout(fun, 0);
+    } else {
+        return cachedSetTimeout.call(null, fun, 0);
+    }
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        clearTimeout(marker);
+    } else {
+        cachedClearTimeout.call(null, marker);
+    }
+}
 var queue = [];
 var draining = false;
 var currentQueue;
@@ -2853,7 +2886,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = cachedSetTimeout(cleanUpNextTick);
+    var timeout = runTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -2870,7 +2903,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    cachedClearTimeout(timeout);
+    runClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -2882,7 +2915,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        cachedSetTimeout(drainQueue, 0);
+        runTimeout(drainQueue);
     }
 };
 
@@ -3690,11 +3723,15 @@ exports.encode = exports.stringify = require('./encode');
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.tokenAuthenticator = exports.basicAuthenticator = undefined;
+
+var _base = require('../deps/utils/base64');
+
 var authenticators = {};
 
-exports.default = {
-  registerAuthenticator: function registerAuthenticator(authenticator) {
-    authenticators[authenticator.method] = authenticator.computeAuthentication;
+var Authentication = {
+  registerAuthenticator: function registerAuthenticator(method, authenticator) {
+    authenticators[method] = authenticator;
   },
 
   computeAuthentication: function computeAuthentication(auth, headers) {
@@ -3707,45 +3744,24 @@ exports.default = {
     return headers;
   }
 };
-module.exports = exports['default'];
+exports.default = Authentication;
 
-},{}],16:[function(require,module,exports){
-'use strict';
+// default authenticators
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _base = require('../deps/utils/base64');
-
-exports.default = {
-  method: 'basic',
-  computeAuthentication: function computeAuthentication(auth, headers) {
-    if (auth.username && auth.password) {
-      var authorization = 'Basic ' + (0, _base.btoa)(auth.username + ':' + auth.password);
-      headers.Authorization = authorization;
-    }
+var basicAuthenticator = exports.basicAuthenticator = function basicAuthenticator(auth, headers) {
+  if (auth.username && auth.password) {
+    var authorization = 'Basic ' + (0, _base.btoa)(auth.username + ':' + auth.password);
+    headers.Authorization = authorization;
   }
 };
-module.exports = exports['default'];
 
-},{"../deps/utils/base64":24}],17:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = {
-  method: 'token',
-  computeAuthentication: function computeAuthentication(auth, headers) {
-    if (auth.token) {
-      headers['X-Authentication-Token'] = auth.token;
-    }
+var tokenAuthenticator = exports.tokenAuthenticator = function tokenAuthenticator(auth, headers) {
+  if (auth.token) {
+    headers['X-Authentication-Token'] = auth.token;
   }
 };
-module.exports = exports['default'];
 
-},{}],18:[function(require,module,exports){
+},{"../deps/utils/base64":22}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4058,7 +4074,7 @@ var Base = function () {
 exports.default = Base;
 module.exports = exports['default'];
 
-},{"extend":4}],19:[function(require,module,exports){
+},{"extend":4}],17:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4104,7 +4120,7 @@ function Blob(opts) {
 exports.default = Blob;
 module.exports = exports['default'];
 
-},{}],20:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4133,7 +4149,7 @@ exports.default = {
 };
 module.exports = exports['default'];
 
-},{}],21:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4143,7 +4159,7 @@ require('whatwg-fetch');
 exports.default = self.fetch.bind(self);
 module.exports = exports['default'];
 
-},{"whatwg-fetch":14}],22:[function(require,module,exports){
+},{"whatwg-fetch":14}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4152,7 +4168,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = FormData;
 module.exports = exports['default'];
 
-},{}],23:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4170,7 +4186,7 @@ _es6Promise2.default.polyfill();
 exports.default = Promise;
 module.exports = exports['default'];
 
-},{"es6-promise":3}],24:[function(require,module,exports){
+},{"es6-promise":3}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4188,7 +4204,7 @@ function btoa(str) {
   return new _buffer2.default(str).toString('base64');
 }
 
-},{"./buffer":25}],25:[function(require,module,exports){
+},{"./buffer":23}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4200,7 +4216,7 @@ var _buffer = require('buffer/');
 exports.default = _buffer.Buffer;
 module.exports = exports['default'];
 
-},{"buffer/":2}],26:[function(require,module,exports){
+},{"buffer/":2}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4214,7 +4230,7 @@ function flatten(list) {
 }
 module.exports = exports['default'];
 
-},{}],27:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4231,7 +4247,7 @@ function join() {
 }
 module.exports = exports['default'];
 
-},{}],28:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4285,7 +4301,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *     throw new Error(error));
  *   });
  */
-
 var Directory = function (_Base) {
   _inherits(Directory, _Base);
 
@@ -4295,7 +4310,6 @@ var Directory = function (_Base) {
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this directory.
    * @param {string} opts.directoryName - The name of this directory.
    */
-
   function Directory(opts) {
     _classCallCheck(this, Directory);
 
@@ -4432,7 +4446,7 @@ var Directory = function (_Base) {
 exports.default = Directory;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":27,"./entry":29}],29:[function(require,module,exports){
+},{"../base":16,"../deps/utils/join":25,"./entry":27}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4462,7 +4476,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *
  * **Cannot directly be instantiated**
  */
-
 var DirectoryEntry = function (_Base) {
   _inherits(DirectoryEntry, _Base);
 
@@ -4473,7 +4486,6 @@ var DirectoryEntry = function (_Base) {
    * @param {object} opts - The configuration options.
    * @param {string} opts.directory - The {@link Directory} object linked to this entry.
    */
-
   function DirectoryEntry(entry, opts) {
     _classCallCheck(this, DirectoryEntry);
 
@@ -4544,7 +4556,7 @@ var DirectoryEntry = function (_Base) {
 exports.default = DirectoryEntry;
 module.exports = exports['default'];
 
-},{"../base":18,"extend":4}],30:[function(require,module,exports){
+},{"../base":16,"extend":4}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4571,10 +4583,6 @@ var _base = require('./base');
 
 var _base2 = _interopRequireDefault(_base);
 
-var _workflow = require('./workflow/workflow');
-
-var _workflow2 = _interopRequireDefault(_workflow);
-
 var _constants = require('./deps/constants');
 
 var _constants2 = _interopRequireDefault(_constants);
@@ -4592,7 +4600,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *
  * **Cannot directly be instantiated**
  */
-
 var Document = function (_Base) {
   _inherits(Document, _Base);
 
@@ -4603,14 +4610,13 @@ var Document = function (_Base) {
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this `Document` object.
    * @param {object} opts.repository - The {@link Repository} object linked to this `Document` object.
    */
-
   function Document(doc, opts) {
     _classCallCheck(this, Document);
 
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Document).call(this, opts));
 
     _this._nuxeo = opts.nuxeo;
-    _this._repository = opts.repository;
+    _this._repository = opts.repository || _this._nuxeo.repository(doc.repository, opts);
     _this.properties = {};
     _this._dirtyProperties = {};
     (0, _extend2.default)(true, _this, doc);
@@ -4714,20 +4720,15 @@ var Document = function (_Base) {
   }, {
     key: 'move',
     value: function move(dst) {
-      var _this2 = this;
-
       var name = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
       var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
       var options = this._computeOptions(opts);
+      options.repository = this._repository;
       return this._nuxeo.operation('Document.Move').input(this.uid).params({
         name: name,
         target: dst
-      }).execute(options).then(function (res) {
-        options.nuxeo = _this2._nuxeo;
-        options.repository = _this2._repository;
-        return new Document(res, options);
-      });
+      }).execute(options);
     }
 
     /**
@@ -4740,18 +4741,13 @@ var Document = function (_Base) {
   }, {
     key: 'followTransition',
     value: function followTransition(transitionName) {
-      var _this3 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
+      options.repository = this._repository;
       return this._nuxeo.operation('Document.FollowLifecycleTransition').input(this.uid).params({
         value: transitionName
-      }).execute(options).then(function (res) {
-        options.nuxeo = _this3._nuxeo;
-        options.repository = _this3._repository;
-        return new Document(res, options);
-      });
+      }).execute(options);
     }
 
     /**
@@ -4822,8 +4818,6 @@ var Document = function (_Base) {
   }, {
     key: 'startWorkflow',
     value: function startWorkflow(workflowModelName) {
-      var _this4 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       opts.body = {
@@ -4832,11 +4826,8 @@ var Document = function (_Base) {
       };
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)('id', this.uid, '@workflow');
-      return this._nuxeo.request(path).post(options).then(function (workflow) {
-        options.nuxeo = _this4._nuxeo;
-        options.documentId = _this4.uid;
-        return new _workflow2.default(workflow, options);
-      });
+      options.documentId = this.uid;
+      return this._nuxeo.request(path).post(options);
     }
 
     /**
@@ -4848,22 +4839,12 @@ var Document = function (_Base) {
   }, {
     key: 'fetchWorkflows',
     value: function fetchWorkflows() {
-      var _this5 = this;
-
       var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)('id', this.uid, '@workflow');
-      return this._nuxeo.request(path).get(options).then(function (_ref) {
-        var entries = _ref.entries;
-
-        options.nuxeo = _this5._nuxeo;
-        options.documentId = _this5.uid;
-        var workflows = entries.map(function (workflow) {
-          return new _workflow2.default(workflow, options);
-        });
-        return workflows;
-      });
+      options.documentId = this.uid;
+      return this._nuxeo.request(path).get(options);
     }
 
     /**
@@ -4875,7 +4856,7 @@ var Document = function (_Base) {
   }, {
     key: 'fetchRenditions',
     value: function fetchRenditions() {
-      var _this6 = this;
+      var _this2 = this;
 
       var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -4887,11 +4868,11 @@ var Document = function (_Base) {
       var options = this._computeOptions(opts);
       options.enrichers = { document: ['renditions'] };
       return this._repository.fetch(this.uid, options).then(function (doc) {
-        if (!_this6.contextParameters) {
-          _this6.contextParameters = {};
+        if (!_this2.contextParameters) {
+          _this2.contextParameters = {};
         }
-        _this6.contextParameters.renditions = doc.contextParameters.renditions;
-        return _this6.contextParameters.renditions;
+        _this2.contextParameters.renditions = doc.contextParameters.renditions;
+        return _this2.contextParameters.renditions;
       });
     }
 
@@ -4921,7 +4902,7 @@ var Document = function (_Base) {
   }, {
     key: 'fetchACLs',
     value: function fetchACLs() {
-      var _this7 = this;
+      var _this3 = this;
 
       var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -4933,11 +4914,11 @@ var Document = function (_Base) {
       var options = this._computeOptions(opts);
       options.enrichers = { document: [_constants2.default.enricher.document.ACLS] };
       return this._repository.fetch(this.uid, options).then(function (doc) {
-        if (!_this7.contextParameters) {
-          _this7.contextParameters = {};
+        if (!_this3.contextParameters) {
+          _this3.contextParameters = {};
         }
-        _this7.contextParameters.acls = doc.contextParameters.acls;
-        return _this7.contextParameters.acls;
+        _this3.contextParameters.acls = doc.contextParameters.acls;
+        return _this3.contextParameters.acls;
       });
     }
 
@@ -4952,7 +4933,7 @@ var Document = function (_Base) {
   }, {
     key: 'hasPermission',
     value: function hasPermission(name) {
-      var _this8 = this;
+      var _this4 = this;
 
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
@@ -4964,11 +4945,11 @@ var Document = function (_Base) {
       var options = this._computeOptions(opts);
       options.enrichers = { document: [_constants2.default.enricher.document.PERMISSIONS] };
       return this._repository.fetch(this.uid, options).then(function (doc) {
-        if (!_this8.contextParameters) {
-          _this8.contextParameters = {};
+        if (!_this4.contextParameters) {
+          _this4.contextParameters = {};
         }
-        _this8.contextParameters.permissions = doc.contextParameters.permissions;
-        return _this8.contextParameters.permissions.indexOf(name) !== -1;
+        _this4.contextParameters.permissions = doc.contextParameters.permissions;
+        return _this4.contextParameters.permissions.indexOf(name) !== -1;
       });
     }
 
@@ -4992,16 +4973,11 @@ var Document = function (_Base) {
   }, {
     key: 'addPermission',
     value: function addPermission(params) {
-      var _this9 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
-      return this._nuxeo.operation('Document.AddPermission').input(this.uid).params(params).execute(options).then(function (res) {
-        options.nuxeo = _this9._nuxeo;
-        options.repository = _this9._repository;
-        return new Document(res, options);
-      });
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.AddPermission').input(this.uid).params(params).execute(options);
     }
 
     /**
@@ -5017,16 +4993,11 @@ var Document = function (_Base) {
   }, {
     key: 'removePermission',
     value: function removePermission(params) {
-      var _this10 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
-      return this._nuxeo.operation('Document.RemovePermission').input(this.uid).params(params).execute(options).then(function (res) {
-        options.nuxeo = _this10._nuxeo;
-        options.repository = _this10._repository;
-        return new Document(res, options);
-      });
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.RemovePermission').input(this.uid).params(params).execute(options);
     }
 
     /**
@@ -5073,16 +5044,11 @@ var Document = function (_Base) {
   }, {
     key: 'lock',
     value: function lock() {
-      var _this11 = this;
-
       var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
       var options = this._computeOptions(opts);
-      return this._nuxeo.operation('Document.Lock').input(this.uid).execute(opts).then(function (res) {
-        options.nuxeo = _this11._nuxeo;
-        options.repository = _this11._repository;
-        return new Document(res, options);
-      });
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.Lock').input(this.uid).execute(options);
     }
 
     /**
@@ -5094,16 +5060,11 @@ var Document = function (_Base) {
   }, {
     key: 'unlock',
     value: function unlock() {
-      var _this12 = this;
-
       var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
       var options = this._computeOptions(opts);
-      return this._nuxeo.operation('Document.Unlock').input(this.uid).execute(opts).then(function (res) {
-        options.nuxeo = _this12._nuxeo;
-        options.repository = _this12._repository;
-        return new Document(res, options);
-      });
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.Unlock').input(this.uid).execute(options);
     }
 
     /**
@@ -5141,7 +5102,7 @@ var Document = function (_Base) {
 exports.default = Document;
 module.exports = exports['default'];
 
-},{"./base":18,"./deps/constants":20,"./deps/utils/join":27,"./workflow/workflow":43,"extend":4,"querystring":13}],31:[function(require,module,exports){
+},{"./base":16,"./deps/constants":18,"./deps/utils/join":25,"extend":4,"querystring":13}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5171,7 +5132,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *
  * **Cannot directly be instantiated**
  */
-
 var Group = function (_Base) {
   _inherits(Group, _Base);
 
@@ -5181,7 +5141,6 @@ var Group = function (_Base) {
    * @param {object} opts - The configuration options.
    * @param {string} opts.groups - The {@link Groups} object linked to this group.
    */
-
   function Group(group, opts) {
     _classCallCheck(this, Group);
 
@@ -5221,7 +5180,7 @@ var Group = function (_Base) {
 exports.default = Group;
 module.exports = exports['default'];
 
-},{"../base":18,"extend":4}],32:[function(require,module,exports){
+},{"../base":16,"extend":4}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5233,10 +5192,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _base = require('../base');
 
 var _base2 = _interopRequireDefault(_base);
-
-var _group = require('./group');
-
-var _group2 = _interopRequireDefault(_group);
 
 var _join = require('../deps/utils/join');
 
@@ -5286,7 +5241,6 @@ var Groups = function (_Base) {
    * @param {object} opts - The configuration options.
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Groups object.
    */
-
   function Groups(opts) {
     _classCallCheck(this, Groups);
 
@@ -5307,16 +5261,12 @@ var Groups = function (_Base) {
   _createClass(Groups, [{
     key: 'fetch',
     value: function fetch(groupname) {
-      var _this2 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)(GROUP_PATH, groupname);
-      return this._nuxeo.request(path).get(options).then(function (res) {
-        options.groups = _this2;
-        return new _group2.default(res, options);
-      });
+      options.groups = this;
+      return this._nuxeo.request(path).get(options);
     }
 
     /**
@@ -5329,8 +5279,6 @@ var Groups = function (_Base) {
   }, {
     key: 'create',
     value: function create(group) {
-      var _this3 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       opts.body = {
@@ -5341,10 +5289,8 @@ var Groups = function (_Base) {
         memberGroups: group.memberGroups
       };
       var options = this._computeOptions(opts);
-      return this._nuxeo.request(GROUP_PATH).post(options).then(function (res) {
-        options.groups = _this3;
-        return new _group2.default(res, options);
-      });
+      options.groups = this;
+      return this._nuxeo.request(GROUP_PATH).post(options);
     }
 
     /**
@@ -5357,8 +5303,6 @@ var Groups = function (_Base) {
   }, {
     key: 'update',
     value: function update(group) {
-      var _this4 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       opts.body = {
@@ -5370,10 +5314,8 @@ var Groups = function (_Base) {
       };
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)(GROUP_PATH, group.groupname);
-      return this._nuxeo.request(path).put(options).then(function (res) {
-        options.groups = _this4;
-        return new _group2.default(res, options);
-      });
+      options.groups = this;
+      return this._nuxeo.request(path).put(options);
     }
 
     /**
@@ -5400,7 +5342,7 @@ var Groups = function (_Base) {
 exports.default = Groups;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":27,"./group":31}],33:[function(require,module,exports){
+},{"../base":16,"../deps/utils/join":25}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5487,13 +5429,9 @@ var _promise = require('./deps/promise');
 
 var _promise2 = _interopRequireDefault(_promise);
 
-var _basicAuthenticator = require('./auth/basic-authenticator');
+var _auth = require('./auth/auth');
 
-var _basicAuthenticator2 = _interopRequireDefault(_basicAuthenticator);
-
-var _tokenAuthenticator = require('./auth/token-authenticator');
-
-var _tokenAuthenticator2 = _interopRequireDefault(_tokenAuthenticator);
+var _unmarshallers = require('./unmarshallers/unmarshallers');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -5519,13 +5457,24 @@ _nuxeo2.default.version = '2.0.2';
 
 _nuxeo2.default.promiseLibrary(_promise2.default);
 
-_nuxeo2.default.registerAuthenticator(_basicAuthenticator2.default);
-_nuxeo2.default.registerAuthenticator(_tokenAuthenticator2.default);
+// register default authenticators
+_nuxeo2.default.registerAuthenticator('basic', _auth.basicAuthenticator);
+_nuxeo2.default.registerAuthenticator('token', _auth.tokenAuthenticator);
+
+// register default unmarshallers
+_nuxeo2.default.registerUnmarshaller('document', _unmarshallers.documentUnmarshaller);
+_nuxeo2.default.registerUnmarshaller('documents', _unmarshallers.documentsUnmarshaller);
+_nuxeo2.default.registerUnmarshaller('workflow', _unmarshallers.workflowUnmarshaller);
+_nuxeo2.default.registerUnmarshaller('workflows', _unmarshallers.workflowsUnmarshaller);
+_nuxeo2.default.registerUnmarshaller('task', _unmarshallers.taskUnmarshaller);
+_nuxeo2.default.registerUnmarshaller('tasks', _unmarshallers.tasksUnmarshaller);
+_nuxeo2.default.registerUnmarshaller('user', _unmarshallers.userUnmarshaller);
+_nuxeo2.default.registerUnmarshaller('group', _unmarshallers.groupUnmarshaller);
 
 exports.default = _nuxeo2.default;
 module.exports = exports['default'];
 
-},{"./auth/basic-authenticator":16,"./auth/token-authenticator":17,"./base":18,"./blob":19,"./deps/constants":20,"./deps/promise":23,"./directory/directory":28,"./directory/entry":29,"./document":30,"./group/group":31,"./group/groups":32,"./nuxeo":34,"./operation":35,"./repository":36,"./request":37,"./upload/batch":38,"./upload/blob":39,"./user/user":40,"./user/users":41,"./workflow/task":42,"./workflow/workflow":43,"./workflow/workflows":44}],34:[function(require,module,exports){
+},{"./auth/auth":15,"./base":16,"./blob":17,"./deps/constants":18,"./deps/promise":21,"./directory/directory":26,"./directory/entry":27,"./document":28,"./group/group":29,"./group/groups":30,"./nuxeo":32,"./operation":33,"./repository":34,"./request":35,"./unmarshallers/unmarshallers":36,"./upload/batch":37,"./upload/blob":38,"./user/user":39,"./user/users":40,"./workflow/task":41,"./workflow/workflow":42,"./workflow/workflows":43}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5596,6 +5545,10 @@ var _auth = require('./auth/auth');
 
 var _auth2 = _interopRequireDefault(_auth);
 
+var _unmarshallers = require('./unmarshallers/unmarshallers');
+
+var _unmarshallers2 = _interopRequireDefault(_unmarshallers);
+
 var _fetch = require('./deps/fetch');
 
 var _fetch2 = _interopRequireDefault(_fetch);
@@ -5649,7 +5602,6 @@ var Nuxeo = function (_Base) {
    * @param {string} [opts.apiPath=api/v1] - The API path.
    * @param {object} [opts.auth] - The authentication configuration.
    */
-
   function Nuxeo() {
     var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -5737,8 +5689,10 @@ var Nuxeo = function (_Base) {
 
           var contentType = res.headers.get('content-type');
           if (contentType && contentType.indexOf('application/json') === 0) {
-            // TODO add marshallers
-            return resolve(res.json());
+            options.nuxeo = _this3;
+            return resolve(res.json().then(function (json) {
+              return _unmarshallers2.default.unmarshall(json, options, res);
+            }));
           }
           return resolve(res);
         }).catch(function (error) {
@@ -6019,14 +5973,24 @@ Nuxeo.promiseLibrary = function (promiseLibrary) {
   Nuxeo.Promise = promiseLibrary;
 };
 
-Nuxeo.registerAuthenticator = function (authenticator) {
-  _auth2.default.registerAuthenticator(authenticator);
+/**
+ * Registers an Authenticator for a given authentication method.
+ */
+Nuxeo.registerAuthenticator = function (method, authenticator) {
+  _auth2.default.registerAuthenticator(method, authenticator);
+};
+
+/**
+ * Registers an Unmarshaller for a given entity type.
+ */
+Nuxeo.registerUnmarshaller = function (entityType, unmarshaller) {
+  _unmarshallers2.default.registerUnmarshaller(entityType, unmarshaller);
 };
 
 exports.default = Nuxeo;
 module.exports = exports['default'];
 
-},{"./auth/auth":15,"./base":18,"./deps/fetch":21,"./deps/form-data":22,"./deps/promise":23,"./deps/utils/join":27,"./directory/directory":28,"./group/groups":32,"./operation":35,"./repository":36,"./request":37,"./upload/batch":38,"./user/users":41,"./workflow/workflows":44,"extend":4,"querystring":13}],35:[function(require,module,exports){
+},{"./auth/auth":15,"./base":16,"./deps/fetch":19,"./deps/form-data":20,"./deps/promise":21,"./deps/utils/join":25,"./directory/directory":26,"./group/groups":30,"./operation":33,"./repository":34,"./request":35,"./unmarshallers/unmarshallers":36,"./upload/batch":37,"./user/users":40,"./workflow/workflows":43,"extend":4,"querystring":13}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6100,7 +6064,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *     throw new Error(error);
  *   });
  */
-
 var Operation = function (_Base) {
   _inherits(Operation, _Base);
 
@@ -6111,7 +6074,6 @@ var Operation = function (_Base) {
    * @param {string} opts.id - The ID of the operation.
    * @param {string} opts.url - The automation URL.
    */
-
   function Operation(opts) {
     _classCallCheck(this, Operation);
 
@@ -6315,7 +6277,7 @@ var Operation = function (_Base) {
 exports.default = Operation;
 module.exports = exports['default'];
 
-},{"./base":18,"./blob":19,"./deps/form-data":22,"./deps/utils/join":27,"./upload/batch":38,"./upload/blob":39,"extend":4}],36:[function(require,module,exports){
+},{"./base":16,"./blob":17,"./deps/form-data":20,"./deps/utils/join":25,"./upload/batch":37,"./upload/blob":38,"extend":4}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6331,10 +6293,6 @@ var _base2 = _interopRequireDefault(_base);
 var _join = require('./deps/utils/join');
 
 var _join2 = _interopRequireDefault(_join);
-
-var _document = require('./document');
-
-var _document2 = _interopRequireDefault(_document);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -6382,7 +6340,6 @@ var Repository = function (_Base) {
    * @param {object} opts - The configuration options.
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this repository.
    */
-
   function Repository() {
     var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -6405,17 +6362,12 @@ var Repository = function (_Base) {
   _createClass(Repository, [{
     key: 'fetch',
     value: function fetch(ref) {
-      var _this2 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
       var path = computePath(ref);
-      return this._nuxeo.request(path).get(options).then(function (doc) {
-        options.nuxeo = _this2._nuxeo;
-        options.repository = _this2;
-        return new _document2.default(doc, options);
-      });
+      options.repository = this;
+      return this._nuxeo.request(path).get(options);
     }
 
     /**
@@ -6429,8 +6381,6 @@ var Repository = function (_Base) {
   }, {
     key: 'create',
     value: function create(parentRef, doc) {
-      var _this3 = this;
-
       var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
       opts.body = {
@@ -6441,11 +6391,8 @@ var Repository = function (_Base) {
       };
       var options = this._computeOptions(opts);
       var path = computePath(parentRef);
-      return this._nuxeo.request(path).post(options).then(function (res) {
-        options.nuxeo = _this3._nuxeo;
-        options.repository = _this3;
-        return new _document2.default(res, options);
-      });
+      options.repository = this;
+      return this._nuxeo.request(path).post(options);
     }
 
     /**
@@ -6458,8 +6405,6 @@ var Repository = function (_Base) {
   }, {
     key: 'update',
     value: function update(doc) {
-      var _this4 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       opts.body = {
@@ -6469,11 +6414,8 @@ var Repository = function (_Base) {
       };
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)('id', doc.uid);
-      return this._nuxeo.request(path).put(options).then(function (res) {
-        options.nuxeo = _this4._nuxeo;
-        options.repository = _this4;
-        return new _document2.default(res, options);
-      });
+      options.repository = this;
+      return this._nuxeo.request(path).put(options);
     }
 
     /**
@@ -6514,23 +6456,12 @@ var Repository = function (_Base) {
   }, {
     key: 'query',
     value: function query(queryOpts) {
-      var _this5 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)('query', queryOpts.query ? 'NXQL' : queryOpts.pageProvider);
-      return this._nuxeo.request(path).queryParams(queryOpts).get(options).then(function (res) {
-        var entries = res.entries;
-
-        options.nuxeo = _this5._nuxeo;
-        options.repository = _this5;
-        var docs = entries.map(function (doc) {
-          return new _document2.default(doc, options);
-        });
-        res.entries = docs;
-        return res;
-      });
+      options.repository = this;
+      return this._nuxeo.request(path).queryParams(queryOpts).get(options);
     }
   }]);
 
@@ -6540,7 +6471,7 @@ var Repository = function (_Base) {
 exports.default = Repository;
 module.exports = exports['default'];
 
-},{"./base":18,"./deps/utils/join":27,"./document":30}],37:[function(require,module,exports){
+},{"./base":16,"./deps/utils/join":25}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6611,7 +6542,6 @@ var Request = function (_Base) {
    * @param {string} opts.queryParams - The initial query parameters of the request.
    * @param {string} opts.url - The REST API URL.
    */
-
   function Request() {
     var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -6750,7 +6680,96 @@ var Request = function (_Base) {
 exports.default = Request;
 module.exports = exports['default'];
 
-},{"./base":18,"./deps/utils/join":27,"extend":4}],38:[function(require,module,exports){
+},{"./base":16,"./deps/utils/join":25,"extend":4}],36:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.groupUnmarshaller = exports.userUnmarshaller = exports.tasksUnmarshaller = exports.taskUnmarshaller = exports.workflowsUnmarshaller = exports.workflowUnmarshaller = exports.documentsUnmarshaller = exports.documentUnmarshaller = undefined;
+
+var _document = require('../document');
+
+var _document2 = _interopRequireDefault(_document);
+
+var _workflow = require('../workflow/workflow');
+
+var _workflow2 = _interopRequireDefault(_workflow);
+
+var _task = require('../workflow/task');
+
+var _task2 = _interopRequireDefault(_task);
+
+var _user = require('../user/user');
+
+var _user2 = _interopRequireDefault(_user);
+
+var _group = require('../group/group');
+
+var _group2 = _interopRequireDefault(_group);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var unmarshallers = {};
+
+var Unmarshallers = {
+  registerUnmarshaller: function registerUnmarshaller(entityType, unmarshaller) {
+    unmarshallers[entityType] = unmarshaller;
+  },
+
+  unmarshall: function unmarshall(json, options) {
+    var entityType = json['entity-type'];
+    var unmarshaller = unmarshallers[entityType];
+    return unmarshaller && unmarshaller(json, options) || json;
+  }
+};
+exports.default = Unmarshallers;
+
+// default unmarshallers
+
+var documentUnmarshaller = exports.documentUnmarshaller = function documentUnmarshaller(json, options) {
+  return new _document2.default(json, options);
+};
+
+var documentsUnmarshaller = exports.documentsUnmarshaller = function documentsUnmarshaller(json, options) {
+  var entries = json.entries;
+
+  var docs = entries.map(function (doc) {
+    return new _document2.default(doc, options);
+  });
+  json.entries = docs;
+  return json;
+};
+
+var workflowUnmarshaller = exports.workflowUnmarshaller = function workflowUnmarshaller(json, options) {
+  return new _workflow2.default(json, options);
+};
+
+var workflowsUnmarshaller = exports.workflowsUnmarshaller = function workflowsUnmarshaller(json, options) {
+  return json.entries.map(function (workflow) {
+    return new _workflow2.default(workflow, options);
+  });
+};
+
+var taskUnmarshaller = exports.taskUnmarshaller = function taskUnmarshaller(json, options) {
+  return new _task2.default(json, options);
+};
+
+var tasksUnmarshaller = exports.tasksUnmarshaller = function tasksUnmarshaller(json, options) {
+  return json.entries.map(function (task) {
+    return new _task2.default(task, options);
+  });
+};
+
+var userUnmarshaller = exports.userUnmarshaller = function userUnmarshaller(json, options) {
+  return new _user2.default(json, options);
+};
+
+var groupUnmarshaller = exports.groupUnmarshaller = function groupUnmarshaller(json, options) {
+  return new _group2.default(json, options);
+};
+
+},{"../document":28,"../group/group":29,"../user/user":39,"../workflow/task":41,"../workflow/workflow":42}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6833,7 +6852,6 @@ var BatchUpload = function (_Base) {
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this BatchUpload object.
    * @param {Number} [opts.concurrency=5] - Number of concurrent uploads.
    */
-
   function BatchUpload() {
     var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -7107,7 +7125,7 @@ var BatchUpload = function (_Base) {
 exports.default = BatchUpload;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/flatten":26,"../deps/utils/join":27,"./blob":39,"extend":4,"promise-queue":8}],39:[function(require,module,exports){
+},{"../base":16,"../deps/utils/flatten":24,"../deps/utils/join":25,"./blob":38,"extend":4,"promise-queue":8}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7126,7 +7144,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * The `BatchBlob` class wraps a blob uploaded through a {@link BatchUpload} to be used
  * in an {@link Operation} input or as a property value on a {@link Document}.
  */
-
 var BatchBlob = function BatchBlob() {
   var data = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -7142,7 +7159,7 @@ var BatchBlob = function BatchBlob() {
 exports.default = BatchBlob;
 module.exports = exports['default'];
 
-},{"extend":4}],40:[function(require,module,exports){
+},{"extend":4}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7172,7 +7189,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *
  * **Cannot directly be instantiated**
  */
-
 var User = function (_Base) {
   _inherits(User, _Base);
 
@@ -7182,7 +7198,6 @@ var User = function (_Base) {
    * @param {object} opts - The configuration options.
    * @param {string} opts.users - The {@link Users} object linked to this user.
    */
-
   function User(user, opts) {
     _classCallCheck(this, User);
 
@@ -7252,7 +7267,7 @@ var User = function (_Base) {
 exports.default = User;
 module.exports = exports['default'];
 
-},{"../base":18,"extend":4}],41:[function(require,module,exports){
+},{"../base":16,"extend":4}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7264,10 +7279,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _base = require('../base');
 
 var _base2 = _interopRequireDefault(_base);
-
-var _user = require('./user');
-
-var _user2 = _interopRequireDefault(_user);
 
 var _join = require('../deps/utils/join');
 
@@ -7317,7 +7328,6 @@ var Users = function (_Base) {
    * @param {object} opts - The configuration options.
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Users object.
    */
-
   function Users(opts) {
     _classCallCheck(this, Users);
 
@@ -7338,16 +7348,12 @@ var Users = function (_Base) {
   _createClass(Users, [{
     key: 'fetch',
     value: function fetch(username) {
-      var _this2 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)(USER_PATH, username);
-      return this._nuxeo.request(path).get(options).then(function (res) {
-        options.users = _this2;
-        return new _user2.default(res, options);
-      });
+      options.users = this;
+      return this._nuxeo.request(path).get(options);
     }
 
     /**
@@ -7360,8 +7366,6 @@ var Users = function (_Base) {
   }, {
     key: 'create',
     value: function create(user) {
-      var _this3 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       opts.body = {
@@ -7369,10 +7373,8 @@ var Users = function (_Base) {
         properties: user.properties
       };
       var options = this._computeOptions(opts);
-      return this._nuxeo.request(USER_PATH).post(options).then(function (res) {
-        options.users = _this3;
-        return new _user2.default(res, options);
-      });
+      options.users = this;
+      return this._nuxeo.request(USER_PATH).post(options);
     }
 
     /**
@@ -7385,8 +7387,6 @@ var Users = function (_Base) {
   }, {
     key: 'update',
     value: function update(user) {
-      var _this4 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       opts.body = {
@@ -7396,10 +7396,8 @@ var Users = function (_Base) {
       };
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)(USER_PATH, user.id);
-      return this._nuxeo.request(path).put(opts).then(function (res) {
-        options.users = _this4;
-        return new _user2.default(res, options);
-      });
+      options.users = this;
+      return this._nuxeo.request(path).put(options);
     }
 
     /**
@@ -7426,7 +7424,7 @@ var Users = function (_Base) {
 exports.default = Users;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":27,"./user":40}],42:[function(require,module,exports){
+},{"../base":16,"../deps/utils/join":25}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7473,7 +7471,6 @@ var Task = function (_Base) {
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this task.
    * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
    */
-
   function Task(task, opts) {
     _classCallCheck(this, Task);
 
@@ -7581,7 +7578,7 @@ var Task = function (_Base) {
 exports.default = Task;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":27,"extend":4}],43:[function(require,module,exports){
+},{"../base":16,"../deps/utils/join":25,"extend":4}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7597,10 +7594,6 @@ var _extend2 = _interopRequireDefault(_extend);
 var _base = require('../base');
 
 var _base2 = _interopRequireDefault(_base);
-
-var _task = require('./task');
-
-var _task2 = _interopRequireDefault(_task);
 
 var _join = require('../deps/utils/join');
 
@@ -7632,7 +7625,6 @@ var Workflow = function (_Base) {
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this workflow.
    * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
    */
-
   function Workflow(workflow, opts) {
     _classCallCheck(this, Workflow);
 
@@ -7654,21 +7646,11 @@ var Workflow = function (_Base) {
   _createClass(Workflow, [{
     key: 'fetchTasks',
     value: function fetchTasks() {
-      var _this2 = this;
-
       var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
       var options = this._computeOptions(opts);
-      return this._buildTasksRequest().get(options).then(function (_ref) {
-        var entries = _ref.entries;
-
-        options.nuxeo = _this2._nuxeo;
-        options.documentId = _this2.uid;
-        var tasks = entries.map(function (task) {
-          return new _task2.default(task, options);
-        });
-        return tasks;
-      });
+      options.documentId = this.uid;
+      return this._buildTasksRequest().get(options);
     }
 
     /**
@@ -7711,7 +7693,7 @@ var Workflow = function (_Base) {
 exports.default = Workflow;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":27,"./task":42,"extend":4}],44:[function(require,module,exports){
+},{"../base":16,"../deps/utils/join":25,"extend":4}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7723,14 +7705,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _base = require('../base');
 
 var _base2 = _interopRequireDefault(_base);
-
-var _workflow = require('./workflow');
-
-var _workflow2 = _interopRequireDefault(_workflow);
-
-var _task = require('./task');
-
-var _task2 = _interopRequireDefault(_task);
 
 var _join = require('../deps/utils/join');
 
@@ -7781,7 +7755,6 @@ var Workflows = function (_Base) {
    * @param {object} opts - The configuration options.
    * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Workflows object.
    */
-
   function Workflows() {
     var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -7807,8 +7780,6 @@ var Workflows = function (_Base) {
   _createClass(Workflows, [{
     key: 'start',
     value: function start(workflowModelName) {
-      var _this2 = this;
-
       var workflowOpts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
       var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
@@ -7819,10 +7790,7 @@ var Workflows = function (_Base) {
         variables: workflowOpts.variables
       };
       var options = this._computeOptions(opts);
-      return this._nuxeo.request(WORKFLOW_PATH).post(options).then(function (res) {
-        options.nuxeo = _this2._nuxeo;
-        return new _workflow2.default(res, options);
-      });
+      return this._nuxeo.request(WORKFLOW_PATH).post(options);
     }
 
     /**
@@ -7835,16 +7803,11 @@ var Workflows = function (_Base) {
   }, {
     key: 'fetch',
     value: function fetch(workflowInstanceId) {
-      var _this3 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
       var path = (0, _join2.default)(WORKFLOW_PATH, workflowInstanceId);
-      return this._nuxeo.request(path).get(options).then(function (res) {
-        options.nuxeo = _this3._nuxeo;
-        return new _workflow2.default(res, options);
-      });
+      return this._nuxeo.request(path).get(options);
     }
 
     /**
@@ -7874,20 +7837,10 @@ var Workflows = function (_Base) {
   }, {
     key: 'fetchStartedWorkflows',
     value: function fetchStartedWorkflows(workflowModelName) {
-      var _this4 = this;
-
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       var options = this._computeOptions(opts);
-      return this._nuxeo.request(WORKFLOW_PATH).queryParams({ workflowModelName: workflowModelName }).get(options).then(function (_ref) {
-        var entries = _ref.entries;
-
-        options.nuxeo = _this4._nuxeo;
-        var workflows = entries.map(function (workflow) {
-          return new _workflow2.default(workflow, options);
-        });
-        return workflows;
-      });
+      return this._nuxeo.request(WORKFLOW_PATH).queryParams({ workflowModelName: workflowModelName }).get(options);
     }
 
     /**
@@ -7903,8 +7856,6 @@ var Workflows = function (_Base) {
   }, {
     key: 'fetchTasks',
     value: function fetchTasks() {
-      var _this5 = this;
-
       var tasksOpts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
       var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
@@ -7913,15 +7864,7 @@ var Workflows = function (_Base) {
         userId: tasksOpts.actorId,
         workflowInstanceId: tasksOpts.workflowInstanceId,
         workflowModelName: tasksOpts.workflowModelName
-      }).get(options).then(function (_ref2) {
-        var entries = _ref2.entries;
-
-        options.nuxeo = _this5._nuxeo;
-        var tasks = entries.map(function (task) {
-          return new _task2.default(task, options);
-        });
-        return tasks;
-      });
+      }).get(options);
     }
   }]);
 
@@ -7931,5 +7874,5 @@ var Workflows = function (_Base) {
 exports.default = Workflows;
 module.exports = exports['default'];
 
-},{"../base":18,"../deps/utils/join":27,"./task":42,"./workflow":43}]},{},[33])(33)
+},{"../base":16,"../deps/utils/join":25}]},{},[31])(31)
 });
