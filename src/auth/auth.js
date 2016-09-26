@@ -34,3 +34,9 @@ export const tokenAuthenticator = (auth, headers) => {
     headers['X-Authentication-Token'] = auth.token;
   }
 };
+
+export const bearerTokenAuthenticator = (auth, headers) => {
+  if (auth.token) {
+    headers.Authorization = 'Bearer ' + auth.token;
+  }
+};
