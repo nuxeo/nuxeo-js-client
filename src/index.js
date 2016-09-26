@@ -23,6 +23,7 @@ import Promise from './deps/promise';
 import {
   basicAuthenticator,
   tokenAuthenticator,
+  bearerTokenAuthenticator,
 } from './auth/auth';
 import {
   documentUnmarshaller,
@@ -60,6 +61,7 @@ Nuxeo.promiseLibrary(Promise);
 // register default authenticators
 Nuxeo.registerAuthenticator('basic', basicAuthenticator);
 Nuxeo.registerAuthenticator('token', tokenAuthenticator);
+Nuxeo.registerAuthenticator('bearerToken', bearerTokenAuthenticator);
 
 // register default unmarshallers
 Nuxeo.registerUnmarshaller('document', documentUnmarshaller);
