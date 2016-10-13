@@ -72,5 +72,7 @@ Nuxeo.registerUnmarshaller('task', taskUnmarshaller);
 Nuxeo.registerUnmarshaller('tasks', tasksUnmarshaller);
 Nuxeo.registerUnmarshaller('user', userUnmarshaller);
 Nuxeo.registerUnmarshaller('group', groupUnmarshaller);
+// make the WorkflowUnmarshaller work for Nuxeo 7.10
+Nuxeo.registerUnmarshaller('worflows', workflowsUnmarshaller);
 
 export default Nuxeo;
