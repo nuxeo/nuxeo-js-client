@@ -1,5 +1,8 @@
 'use strict';
 
+import md5 from 'md5';
+import Random from 'random-js';
+
 import { btoa } from '../deps/utils/base64';
 
 const authenticators = {};
@@ -38,5 +41,21 @@ export const tokenAuthenticator = (auth, headers) => {
 export const bearerTokenAuthenticator = (auth, headers) => {
   if (auth.token) {
     headers.Authorization = 'Bearer ' + auth.token;
+  }
+};
+
+const random = Random.engines.mt19937().autoSeed();
+
+export const portalAuthenticator = (auth, headers) => {
+  if (auth.secret && auth.username) {
+    const date = new Date();
+    const randomData = random();
+
+    const clearToken = [date.getTime(), randomData, auth.secret, auth.username].join(':');
+    const base64hashedToken = btoa(md5(clearToken, { asBytes: true }));
+    headers.NX_RD = randomData;
+    headers.NX_TS = date.getTime();
+    headers.NX_TOKEN = base64hashedToken;
+    headers.NX_USER = auth.username;
   }
 };
