@@ -67,6 +67,7 @@ gulp.task('test:node', ['build:node'], () => {
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
       compilers: 'js:babel-core/register',
+      timeout: 30000,
     }));
 });
 
@@ -97,6 +98,7 @@ gulp.task('it:node', ['build:node'], () => {
       compilers: 'js:babel-core/register',
       reporter: 'mocha-jenkins-reporter',
       reporterOptions: 'junit_report_path=./ftest/target/js-reports/test-results-node.xml,junit_report_stack=1',
+      timeout: 30000,
     }))
     .on('error', () => {
       /* eslint no-console: 0 */
