@@ -128,7 +128,6 @@ describe('Workflow spec', () => {
   });
 
   it('should start and end a full serial review workflow on a document', function f(done) {
-    this.timeout(5000);
     let currentWorkflow;
     repository.fetch(FILE_TEST_PATH)
       .then(doc => doc.startWorkflow('SerialDocumentReview'))
