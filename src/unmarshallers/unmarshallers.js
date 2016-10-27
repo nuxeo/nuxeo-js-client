@@ -41,9 +41,12 @@ export const workflowUnmarshaller = (json, options) => {
 };
 
 export const workflowsUnmarshaller = (json, options) => {
-  return json.entries.map((workflow) => {
+  const { entries } = json;
+  const workflows = entries.map((workflow) => {
     return new Workflow(workflow, options);
   });
+  json.entries = workflows;
+  return json;
 };
 
 export const taskUnmarshaller = (json, options) => {
@@ -51,9 +54,12 @@ export const taskUnmarshaller = (json, options) => {
 };
 
 export const tasksUnmarshaller = (json, options) => {
-  return json.entries.map((task) => {
+  const { entries } = json;
+  const tasks = entries.map((task) => {
     return new Task(task, options);
   });
+  json.entries = tasks;
+  return json;
 };
 
 export const userUnmarshaller = (json, options) => {
