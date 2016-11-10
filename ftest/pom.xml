@@ -9,7 +9,6 @@
 
   <artifactId>nuxeo-js-client-ftest</artifactId>
   <name>Functional Tests for Nuxeo JS Client</name>
-  <version>8.10-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
