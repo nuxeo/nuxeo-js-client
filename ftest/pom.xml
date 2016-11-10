@@ -3,19 +3,18 @@
   <parent>
     <groupId>org.nuxeo.ecm.distribution</groupId>
     <artifactId>nuxeo-distribution</artifactId>
-    <version>8.4-SNAPSHOT</version>
+    <version>8.10-SNAPSHOT</version>
     <relativePath></relativePath>
   </parent>
 
   <artifactId>nuxeo-js-client-ftest</artifactId>
   <name>Functional Tests for Nuxeo JS Client</name>
-  <version>8.2-SNAPSHOT</version>
+  <version>8.10-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
       <groupId>org.nuxeo.ecm.distribution</groupId>
-      <artifactId>nuxeo-distribution-tomcat</artifactId>
-      <classifier>nuxeo-cap</classifier>
+      <artifactId>nuxeo-server-tomcat</artifactId>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
