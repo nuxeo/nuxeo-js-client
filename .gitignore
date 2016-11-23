@@ -29,6 +29,5 @@ node_modules
 # Functional tests
 target
 
-lib
 dist
 doc

@@ -1,7 +1,6 @@
 'use strict';
 
 import gulp from 'gulp';
-import babel from 'gulp-babel';
 import browserify from 'browserify';
 import source from 'vinyl-source-stream';
 import eslint from 'gulp-eslint';
@@ -10,26 +9,18 @@ import babelify from 'babelify';
 import { Server } from 'karma';
 import gulpSequence from 'gulp-sequence';
 import nsp from 'gulp-nsp';
-import replace from 'gulp-replace';
 import fs from'fs';
 import path from 'path';
-import pkg from './package.json';
 import del from 'del';
 
 gulp.task('default', ['build'], () => {
 });
 
 gulp.task('lint', () => {
-  return gulp.src(['src/**', '!node_modules/**'])
+  return gulp.src(['lib/**', '!node_modules/**'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
-});
-
-gulp.task('clean:lib', () => {
-  return del([
-    'lib',
-  ]);
 });
 
 gulp.task('clean:dist', () => {
@@ -38,21 +29,13 @@ gulp.task('clean:dist', () => {
   ]);
 });
 
-gulp.task('build:node', ['clean:lib', 'lint'], () => {
-  return gulp.src('src/**')
-    .pipe(replace('__VERSION__', pkg.version))
-    .pipe(babel())
-    .pipe(gulp.dest('lib'));
+gulp.task('build:node', ['lint'], () => {
 });
 
 gulp.task('build:browser', ['clean:dist', 'lint'], () => {
   return browserify({
-    entries: 'src/index.js',
+    entries: 'lib/index.js',
     standalone: 'Nuxeo',
-  })
-  .transform('browserify-versionify', {
-    placeholder: '__VERSION__',
-    version: pkg.version,
   })
   .transform(babelify)
   .bundle()
@@ -66,7 +49,6 @@ gulp.task('test:node', ['build:node'], () => {
   return gulp.src('test/**/*.spec.js')
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
-      compilers: 'js:babel-core/register',
       timeout: 30000,
     }));
 });
@@ -86,7 +68,7 @@ gulp.task('checkstyle', () => {
     fs.mkdirSync(targetFolder);
   }
 
-  return gulp.src(['src/**', '!node_modules/**'])
+  return gulp.src(['lib/**', '!node_modules/**'])
     .pipe(eslint())
     .pipe(eslint.format('checkstyle', fs.createWriteStream(path.join(targetFolder, '/checkstyle-result.xml'))));
 });
@@ -95,7 +77,6 @@ gulp.task('it:node', ['build:node'], () => {
   return gulp.src('test/**/*.spec.js')
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
-      compilers: 'js:babel-core/register',
       reporter: 'mocha-jenkins-reporter',
       reporterOptions: 'junit_report_path=./ftest/target/js-reports/test-results-node.xml,junit_report_stack=1',
       timeout: 30000,
