@@ -4,7 +4,8 @@ import gulp from 'gulp';
 import browserify from 'browserify';
 import source from 'vinyl-source-stream';
 import eslint from 'gulp-eslint';
-import mocha from 'gulp-spawn-mocha';
+import mocha from 'gulp-mocha';
+import istanbul from 'gulp-istanbul';
 import babelify from 'babelify';
 import { Server } from 'karma';
 import gulpSequence from 'gulp-sequence';
@@ -12,9 +13,6 @@ import nsp from 'gulp-nsp';
 import fs from'fs';
 import path from 'path';
 import del from 'del';
-
-gulp.task('default', ['build'], () => {
-});
 
 gulp.task('lint', () => {
   return gulp.src(['lib/**', '!node_modules/**'])
@@ -29,10 +27,22 @@ gulp.task('clean:dist', () => {
   ]);
 });
 
-gulp.task('build:node', ['lint'], () => {
+gulp.task('pre-test', () => {
+  return gulp.src(['lib/**/*.js'])
+    .pipe(istanbul())
+    .pipe(istanbul.hookRequire());
 });
 
-gulp.task('build:browser', ['clean:dist', 'lint'], () => {
+gulp.task('test:node', ['pre-test'], () => {
+  return gulp.src('test/**/*.spec.js')
+    .pipe(mocha({
+      require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
+      timeout: 30000,
+    }))
+    .pipe(istanbul.writeReports());
+});
+
+gulp.task('browserify', ['clean:dist', 'lint'], () => {
   return browserify({
     entries: 'lib/index.js',
     standalone: 'Nuxeo',
@@ -43,17 +53,7 @@ gulp.task('build:browser', ['clean:dist', 'lint'], () => {
   .pipe(gulp.dest('dist'));
 });
 
-gulp.task('build', gulpSequence(['build:node', 'build:browser']));
-
-gulp.task('test:node', ['build:node'], () => {
-  return gulp.src('test/**/*.spec.js')
-    .pipe(mocha({
-      require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
-      timeout: 30000,
-    }));
-});
-
-gulp.task('test:browser', ['build:browser'], (done) => {
+gulp.task('test:browser', ['browserify'], (done) => {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true,
@@ -73,7 +73,7 @@ gulp.task('checkstyle', () => {
     .pipe(eslint.format('checkstyle', fs.createWriteStream(path.join(targetFolder, '/checkstyle-result.xml'))));
 });
 
-gulp.task('it:node', ['build:node'], () => {
+gulp.task('it:node', ['pre-test'], () => {
   return gulp.src('test/**/*.spec.js')
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
@@ -81,13 +81,12 @@ gulp.task('it:node', ['build:node'], () => {
       reporterOptions: 'junit_report_path=./ftest/target/js-reports/test-results-node.xml,junit_report_stack=1',
       timeout: 30000,
     }))
-    .on('error', () => {
-      /* eslint no-console: 0 */
-      console.error('Node.js tests failed');
-    });
+    .pipe(istanbul.writeReports({
+      reporters: ['lcov', 'json', 'text', 'text-summary', 'cobertura'],
+    }));
 });
 
-gulp.task('it:browser', ['build:browser'], (done) => {
+gulp.task('it:browser', ['browserify'], (done) => {
   new Server({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true,
@@ -114,3 +113,5 @@ gulp.task('nsp', (done) => {
     package: __dirname + '/package.json',
   }, done);
 });
+
+gulp.task('default', ['test:node']);
