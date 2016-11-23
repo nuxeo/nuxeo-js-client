@@ -1,7 +1,7 @@
 'use strict';
 
-import join from '../lib/deps/utils/join';
-import { createTextBlob, getTextFromBody } from './helpers/blob-helper';
+const join = require('../lib/deps/utils/join');
+const { createTextBlob, getTextFromBody } = require('./helpers/blob-helper');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';
