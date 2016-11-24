@@ -1,6 +1,6 @@
 'use strict';
 
-import join from '../../lib/deps/utils/join';
+const join = require('../../lib/deps/utils/join');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';
@@ -48,8 +48,8 @@ describe('Workflow spec', () => {
         const workflows = nuxeo.workflows();
         return workflows.start('SerialDocumentReview')
           .then(() => workflows.fetchStartedWorkflows('SerialDocumentReview'))
-          .then((wfs) => {
-            expect(wfs.length).to.be.equal(1);
+          .then(({ entries }) => {
+            expect(entries.length).to.be.equal(1);
           });
       });
     });
@@ -58,56 +58,56 @@ describe('Workflow spec', () => {
       it('should fetch all the tasks of the current user', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchTasks()
-          .then((tasks) => {
-            expect(tasks.length).to.be.equal(1);
+          .then(({ entries }) => {
+            expect(entries.length).to.be.equal(1);
           });
       });
 
       it('should fetch the tasks of the current user for a given workflow', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchStartedWorkflows()
-          .then(wfs => wfs[0])
+          .then(({ entries }) => entries[0])
           .then(wf => workflows.fetchTasks({ workflowInstanceId: wf.id }))
-          .then((tasks) => {
-            expect(tasks.length).to.be.equal(1);
+          .then(({ entries }) => {
+            expect(entries.length).to.be.equal(1);
           });
       });
 
       it('should fetch the tasks of the current user for a given workflow and actor', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchStartedWorkflows()
-          .then(wfs => wfs[0])
+          .then(({ entries }) => entries[0])
           .then(wf => workflows.fetchTasks({ workflowInstanceId: wf.id, actorId: 'Administrator' }))
-          .then((tasks) => {
-            expect(tasks.length).to.be.equal(1);
+          .then(({ entries }) => {
+            expect(entries.length).to.be.equal(1);
           });
       });
 
       it('should fetch no task for a given workflow and non existing actor', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchStartedWorkflows()
-          .then(wfs => wfs[0])
+          .then(({ entries }) => entries[0])
           .then(wf => workflows.fetchTasks({ workflowInstanceId: wf.id, actorId: 'leela' }))
-          .then((tasks) => {
-            expect(tasks.length).to.be.equal(0);
+          .then(({ entries }) => {
+            expect(entries.length).to.be.equal(0);
           });
       });
 
       it('should fetch the tasks of the current user for a given workflow and model', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchStartedWorkflows()
-          .then(wfs => wfs[0])
+          .then(({ entries }) => entries[0])
           .then(wf => workflows.fetchTasks({ workflowInstanceId: wf.id, workflowModelName: 'SerialDocumentReview' }))
-          .then((tasks) => {
-            expect(tasks.length).to.be.equal(1);
+          .then(({ entries }) => {
+            expect(entries.length).to.be.equal(1);
           });
       });
 
       it('should fetch no task for a non started workflow model name', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchTasks({ workflowModelName: 'foo' })
-          .then((tasks) => {
-            expect(tasks.length).to.be.equal(0);
+          .then(({ entries }) => {
+            expect(entries.length).to.be.equal(0);
           });
       });
     });
@@ -118,7 +118,7 @@ describe('Workflow spec', () => {
       it('should fetch the workflow graph', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchStartedWorkflows()
-          .then(wfs => wfs[0])
+          .then(({ entries }) => entries[0])
           .then(wf => wf.fetchGraph())
           .then((graph) => {
             expect(graph['entity-type']).to.be.equal('graph');
@@ -128,7 +128,6 @@ describe('Workflow spec', () => {
   });
 
   it('should start and end a full serial review workflow on a document', function f(done) {
-    this.timeout(5000);
     let currentWorkflow;
     repository.fetch(FILE_TEST_PATH)
       .then(doc => doc.startWorkflow('SerialDocumentReview'))
@@ -137,9 +136,9 @@ describe('Workflow spec', () => {
         currentWorkflow = workflow;
         return workflow.fetchTasks();
       })
-      .then((tasks) => {
-        expect(tasks.length).to.be.equal(1);
-        return tasks[0];
+      .then(({ entries }) => {
+        expect(entries.length).to.be.equal(1);
+        return entries[0];
       })
       .then((task) => {
         expect(task).to.be.an.instanceof(Nuxeo.Task);
@@ -153,9 +152,9 @@ describe('Workflow spec', () => {
       })
       // next task
       .then(() => currentWorkflow.fetchTasks())
-      .then((tasks) => {
-        expect(tasks.length).to.be.equal(1);
-        return tasks[0];
+      .then(({ entries }) => {
+        expect(entries.length).to.be.equal(1);
+        return entries[0];
       })
       .then((task) => {
         expect(task).to.be.an.instanceof(Nuxeo.Task);
@@ -167,8 +166,8 @@ describe('Workflow spec', () => {
       // check no workflow is running
       .then(() => repository.fetch(FILE_TEST_PATH))
       .then(doc => doc.fetchWorkflows())
-      .then(workflows => {
-        expect(workflows.length).to.be.equal(0);
+      .then(({ entries }) => {
+        expect(entries.length).to.be.equal(0);
         done();
       })
       .catch(e => done(e));

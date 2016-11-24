@@ -1,6 +1,6 @@
 'use strict';
 
-import join from '../lib/deps/utils/join';
+const join = require('../lib/deps/utils/join');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';

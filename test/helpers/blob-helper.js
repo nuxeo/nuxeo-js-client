@@ -1,6 +1,6 @@
 'use strict';
 
-export function createTextBlob(content, name) {
+function createTextBlob(content, name) {
   let blob;
   if (isBrowser) {
     blob = new Blob([content], {
@@ -18,7 +18,7 @@ export function createTextBlob(content, name) {
   });
 }
 
-export function getTextFromBody(body) {
+function getTextFromBody(body) {
   return new Nuxeo.Promise((resolve) => {
     if (isBrowser) {
       if (support.readBlob) {
@@ -44,3 +44,8 @@ export function getTextFromBody(body) {
     }
   });
 }
+
+module.exports = {
+  createTextBlob,
+  getTextFromBody,
+};

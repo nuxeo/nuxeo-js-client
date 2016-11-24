@@ -1,7 +1,7 @@
 'use strict';
 
-import join from '../lib/deps/utils/join';
-import { createTextBlob, getTextFromBody } from './helpers/blob-helper';
+const join = require('../lib/deps/utils/join');
+const { createTextBlob, getTextFromBody } = require('./helpers/blob-helper');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';
@@ -249,8 +249,6 @@ describe('Document', () => {
   });
 
   describe('#convert', function f() {
-    // increase the timeout as it may be needed for the conversion
-    this.timeout(10000);
     describe('should convert the main blob', () => {
       it('using a destination format', () => {
         return repository.fetch(FILE_TEST_PATH)
@@ -590,7 +588,6 @@ describe('Document', () => {
   // audit is async, need to wait
   describe('#fetchAudit', () => {
     it('should fetch the audit of the document', function f(done) {
-      this.timeout(5000);
       sleep(3000)
         .then(() => repository.fetch(WS_JS_TESTS_PATH))
         .then(doc => doc.fetchAudit())

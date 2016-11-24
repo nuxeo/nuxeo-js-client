@@ -1,6 +1,6 @@
 'use strict';
 
-import { createTextBlob } from './helpers/blob-helper';
+const { createTextBlob } = require('./helpers/blob-helper');
 
 describe('Upload', () => {
   let nuxeo;
