@@ -1,4 +1,3806 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Nuxeo = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+'use strict';
+
+var md5 = require('md5');
+var Random = require('random-js');
+
+var _require = require('../deps/utils/base64'),
+    btoa = _require.btoa;
+
+var authenticators = {};
+
+var Authentication = {
+  registerAuthenticator: function registerAuthenticator(method, authenticator) {
+    authenticators[method] = authenticator;
+  },
+
+  computeAuthentication: function computeAuthentication(auth, headers) {
+    if (auth) {
+      var authenticator = authenticators[auth.method];
+      if (authenticator) {
+        authenticator(auth, headers);
+      }
+    }
+    return headers;
+  }
+};
+
+// default authenticators
+var basicAuthenticator = function basicAuthenticator(auth, headers) {
+  if (auth.username && auth.password) {
+    var authorization = 'Basic ' + btoa(auth.username + ':' + auth.password);
+    headers.Authorization = authorization;
+  }
+};
+
+var tokenAuthenticator = function tokenAuthenticator(auth, headers) {
+  if (auth.token) {
+    headers['X-Authentication-Token'] = auth.token;
+  }
+};
+
+var bearerTokenAuthenticator = function bearerTokenAuthenticator(auth, headers) {
+  if (auth.token) {
+    headers.Authorization = 'Bearer ' + auth.token;
+  }
+};
+
+var random = Random.engines.mt19937().autoSeed();
+
+var portalAuthenticator = function portalAuthenticator(auth, headers) {
+  if (auth.secret && auth.username) {
+    var date = new Date();
+    var randomData = random();
+
+    var clearToken = [date.getTime(), randomData, auth.secret, auth.username].join(':');
+    var base64hashedToken = btoa(md5(clearToken, { asBytes: true }));
+    headers.NX_RD = randomData;
+    headers.NX_TS = date.getTime();
+    headers.NX_TOKEN = base64hashedToken;
+    headers.NX_USER = auth.username;
+  }
+};
+
+Authentication.basicAuthenticator = basicAuthenticator;
+Authentication.tokenAuthenticator = tokenAuthenticator;
+Authentication.bearerTokenAuthenticator = bearerTokenAuthenticator;
+Authentication.portalAuthenticator = portalAuthenticator;
+
+module.exports = Authentication;
+
+},{"../deps/utils/base64":8,"md5":39,"random-js":47}],2:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var extend = require('extend');
+
+var DEFAULT_OPTS = {
+  repositoryName: 'default',
+  schemas: [],
+  enrichers: {},
+  fetchProperties: {},
+  headers: {},
+  timeout: 30000
+};
+
+/**
+ * This provides methods to store and use global settings when interacting with Nuxeo Platform.
+ *
+ * It's not meant to be used directly.
+ *
+ * @mixin
+ */
+
+var Base = function () {
+  function Base() {
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, Base);
+
+    var options = extend(true, {}, DEFAULT_OPTS, opts);
+    this._baseOptions = {};
+    this._baseOptions.repositoryName = options.repositoryName;
+    this._baseOptions.schemas = options.schemas;
+    this._baseOptions.enrichers = options.enrichers;
+    this._baseOptions.fetchProperties = options.fetchProperties;
+    this._baseOptions.depth = options.depth;
+    this._baseOptions.headers = options.headers;
+    this._baseOptions.timeout = options.timeout;
+    this._baseOptions.transactionTimeout = options.transationTimeout;
+    this._baseOptions.httpTimeout = options.httpTimeout;
+  }
+
+  /**
+   * Sets the repository name.
+   * @param {string} repositoryName - The repository name.
+   * @returns {Base} The object itself.
+   */
+
+
+  _createClass(Base, [{
+    key: 'repositoryName',
+    value: function repositoryName(_repositoryName) {
+      this._baseOptions.repositoryName = _repositoryName;
+      return this;
+    }
+
+    /**
+     * Sets the schemas.
+     * @param {Array} schemas - The schemas.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'schemas',
+    value: function schemas(_schemas) {
+      this._baseOptions.schemas = [].concat(_toConsumableArray(_schemas));
+      return this;
+    }
+
+    /**
+     * Sets the enrichers.
+     * @example
+     * { document: ['acls', 'permissions'] }
+     * @param {object} enrichers - The new enrichers.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'enrichers',
+    value: function enrichers(_enrichers) {
+      this._baseOptions.enrichers = {};
+      for (var _iterator = Object.keys(_enrichers), _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var key = _ref;
+
+        this._baseOptions.enrichers[key] = _enrichers[key];
+      }
+      return this;
+    }
+
+    /**
+     * Adds an enricher for a given entity.
+     * @param {string} entity - The entity name.
+     * @param {string} name - The enricher name.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'enricher',
+    value: function enricher(entity, name) {
+      var enrichers = this._baseOptions.enrichers[entity] || [];
+      enrichers.push(name);
+      this._baseOptions.enrichers[entity] = enrichers;
+      return this;
+    }
+
+    /**
+     * Sets the properties to fetch.
+     * @example
+     * { document: ['dc:creator'] }
+     * @param {object} fetchProperties - The new properties to fetch.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'fetchProperties',
+    value: function fetchProperties(_fetchProperties) {
+      this._baseOptions.fetchProperties = {};
+      for (var _iterator2 = Object.keys(_fetchProperties), _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
+
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
+        } else {
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
+        }
+
+        var key = _ref2;
+
+        this._baseOptions.fetchProperties[key] = _fetchProperties[key];
+      }
+      return this;
+    }
+
+    /**
+     * Adds a property to fetch for a given entity.
+     * @param {string} entity - The entity name.
+     * @param {string} name - The property name.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'fetchProperty',
+    value: function fetchProperty(entity, name) {
+      var fetchProperties = this._baseOptions.fetchProperties[entity] || [];
+      fetchProperties.push(name);
+      this._baseOptions.fetchProperties[entity] = fetchProperties;
+      return this;
+    }
+
+    /**
+     * Sets the depth.
+     * Possible values are: `root`, `children` and `max`.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'depth',
+    value: function depth(_depth) {
+      this._baseOptions.depth = _depth;
+      return this;
+    }
+
+    /**
+     * Sets the headers.
+     * @param {object} headers - the new headers.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'headers',
+    value: function headers(_headers) {
+      this._baseOptions.headers = {};
+      for (var _iterator3 = Object.keys(_headers), _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+        var _ref3;
+
+        if (_isArray3) {
+          if (_i3 >= _iterator3.length) break;
+          _ref3 = _iterator3[_i3++];
+        } else {
+          _i3 = _iterator3.next();
+          if (_i3.done) break;
+          _ref3 = _i3.value;
+        }
+
+        var key = _ref3;
+
+        this._baseOptions.headers[key] = _headers[key];
+      }
+      return this;
+    }
+
+    /**
+     * Adds a header.
+     * @param {string} name - the header name
+     * @param {string} value - the header value
+     * @returns {Base} The object itself..
+     */
+
+  }, {
+    key: 'header',
+    value: function header(name, value) {
+      this._baseOptions.headers[name] = value;
+      return this;
+    }
+
+    /**
+     * Sets the global timeout, used as HTTP timeout and transaction timeout
+     * by default.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'timeout',
+    value: function timeout(_timeout) {
+      this._baseOptions.timeout = _timeout;
+      return this;
+    }
+
+    /**
+     * Sets the transaction timeout.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'transactionTimeout',
+    value: function transactionTimeout(_transactionTimeout) {
+      this._baseOptions.transactionTimeout = _transactionTimeout;
+      return this;
+    }
+
+    /**
+     * Sets the HTTP timeout.
+     * @returns {Base} The object itself.
+     */
+
+  }, {
+    key: 'httpTimeout',
+    value: function httpTimeout(_httpTimeout) {
+      this._baseOptions.httpTimeout = _httpTimeout;
+      return this;
+    }
+
+    /**
+     * Computes a full options object from an optional `opts` object and the ones from this object.
+     * `schemas`, `enrichers`, `fetchProperties` and `headers` are not merged but the ones from the `opts` object
+     * override the ones from this object.
+     */
+
+  }, {
+    key: '_computeOptions',
+    value: function _computeOptions() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = extend(true, {}, this._baseOptions, opts);
+      // force some options that we don't merge
+      if (opts.schemas) {
+        options.schemas = [].concat(_toConsumableArray(opts.schemas));
+      }
+      if (opts.enrichers) {
+        options.enrichers = {};
+        Object.keys(opts.enrichers).forEach(function (key) {
+          options.enrichers[key] = opts.enrichers[key];
+        });
+      }
+      if (opts.fetchProperties) {
+        options.fetchProperties = {};
+        Object.keys(opts.fetchProperties).forEach(function (key) {
+          options.fetchProperties[key] = opts.fetchProperties[key];
+        });
+      }
+      if (opts.headers) {
+        options.headers = {};
+        Object.keys(opts.headers).forEach(function (key) {
+          options.headers[key] = opts.headers[key];
+        });
+      }
+      return options;
+    }
+  }]);
+
+  return Base;
+}();
+
+module.exports = Base;
+
+},{"extend":36}],3:[function(require,module,exports){
+'use strict';
+
+/**
+ * The `Blob` class represents an abstraction over a blob to be used in the APIs.
+ *
+ * @example
+ * // in the browser, assuming you have a File object from an input for instance
+ * var blob = new Nuxeo.Blob({ content: file });
+ * // in node
+ * var file = fs.createReadStream(filePath);
+ * var stats = fs.statSync(filePath);
+ * var blob = new Nuxeo.Blob({
+ *    content: file,
+ *    name: path.basename(filePath1),
+ *    mimeType: 'text/plain',
+ *    size: stats.size,
+ *  });
+ */
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Blob =
+/*
+ * Creates a Blob.
+ * @param {string} opts.content - The content of the Blob. Could be a File or Blob object in the browser.
+ * @param {string} [opts.name] - The name of the Blob. It overrides the one from content.name.
+ * @param {string} [opts.mimeType] - The mime-type of the Blob. It overrides the one from content.type.
+ * @param {string} [opts.size] - The size of the Blob. It overrides the one from content.size.
+ */
+function Blob(opts) {
+  _classCallCheck(this, Blob);
+
+  this.content = opts.content;
+  this.name = opts.name || this.content.name;
+  this.mimeType = opts.mimeType || this.content.type;
+  this.size = opts.size || this.content.size;
+};
+
+module.exports = Blob;
+
+},{}],4:[function(require,module,exports){
+'use strict';
+
+var depth = {
+  ROOT: 'root',
+  CHILDREN: 'children',
+  MAX: 'max'
+};
+
+var enricher = {
+  document: {
+    ACLS: 'acls',
+    BREADCRUMB: 'breadcrumb',
+    CHILDREN: 'children',
+    DOCUMENT_URL: 'documentURL',
+    PERMISSIONS: 'permissions',
+    PREVIEW: 'preview'
+  }
+};
+
+module.exports = {
+  depth: depth,
+  enricher: enricher
+};
+
+},{}],5:[function(require,module,exports){
+'use strict';
+
+require('whatwg-fetch');
+module.exports = self.fetch.bind(self);
+
+},{"whatwg-fetch":48}],6:[function(require,module,exports){
+'use strict';
+
+module.exports = FormData;
+
+},{}],7:[function(require,module,exports){
+'use strict';
+
+var P = require('es6-promise');
+
+P.polyfill();
+
+module.exports = Promise;
+
+},{"es6-promise":35}],8:[function(require,module,exports){
+'use strict';
+
+var Buffer = require('./buffer');
+
+function btoa(str) {
+  return new Buffer(str).toString('base64');
+}
+
+module.exports = {
+  btoa: btoa
+};
+
+},{"./buffer":9}],9:[function(require,module,exports){
+'use strict';
+
+module.exports = require('buffer/').Buffer;
+
+},{"buffer/":31}],10:[function(require,module,exports){
+'use strict';
+
+function flatten(list) {
+  return list.reduce(function (a, b) {
+    return a.concat(Array.isArray(b) ? flatten(b) : b);
+  }, []);
+}
+
+module.exports = flatten;
+
+},{}],11:[function(require,module,exports){
+'use strict';
+
+function join() {
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  var joined = args.join('/');
+  return joined.replace(/(^\/+)|([^:])\/\/+/g, '$2/');
+}
+
+module.exports = join;
+
+},{}],12:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = require('../base');
+var join = require('../deps/utils/join');
+var DirectoryEntry = require('./entry');
+
+/**
+ * The `Directory` class allows to work with directories on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * nuxeo.directory('nature')
+ *   .fetch('article')
+ *   .then(function(res) {
+ *     // res.properties.id === 'article'
+ *     // res.properties.label === 'article	label.directories.nature.article'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error));
+ *   });
+ */
+
+var Directory = function (_Base) {
+  _inherits(Directory, _Base);
+
+  /**
+   * Creates a Directory.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this directory.
+   * @param {string} opts.directoryName - The name of this directory.
+   */
+  function Directory(opts) {
+    _classCallCheck(this, Directory);
+
+    var _this = _possibleConstructorReturn(this, (Directory.__proto__ || Object.getPrototypeOf(Directory)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    _this._directoryName = opts.directoryName;
+    _this._path = join('directory', _this._directoryName);
+    return _this;
+  }
+
+  /**
+   * Fetches all directory entries.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the entries.
+   */
+
+
+  _createClass(Directory, [{
+    key: 'fetchAll',
+    value: function fetchAll() {
+      var _this2 = this;
+
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      var path = this._path;
+      return this._nuxeo.request(path).get(options).then(function (res) {
+        options.nuxeo = _this2._nuxeo;
+        options.directory = _this2;
+        var entries = res.entries.map(function (entry) {
+          return new DirectoryEntry(entry, options);
+        });
+        return entries;
+      });
+    }
+
+    /**
+     * Fetches a directory entry given its id.
+     * @param {string} id - The entry id.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the {@link DirectoryEntry}.
+     */
+
+  }, {
+    key: 'fetch',
+    value: function fetch(id, opts) {
+      var _this3 = this;
+
+      var options = this._computeOptions(opts);
+      var path = join(this._path, id);
+      return this._nuxeo.request(path).get(options).then(function (res) {
+        options.nuxeo = _this3._nuxeo;
+        options.directory = _this3;
+        return new DirectoryEntry(res, options);
+      });
+    }
+
+    /**
+     * Creates an entry.
+     * @param {object} entry - The entry to be created.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the created {@link DirectoryEntry}.
+     */
+
+  }, {
+    key: 'create',
+    value: function create(entry) {
+      var _this4 = this;
+
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        'entity-type': 'directoryEntry',
+        directoryName: this._directoryName,
+        properties: entry.properties
+      };
+      var options = this._computeOptions(opts);
+      var path = this._path;
+      return this._nuxeo.request(path).post(opts).then(function (res) {
+        options.nuxeo = _this4._nuxeo;
+        options.directory = _this4;
+        return new DirectoryEntry(res, options);
+      });
+    }
+
+    /**
+     * Updates an entry. Assumes that the entry object has an `id` property.
+     * @param {object} entry - The entry to be updated.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the updated {@link DirectoryEntry}.
+     */
+
+  }, {
+    key: 'update',
+    value: function update(entry) {
+      var _this5 = this;
+
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        'entity-type': 'directoryEntry',
+        directoryName: this._directoryName,
+        properties: entry.properties
+      };
+      var options = this._computeOptions(opts);
+      var path = join(this._path, entry.properties.id);
+      return this._nuxeo.request(path).put(options).then(function (res) {
+        options.nuxeo = _this5._nuxeo;
+        options.directory = _this5;
+        return new DirectoryEntry(res, options);
+      });
+    }
+
+    /**
+     * Deletes an entry given its id.
+     * @param {string} id - The entry id.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
+     */
+
+  }, {
+    key: 'delete',
+    value: function _delete(id, opts) {
+      var options = this._computeOptions(opts);
+      var path = join(this._path, id);
+      return this._nuxeo.request(path).delete(options);
+    }
+  }]);
+
+  return Directory;
+}(Base);
+
+module.exports = Directory;
+
+},{"../base":2,"../deps/utils/join":11,"./entry":13}],13:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('../base');
+
+/**
+ * The `DirectoryEntry` class wraps a directory entry.
+ *
+ * **Cannot directly be instantiated**
+ */
+
+var DirectoryEntry = function (_Base) {
+  _inherits(DirectoryEntry, _Base);
+
+  /**
+   * Creates a DirectoryEntry.
+   * @param {object} entry - The initial entry object.
+   *                         This DirectoryEntry object will be extended with entry properties.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.directory - The {@link Directory} object linked to this entry.
+   */
+  function DirectoryEntry(entry, opts) {
+    _classCallCheck(this, DirectoryEntry);
+
+    var _this = _possibleConstructorReturn(this, (DirectoryEntry.__proto__ || Object.getPrototypeOf(DirectoryEntry)).call(this, opts));
+
+    _this._directory = opts.directory;
+    _this.properties = {};
+    _this._dirtyProperties = {
+      id: entry.properties.id
+    };
+    extend(true, _this, entry);
+    return _this;
+  }
+
+  /**
+   * Sets entry properties.
+   * @param {object} properties - The properties to set.
+   * @returns {DirectoryEntry}
+   *
+   * @example
+   * entry.set({
+   *   'label': 'new label',
+   *   'ordering': 50,
+   * });
+   */
+
+
+  _createClass(DirectoryEntry, [{
+    key: 'set',
+    value: function set(properties) {
+      this._dirtyProperties = extend(true, {}, this._dirtyProperties, properties);
+      return this;
+    }
+
+    /**
+     * Gets an entry property.
+     * @param {string} propertyName - The property name, such as 'label', 'ordering', ...
+     * @returns {DirectoryEntry}
+     */
+
+  }, {
+    key: 'get',
+    value: function get(propertyName) {
+      return this._dirtyProperties[propertyName] || this.properties[propertyName];
+    }
+
+    /**
+     * Saves the entry. It updates only the 'dirty properties' set through the {@link DirectoryEntry#set} method.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated entry.
+     */
+
+  }, {
+    key: 'save',
+    value: function save() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      return this._directory.update({
+        properties: this._dirtyProperties
+      }, options);
+    }
+  }]);
+
+  return DirectoryEntry;
+}(Base);
+
+module.exports = DirectoryEntry;
+
+},{"../base":2,"extend":36}],14:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var qs = require('querystring');
+var join = require('./deps/utils/join');
+var Base = require('./base');
+var constants = require('./deps/constants');
+
+/**
+ * The `Document` class wraps a document.
+ *
+ * **Cannot directly be instantiated**
+ */
+
+var Document = function (_Base) {
+  _inherits(Document, _Base);
+
+  /**
+   * Creates a Document.
+   * @param {object} doc - The initial document object. This Document object will be extended with doc properties.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this `Document` object.
+   * @param {object} opts.repository - The {@link Repository} object linked to this `Document` object.
+   */
+  function Document(doc, opts) {
+    _classCallCheck(this, Document);
+
+    var _this = _possibleConstructorReturn(this, (Document.__proto__ || Object.getPrototypeOf(Document)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    _this._repository = opts.repository || _this._nuxeo.repository(doc.repository, opts);
+    _this.properties = {};
+    _this._dirtyProperties = {};
+    extend(true, _this, doc);
+    return _this;
+  }
+
+  /**
+   * Sets document properties.
+   * @param {object} properties - The properties to set.
+   * @returns {Document}
+   *
+   * @example
+   * doc.set({
+   *   'dc:title': 'new title',
+   *   'dc:description': 'new description',
+   * });
+   */
+
+
+  _createClass(Document, [{
+    key: 'set',
+    value: function set(properties) {
+      this._dirtyProperties = extend(true, {}, this._dirtyProperties, properties);
+      return this;
+    }
+
+    /**
+     * Gets a document property.
+     * @param {string} propertyName - The property name, such as 'dc:title', 'file:filename', ...
+     * @returns {Document}
+     */
+
+  }, {
+    key: 'get',
+    value: function get(propertyName) {
+      return this._dirtyProperties[propertyName] || this.properties[propertyName];
+    }
+
+    /**
+     * Saves the document. It updates only the 'dirty properties' set through the {@link Document#set} method.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated document.
+     */
+
+  }, {
+    key: 'save',
+    value: function save() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      return this._repository.update({
+        'entity-type': 'document',
+        uid: this.uid,
+        properties: this._dirtyProperties
+      }, options);
+    }
+
+    /**
+     * Returns weither this document is folderish or not.
+     * @returns {Boolean} true if this document is folderish, false otherwise.
+     */
+
+  }, {
+    key: 'isFolder',
+    value: function isFolder() {
+      return this.facets.indexOf('Folderish') !== -1;
+    }
+
+    /**
+     * Fetch a Blob from this document.
+     * @param {string} [xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the response.
+     */
+
+  }, {
+    key: 'fetchBlob',
+    value: function fetchBlob() {
+      var xpath = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'blobholder:0';
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = opts;
+      var blobXPath = xpath;
+      if ((typeof xpath === 'undefined' ? 'undefined' : _typeof(xpath)) === 'object') {
+        options = xpath;
+        blobXPath = 'blobholder:0';
+      }
+      options = this._computeOptions(options);
+      var path = join('id', this.uid, '@blob', blobXPath);
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Moves this document.
+     * @param {string} dst - The destination folder.
+     * @param {string} [name] - The destination name, can be null.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the moved document.
+     */
+
+  }, {
+    key: 'move',
+    value: function move(dst) {
+      var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      var options = this._computeOptions(opts);
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.Move').input(this.uid).params({
+        name: name,
+        target: dst
+      }).execute(options);
+    }
+
+    /**
+     * Follows a given life cycle transition.
+     * @param {string} transitionName - The life cycle transition to follow.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated document.
+     */
+
+  }, {
+    key: 'followTransition',
+    value: function followTransition(transitionName) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.FollowLifecycleTransition').input(this.uid).params({
+        value: transitionName
+      }).execute(options);
+    }
+
+    /**
+     * Converts a Blob from this document.
+     * @param {object} convertOpts - Configuration options for the conversion.
+                                     At least one of the 'converter', 'type' or 'format' option must be defined.
+     * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
+     * @param {string} convertOpts.converter - Named converter to use.
+     * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
+     * @param {string} convertOpts.format - The destination format, such as 'pdf'.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the response.
+     */
+
+  }, {
+    key: 'convert',
+    value: function convert(convertOpts) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var xpath = convertOpts.xpath || 'blobholder:0';
+      var path = join('id', this.uid, '@blob', xpath, '@convert');
+      return this._nuxeo.request(path).queryParams({
+        converter: convertOpts.converter,
+        type: convertOpts.type,
+        format: convertOpts.format
+      }).get(options);
+    }
+
+    /**
+     * Schedule a conversion of the Blob from this document.
+     * @param {object} convertOpts - Configuration options for the conversion.
+                                     At least one of the 'converter', 'type' or 'format' option must be defined.
+     * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
+     * @param {string} convertOpts.converter - Named converter to use.
+     * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
+     * @param {string} convertOpts.format - The destination format, such as 'pdf'.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the response.
+     */
+
+  }, {
+    key: 'scheduleConversion',
+    value: function scheduleConversion(convertOpts) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var params = {
+        async: true,
+        converter: convertOpts.converter,
+        type: convertOpts.type,
+        format: convertOpts.format
+      };
+      opts.body = qs.stringify(params);
+      var options = this._computeOptions(opts);
+      options.headers['Content-Type'] = 'multipart/form-data';
+      var xpath = convertOpts.xpath || 'blobholder:0';
+      var path = join('id', this.uid, '@blob', xpath, '@convert');
+      return this._nuxeo.request(path).post(options);
+    }
+
+    /**
+     * Starts a workflow on this document given a workflow model name.
+     * @param {string} workflowModelName - The workflow model name.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the started `Workflow` object.
+     */
+
+  }, {
+    key: 'startWorkflow',
+    value: function startWorkflow(workflowModelName) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        workflowModelName: workflowModelName,
+        'entity-type': 'workflow'
+      };
+      var options = this._computeOptions(opts);
+      var path = join('id', this.uid, '@workflow');
+      options.documentId = this.uid;
+      return this._nuxeo.request(path).post(options);
+    }
+
+    /**
+     * Fetches the started workflows on this document.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the started workflows.
+     */
+
+  }, {
+    key: 'fetchWorkflows',
+    value: function fetchWorkflows() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join('id', this.uid, '@workflow');
+      options.documentId = this.uid;
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Fetches the renditions list of this document.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the rendition definitions.
+     */
+
+  }, {
+    key: 'fetchRenditions',
+    value: function fetchRenditions() {
+      var _this2 = this;
+
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var Promise = this._nuxeo.Promise;
+      if (this.contextParameters && this.contextParameters.renditions) {
+        return Promise.resolve(this.contextParameters.renditions);
+      }
+
+      var options = this._computeOptions(opts);
+      options.enrichers = { document: ['renditions'] };
+      return this._repository.fetch(this.uid, options).then(function (doc) {
+        if (!_this2.contextParameters) {
+          _this2.contextParameters = {};
+        }
+        _this2.contextParameters.renditions = doc.contextParameters.renditions;
+        return _this2.contextParameters.renditions;
+      });
+    }
+
+    /**
+     * Fetch a rendition from this document.
+     * @param {string} name - The rendition name.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the response.
+     */
+
+  }, {
+    key: 'fetchRendition',
+    value: function fetchRendition(name) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join('id', this.uid, '@rendition', name);
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Fetches the ACLs list of this document.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the ACLs.
+     */
+
+  }, {
+    key: 'fetchACLs',
+    value: function fetchACLs() {
+      var _this3 = this;
+
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var Promise = this._nuxeo.Promise;
+      if (this.contextParameters && this.contextParameters.acls) {
+        return Promise.resolve(this.contextParameters.acls);
+      }
+
+      var options = this._computeOptions(opts);
+      options.enrichers = { document: [constants.enricher.document.ACLS] };
+      return this._repository.fetch(this.uid, options).then(function (doc) {
+        if (!_this3.contextParameters) {
+          _this3.contextParameters = {};
+        }
+        _this3.contextParameters.acls = doc.contextParameters.acls;
+        return _this3.contextParameters.acls;
+      });
+    }
+
+    /**
+     * Checks if the user has a given permission. It only works for now for 'Write', 'Read' and 'Everything' permission.
+     * This method may call the server to compute the available permissions (using the 'permissions' enricher)
+     * if not already present.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with true or false.
+     */
+
+  }, {
+    key: 'hasPermission',
+    value: function hasPermission(name) {
+      var _this4 = this;
+
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var Promise = this._nuxeo.Promise;
+      if (this.contextParameters && this.contextParameters.permissions) {
+        return Promise.resolve(this.contextParameters.permissions.indexOf(name) !== -1);
+      }
+
+      var options = this._computeOptions(opts);
+      options.enrichers = { document: [constants.enricher.document.PERMISSIONS] };
+      return this._repository.fetch(this.uid, options).then(function (doc) {
+        if (!_this4.contextParameters) {
+          _this4.contextParameters = {};
+        }
+        _this4.contextParameters.permissions = doc.contextParameters.permissions;
+        return _this4.contextParameters.permissions.indexOf(name) !== -1;
+      });
+    }
+
+    /**
+     * Adds a new permission.
+     * @param {object} params - The params needed to add a new permission.
+     * @param {string} params.permission - The permission string to set, such as 'Write', 'Read', ...
+     * @param {string} params.username - The target username. `username` or `email` must be set.
+     * @param {string} params.email - The target email. `username` or `email` must be set.
+     * @param {string} [params.acl] - The ACL name where to add the new permission.
+     * @param {string} [params.begin] - Optional begin date.
+     * @param {string} [params.end] - Optional end date.
+     * @param {string} [params.blockInheritance] - Whether to block the permissions inheritance or not
+     *                                             before adding the new permission.
+     * @param {string} [params.notify] - Optional flag to notify the user of the new permission.
+     * @param {string} [params.comment] - Optional comment used for the user notification.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated document.
+     */
+
+  }, {
+    key: 'addPermission',
+    value: function addPermission(params) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.AddPermission').input(this.uid).params(params).execute(options);
+    }
+
+    /**
+     * Removes a permission given its id, or all permissions for a given user.
+     * @param {object} params - The params needed to remove a permission.
+     * @param {string} params.id - The permission id. `id` or `user` must be set.
+     * @param {string} params.user - The user to rem. `id` or `user` must be set.
+     * @param {string} [params.acl] - The ACL name where to add the new permission.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated document.
+     */
+
+  }, {
+    key: 'removePermission',
+    value: function removePermission(params) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.RemovePermission').input(this.uid).params(params).execute(options);
+    }
+
+    /**
+     * Fetches the lock status of the document.
+     * @example
+     * // if the doc is locked
+     * doc.fetchLockStatus()
+     *   .then(function(status) {
+     *     // status.lockOwner === 'Administrator'
+     *     // status.lockCreated === '2011-10-23T12:00:00.00Z'
+     *   });
+     * @example
+     * // if the doc is not locked
+     * doc.fetchLockStatus()
+     *   .then(function(status) {
+     *     // status.lockOwner === undefined
+     *     // status.lockCreated === undefined
+     *   });
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with true or false.
+     */
+
+  }, {
+    key: 'fetchLockStatus',
+    value: function fetchLockStatus() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      options.fetchProperties = { document: ['lock'] };
+      return this._repository.fetch(this.uid, options).then(function (doc) {
+        return {
+          lockOwner: doc.lockOwner,
+          lockCreated: doc.lockCreated
+        };
+      });
+    }
+
+    /**
+     * Locks the document.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated document.
+     */
+
+  }, {
+    key: 'lock',
+    value: function lock() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.Lock').input(this.uid).execute(options);
+    }
+
+    /**
+     * Unlocks the document.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated document.
+     */
+
+  }, {
+    key: 'unlock',
+    value: function unlock() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      options.repository = this._repository;
+      return this._nuxeo.operation('Document.Unlock').input(this.uid).execute(options);
+    }
+
+    /**
+     * Fetches the audit of the document.
+     * @param {object} [queryOpts] - Parameters for the audit query.
+     * @param {Array} [queryOpts.eventId] - List of event ids to filter.
+     * @param {Array} [queryOpts.category] - List of categories to filter
+     * @param {Array} [queryOpts.principalName] - List of principal names to filter.
+     * @param {object} [queryOpts.startEventDate] - Start date.
+     * @param {object} [queryParams.endEventDate] - End date
+     * @param {number} [queryOpts.pageSize=0] - The number of results per page.
+     * @param {number} [queryOpts.currentPageIndex=0] - The current page index.
+     * @param {number} [queryOpts.maxResults] - The expected max results.
+     * @param {string} [queryOpts.sortBy] - The sort by info.
+     * @param {string} [queryOpts.sortOrder] - The sort order info.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with audit entries.
+     */
+
+  }, {
+    key: 'fetchAudit',
+    value: function fetchAudit() {
+      var queryOpts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join('id', this.uid, '@audit');
+      return this._nuxeo.request(path).queryParams(queryOpts).get(options);
+    }
+  }]);
+
+  return Document;
+}(Base);
+
+module.exports = Document;
+
+},{"./base":2,"./deps/constants":4,"./deps/utils/join":11,"extend":36,"querystring":46}],15:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('../base');
+
+/**
+ * The `Group` class wraps a group.
+ *
+ * **Cannot directly be instantiated**
+ */
+
+var Group = function (_Base) {
+  _inherits(Group, _Base);
+
+  /**
+   * Creates a Group.
+   * @param {object} group - The initial group object. This Group object will be extended with group properties.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.groups - The {@link Groups} object linked to this group.
+   */
+  function Group(group, opts) {
+    _classCallCheck(this, Group);
+
+    var _this = _possibleConstructorReturn(this, (Group.__proto__ || Object.getPrototypeOf(Group)).call(this, opts));
+
+    _this._groups = opts.groups;
+    extend(true, _this, group);
+    return _this;
+  }
+
+  /**
+   * Saves the group.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A promise object resolved with the updated group.
+   */
+
+
+  _createClass(Group, [{
+    key: 'save',
+    value: function save() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      return this._groups.update({
+        'entity-type': 'group',
+        groupname: this.groupname,
+        grouplabel: this.grouplabel,
+        memberUsers: this.memberUsers,
+        memberGroups: this.memberGroups
+      }, options);
+    }
+  }]);
+
+  return Group;
+}(Base);
+
+module.exports = Group;
+
+},{"../base":2,"extend":36}],16:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = require('../base');
+var join = require('../deps/utils/join');
+
+var GROUP_PATH = 'group';
+
+/**
+ * The `Groups` class allows to work with groups on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * nuxeo.groups()
+ *   .fetch('administrators')
+ *   .then(function(res) {
+ *     // res.groupname === 'administrators'
+ *     // res.grouplabel === 'Administrators group'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error));
+ *   });
+ */
+
+var Groups = function (_Base) {
+  _inherits(Groups, _Base);
+
+  /**
+   * Creates a Groups object.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Groups object.
+   */
+  function Groups(opts) {
+    _classCallCheck(this, Groups);
+
+    var _this = _possibleConstructorReturn(this, (Groups.__proto__ || Object.getPrototypeOf(Groups)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    return _this;
+  }
+
+  /**
+   * Fetches a group given a groupname.
+   * @param {string} groupname - The groupname.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the {@link Group}.
+   */
+
+
+  _createClass(Groups, [{
+    key: 'fetch',
+    value: function fetch(groupname) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(GROUP_PATH, groupname);
+      options.groups = this;
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Creates a group.
+     * @param {object} user - The group to be created.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the created {@link Group}.
+     */
+
+  }, {
+    key: 'create',
+    value: function create(group) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        'entity-type': 'group',
+        groupname: group.groupname,
+        grouplabel: group.grouplabel,
+        memberUsers: group.memberUsers,
+        memberGroups: group.memberGroups
+      };
+      var options = this._computeOptions(opts);
+      options.groups = this;
+      return this._nuxeo.request(GROUP_PATH).post(options);
+    }
+
+    /**
+     * Updates a group. Assumes that the group object has an groupname field.
+     * @param {object} group - The group to be updated.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the updated {@link Group}.
+     */
+
+  }, {
+    key: 'update',
+    value: function update(group) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        'entity-type': 'group',
+        groupname: group.groupname,
+        grouplabel: group.grouplabel,
+        memberUsers: group.memberUsers,
+        memberGroups: group.memberGroups
+      };
+      var options = this._computeOptions(opts);
+      var path = join(GROUP_PATH, group.groupname);
+      options.groups = this;
+      return this._nuxeo.request(path).put(options);
+    }
+
+    /**
+     * Deletes a group given a groupname.
+     * @param {string} groupname - The groupname.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
+     */
+
+  }, {
+    key: 'delete',
+    value: function _delete(groupname) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(GROUP_PATH, groupname);
+      return this._nuxeo.request(path).delete(options);
+    }
+  }]);
+
+  return Groups;
+}(Base);
+
+module.exports = Groups;
+
+},{"../base":2,"../deps/utils/join":11}],17:[function(require,module,exports){
+'use strict';
+
+var Nuxeo = require('./nuxeo');
+var Base = require('./base');
+var Operation = require('./operation');
+var Request = require('./request');
+var Repository = require('./repository');
+var Document = require('./document');
+var BatchUpload = require('./upload/batch');
+var Blob = require('./blob');
+var BatchBlob = require('./upload/blob');
+var Users = require('./user/users');
+var User = require('./user/user');
+var Groups = require('./group/groups');
+var Group = require('./group/group');
+var Directory = require('./directory/directory');
+var DirectoryEntry = require('./directory/entry');
+var Workflows = require('./workflow/workflows');
+var Workflow = require('./workflow/workflow');
+var Task = require('./workflow/task');
+var constants = require('./deps/constants');
+var Promise = require('./deps/promise');
+
+var _require = require('./auth/auth'),
+    basicAuthenticator = _require.basicAuthenticator,
+    tokenAuthenticator = _require.tokenAuthenticator,
+    bearerTokenAuthenticator = _require.bearerTokenAuthenticator,
+    portalAuthenticator = _require.portalAuthenticator;
+
+var _require2 = require('./unmarshallers/unmarshallers'),
+    documentUnmarshaller = _require2.documentUnmarshaller,
+    documentsUnmarshaller = _require2.documentsUnmarshaller,
+    workflowUnmarshaller = _require2.workflowUnmarshaller,
+    workflowsUnmarshaller = _require2.workflowsUnmarshaller,
+    taskUnmarshaller = _require2.taskUnmarshaller,
+    tasksUnmarshaller = _require2.tasksUnmarshaller,
+    userUnmarshaller = _require2.userUnmarshaller,
+    groupUnmarshaller = _require2.groupUnmarshaller;
+
+var pkg = require('../package.json');
+
+Nuxeo.Base = Base;
+Nuxeo.Operation = Operation;
+Nuxeo.Request = Request;
+Nuxeo.Repository = Repository;
+Nuxeo.Document = Document;
+Nuxeo.BatchUpload = BatchUpload;
+Nuxeo.Blob = Blob;
+Nuxeo.BatchBlob = BatchBlob;
+Nuxeo.Users = Users;
+Nuxeo.User = User;
+Nuxeo.Groups = Groups;
+Nuxeo.Group = Group;
+Nuxeo.Directory = Directory;
+Nuxeo.DirectoryEntry = DirectoryEntry;
+Nuxeo.Workflows = Workflows;
+Nuxeo.Workflow = Workflow;
+Nuxeo.Task = Task;
+Nuxeo.constants = constants;
+Nuxeo.version = pkg.version;
+
+Nuxeo.promiseLibrary(Promise);
+
+// register default authenticators
+Nuxeo.registerAuthenticator('basic', basicAuthenticator);
+Nuxeo.registerAuthenticator('token', tokenAuthenticator);
+Nuxeo.registerAuthenticator('bearerToken', bearerTokenAuthenticator);
+Nuxeo.registerAuthenticator('portal', portalAuthenticator);
+
+// register default unmarshallers
+Nuxeo.registerUnmarshaller('document', documentUnmarshaller);
+Nuxeo.registerUnmarshaller('documents', documentsUnmarshaller);
+Nuxeo.registerUnmarshaller('workflow', workflowUnmarshaller);
+Nuxeo.registerUnmarshaller('workflows', workflowsUnmarshaller);
+Nuxeo.registerUnmarshaller('task', taskUnmarshaller);
+Nuxeo.registerUnmarshaller('tasks', tasksUnmarshaller);
+Nuxeo.registerUnmarshaller('user', userUnmarshaller);
+Nuxeo.registerUnmarshaller('group', groupUnmarshaller);
+
+module.exports = Nuxeo;
+
+},{"../package.json":49,"./auth/auth":1,"./base":2,"./blob":3,"./deps/constants":4,"./deps/promise":7,"./directory/directory":12,"./directory/entry":13,"./document":14,"./group/group":15,"./group/groups":16,"./nuxeo":18,"./operation":19,"./repository":20,"./request":21,"./unmarshallers/unmarshallers":22,"./upload/batch":23,"./upload/blob":24,"./user/user":25,"./user/users":26,"./workflow/task":27,"./workflow/workflow":28,"./workflow/workflows":29}],18:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('./base');
+var Operation = require('./operation');
+var Request = require('./request');
+var Repository = require('./repository');
+var BatchUpload = require('./upload/batch');
+var Users = require('./user/users');
+var Groups = require('./group/groups');
+var Directory = require('./directory/directory');
+var Workflows = require('./workflow/workflows');
+var join = require('./deps/utils/join');
+var Promise = require('./deps/promise');
+var qs = require('querystring');
+var FormData = require('./deps/form-data');
+var Authentication = require('./auth/auth');
+var Unmarshallers = require('./unmarshallers/unmarshallers');
+var doFetch = require('./deps/fetch');
+
+var API_PATH_V1 = 'api/v1/';
+var AUTOMATION = 'automation/';
+
+var DEFAULT_OPTS = {
+  baseURL: 'http://localhost:8080/nuxeo/',
+  apiPath: API_PATH_V1,
+  promiseLibrary: null,
+  auth: null
+};
+
+/**
+ * The `Nuxeo` class allows using the REST API of a Nuxeo Platform instance.
+ * @extends Base
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * nuxeo.request('path/')
+ *   .get()
+ *   .then(function(doc) {
+ *     // doc.uid !== null
+ *   });
+ */
+
+var Nuxeo = function (_Base) {
+  _inherits(Nuxeo, _Base);
+
+  /**
+   * Creates a new Nuxeo instance.
+   * @param {object} [opts] - The configuration options.
+   * @param {string} [opts.baseURL=http://localhost:8080/nuxeo/] - Base URL of the Nuxeo Platform.
+   * @param {string} [opts.apiPath=api/v1] - The API path.
+   * @param {object} [opts.auth] - The authentication configuration.
+   */
+  function Nuxeo() {
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, Nuxeo);
+
+    var options = extend(true, {}, DEFAULT_OPTS, opts);
+
+    var _this = _possibleConstructorReturn(this, (Nuxeo.__proto__ || Object.getPrototypeOf(Nuxeo)).call(this, options));
+
+    _this._baseURL = options.baseURL;
+    _this._restURL = join(_this._baseURL, options.apiPath);
+    _this._automationURL = join(_this._restURL, AUTOMATION);
+    _this._auth = options.auth;
+    _this.connected = false;
+    _this.Promise = Nuxeo.Promise || Promise;
+    _this._activeRequests = 0;
+    return _this;
+  }
+
+  /**
+   * Connects to the Nuxeo Platform instance using the configured authentication.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A promise resolved with the logged in user.
+   */
+
+
+  _createClass(Nuxeo, [{
+    key: 'login',
+    value: function login() {
+      var _this2 = this;
+
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var finalOptions = {
+        method: 'POST',
+        url: join(this._automationURL, 'login')
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return this._http(finalOptions).then(function (res) {
+        return _this2.request('user').path(res.username).get().then(function (user) {
+          _this2.user = user;
+          _this2.connected = true;
+          return user;
+        });
+      });
+    }
+
+    /**
+     * Does a http request.
+     *
+     * To be used when doing any call on Nuxeo Platform.
+     */
+
+  }, {
+    key: '_http',
+    value: function _http() {
+      var _this3 = this;
+
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeFetchOptions(opts);
+      return new this.Promise(function (resolve, reject) {
+        _this3._activeRequests++;
+
+        var fetchOptions = {
+          method: options.method,
+          headers: options.headers,
+          body: options.body
+        };
+        if (!_this3._auth) {
+          fetchOptions.credentials = 'include';
+        }
+        doFetch(options.url, fetchOptions).then(function (res) {
+          _this3._activeRequests--;
+          if (!/^2/.test('' + res.status)) {
+            var error = new Error(res.statusText);
+            error.response = res;
+            return reject(error);
+          }
+
+          if (options.resolveWithFullResponse || res.status === 204) {
+            return resolve(res);
+          }
+
+          var contentType = res.headers.get('content-type');
+          if (contentType && contentType.indexOf('application/json') === 0) {
+            options.nuxeo = _this3;
+            return resolve(res.json().then(function (json) {
+              return Unmarshallers.unmarshall(json, options, res);
+            }));
+          }
+          return resolve(res);
+        }).catch(function (error) {
+          _this3._activeRequests--;
+          return reject(error);
+        });
+      });
+    }
+  }, {
+    key: '_computeFetchOptions',
+    value: function _computeFetchOptions(opts) {
+      var options = {
+        method: 'GET',
+        headers: {},
+        json: true,
+        timeout: 30000,
+        cache: false,
+        resolveWithFullResponse: false
+      };
+      options = extend(true, {}, options, opts);
+      options.headers = Authentication.computeAuthentication(this._auth, options.headers);
+
+      if (options.schemas && options.schemas.length > 0) {
+        options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
+      }
+      if (opts.repositoryName !== undefined) {
+        options.headers['X-NXRepository'] = options.repositoryName;
+      }
+
+      if (opts.enrichers) {
+        Object.keys(opts.enrichers).forEach(function (key) {
+          options.headers['enrichers-' + key] = options.enrichers[key].join(',');
+        });
+      }
+
+      if (opts.fetchProperties) {
+        Object.keys(opts.fetchProperties).forEach(function (key) {
+          options.headers['fetch-' + key] = options.fetchProperties[key].join(',');
+        });
+      }
+
+      if (options.depth) {
+        options.headers.depth = options.depth;
+      }
+
+      var transactionTimeout = options.transactionTimeout || options.timeout;
+      var httpTimeout = options.httpTimeout || 5 + transactionTimeout;
+      options.headers['Nuxeo-Transaction-Timeout'] = transactionTimeout;
+      options.timeout = httpTimeout;
+
+      if (options.json) {
+        options.headers.Accept = 'application/json';
+        options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
+        // do not stringify FormData
+        if (_typeof(options.body) === 'object' && !(options.body instanceof FormData)) {
+          options.body = JSON.stringify(options.body);
+        }
+      }
+
+      if (options.method === 'GET') {
+        delete options.headers['Content-Type'];
+      }
+
+      if (options.queryParams) {
+        options.url += options.url.indexOf('?') === -1 ? '?' : '';
+        options.url += qs.stringify(options.queryParams);
+      }
+      return options;
+    }
+
+    /**
+     * Creates a new {@link Operation} object.
+     * @param {string} id - The operation ID.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Operation}
+     */
+
+  }, {
+    key: 'operation',
+    value: function operation(id) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var finalOptions = {
+        id: id,
+        nuxeo: this,
+        url: this._automationURL
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return new Operation(finalOptions);
+    }
+
+    /**
+     * Creates a new {@link Request} object.
+     * @param {string} path - The request default path.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Request}
+     */
+
+  }, {
+    key: 'request',
+    value: function request(path) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var finalOptions = {
+        path: path,
+        nuxeo: this,
+        url: this._restURL
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return new Request(finalOptions);
+    }
+
+    /**
+     * Creates a new {@link Repository} object.
+     * @param {string} name - The repository name. Default to the Nuxeo's repository name.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Repository}
+     */
+
+  }, {
+    key: 'repository',
+    value: function repository() {
+      var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var repositoryName = name;
+      var options = opts;
+      if ((typeof repositoryName === 'undefined' ? 'undefined' : _typeof(repositoryName)) === 'object') {
+        options = repositoryName;
+        repositoryName = null;
+      }
+
+      var finalOptions = {
+        nuxeo: this
+      };
+      if (repositoryName) {
+        finalOptions.repositoryName = repositoryName;
+      }
+      finalOptions = extend(true, finalOptions, options);
+      finalOptions = this._computeOptions(finalOptions);
+      return new Repository(finalOptions);
+    }
+
+    /**
+     * Creates a new {@link BatchUpload} object.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {BatchUpload}
+     */
+
+  }, {
+    key: 'batchUpload',
+    value: function batchUpload() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var finalOptions = {
+        nuxeo: this,
+        url: this._restURL
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return new BatchUpload(finalOptions);
+    }
+
+    /**
+     * Creates a new {@link Users} object to manage users.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Users}
+     */
+
+  }, {
+    key: 'users',
+    value: function users() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var finalOptions = {
+        nuxeo: this
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return new Users(finalOptions);
+    }
+
+    /**
+     * Creates a new {@link Groups} object to manage groups.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Groups}
+     */
+
+  }, {
+    key: 'groups',
+    value: function groups() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var finalOptions = {
+        nuxeo: this
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return new Groups(finalOptions);
+    }
+
+    /**
+     * Creates a new {@link Directory} object.
+     * @param {string} name - The directory name.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Directory}
+     */
+
+  }, {
+    key: 'directory',
+    value: function directory(name) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var finalOptions = {
+        directoryName: name,
+        nuxeo: this
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return new Directory(finalOptions);
+    }
+
+    /**
+     * Creates a new {@link Workflows} object.
+     * @param {string} name - The repository name. Default to the Nuxeo's repository name.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Workflows}
+     */
+
+  }, {
+    key: 'workflows',
+    value: function workflows() {
+      var repositoryName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._repositoryName;
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var finalOptions = {
+        repositoryName: repositoryName,
+        nuxeo: this
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return new Workflows(finalOptions);
+    }
+  }, {
+    key: 'requestAuthenticationToken',
+    value: function requestAuthenticationToken(applicationName, deviceId, deviceDescription, permission) {
+      var opts = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {};
+
+      var finalOptions = {
+        method: 'GET',
+        url: join(this._baseURL, 'authentication', 'token'),
+        queryParams: {
+          applicationName: applicationName,
+          deviceId: deviceId,
+          deviceDescription: deviceDescription,
+          permission: permission
+        }
+      };
+      finalOptions = extend(true, finalOptions, opts);
+      finalOptions = this._computeOptions(finalOptions);
+      return this._http(finalOptions).then(function (res) {
+        return res.text();
+      });
+    }
+  }]);
+
+  return Nuxeo;
+}(Base);
+
+/**
+ * Sets the Promise library class to use.
+ */
+
+
+Nuxeo.promiseLibrary = function (promiseLibrary) {
+  Nuxeo.Promise = promiseLibrary;
+};
+
+/**
+ * Registers an Authenticator for a given authentication method.
+ */
+Nuxeo.registerAuthenticator = function (method, authenticator) {
+  Authentication.registerAuthenticator(method, authenticator);
+};
+
+/**
+ * Registers an Unmarshaller for a given entity type.
+ */
+Nuxeo.registerUnmarshaller = function (entityType, unmarshaller) {
+  Unmarshallers.registerUnmarshaller(entityType, unmarshaller);
+};
+
+module.exports = Nuxeo;
+
+},{"./auth/auth":1,"./base":2,"./deps/fetch":5,"./deps/form-data":6,"./deps/promise":7,"./deps/utils/join":11,"./directory/directory":12,"./group/groups":16,"./operation":19,"./repository":20,"./request":21,"./unmarshallers/unmarshallers":22,"./upload/batch":23,"./user/users":26,"./workflow/workflows":29,"extend":36,"querystring":46}],19:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('./base');
+var join = require('./deps/utils/join');
+var Blob = require('./blob');
+var BatchBlob = require('./upload/blob');
+var BatchUpload = require('./upload/batch');
+var FormData = require('./deps/form-data');
+
+/**
+ * The `Operation` class allows to execute an operation on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * nuxeo.operation('Document.GetChild')
+ *   .input('/default-domain')
+ *   .params({
+ *     name: 'workspaces',
+ *   })
+ *   .execute()
+ *   .then(function(res) {
+ *     // res.uid !== null
+ *     // res.title === 'Workspaces'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
+ */
+
+var Operation = function (_Base) {
+  _inherits(Operation, _Base);
+
+  /**
+   * Creates an Operation.
+   * @param {string} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this `Operation` object.
+   * @param {string} opts.id - The ID of the operation.
+   * @param {string} opts.url - The automation URL.
+   */
+  function Operation(opts) {
+    _classCallCheck(this, Operation);
+
+    var options = extend(true, {}, opts);
+
+    var _this = _possibleConstructorReturn(this, (Operation.__proto__ || Object.getPrototypeOf(Operation)).call(this, options));
+
+    _this._nuxeo = options.nuxeo;
+    _this._id = options.id;
+    _this._url = options.url;
+    _this._automationParams = {
+      params: {},
+      context: {},
+      input: undefined
+    };
+    return _this;
+  }
+
+  /**
+   * Adds an operation param.
+   * @param {string} name - The param name.
+   * @param {string} value - The param value.
+   * @returns {Operation} The operation itself.
+   */
+
+
+  _createClass(Operation, [{
+    key: 'param',
+    value: function param(name, value) {
+      this._automationParams.params[name] = value;
+      return this;
+    }
+
+    /**
+     * Adds operation params. The given params are merged with the existing ones if any.
+     * @param {object} params - The params to be merge with the existing ones.
+     * @returns {Operation} The operation itself.
+     */
+
+  }, {
+    key: 'params',
+    value: function params(_params) {
+      this._automationParams.params = extend(true, {}, this._automationParams.params, _params);
+      return this;
+    }
+
+    /**
+     * Sets this operation context.
+     * @param {object} context - The operation context.
+     * @returns {Operation} The operation itself.
+     */
+
+  }, {
+    key: 'context',
+    value: function context(_context) {
+      this._automationParams.context = _context;
+      return this;
+    }
+
+    /**
+     * Sets this operation input.
+     * @param {string|Array|Blob|BatchBlob|BatchUpload} input - The operation input.
+     * @returns {Operation} The operation itself.
+     */
+
+  }, {
+    key: 'input',
+    value: function input(_input) {
+      this._automationParams.input = _input;
+      return this;
+    }
+
+    /**
+     * Executes this operation.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the Operation.
+     */
+
+  }, {
+    key: 'execute',
+    value: function execute() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      opts.headers = opts.headers || {};
+      opts.headers['Content-Type'] = this._computeContentTypeHeader(this._automationParams.input);
+      var options = this._computeOptions(opts);
+      var finalOptions = {
+        method: 'POST',
+        url: this._computeRequestURL(),
+        body: this._computeRequestBody()
+      };
+      finalOptions = extend(true, finalOptions, options);
+      return this._nuxeo._http(finalOptions);
+    }
+  }, {
+    key: '_computeContentTypeHeader',
+    value: function _computeContentTypeHeader(input) {
+      var contentType = 'application/json+nxrequest';
+      if (this._isMultipartInput(input)) {
+        contentType = 'multipart/form-data';
+      } else if (this._isBatchInput(input)) {
+        contentType = 'application/json';
+      }
+      return contentType;
+    }
+  }, {
+    key: '_computeRequestURL',
+    value: function _computeRequestURL() {
+      var input = this._automationParams.input;
+      if (input instanceof BatchBlob) {
+        return join(this._nuxeo._restURL, 'upload', input['upload-batch'], input['upload-fileId'], 'execute', this._id);
+      } else if (input instanceof BatchUpload) {
+        return join(this._nuxeo._restURL, 'upload', input._batchId, 'execute', this._id);
+      }
+      return join(this._url, this._id);
+    }
+  }, {
+    key: '_computeRequestBody',
+    value: function _computeRequestBody() {
+      var input = this._automationParams.input;
+      if (this._isBatchInput(input)) {
+        // no input needed
+        var body = extend(true, {}, this._automationParams);
+        body.input = undefined;
+        return body;
+      }
+
+      if (input instanceof Array) {
+        if (input.length > 0) {
+          var first = input[0];
+          if (typeof first === 'string') {
+            // assume ref list
+            this._automationParams.input = 'docs:' + input.join(',');
+            return this._automationParams;
+          } else if (first instanceof Blob) {
+            // blob list => multipart
+            var automationParams = {
+              params: this._automationParams.params,
+              context: this._automationParams.context
+            };
+            var form = new FormData();
+            form.append('params', JSON.stringify(automationParams));
+
+            var inputIndex = 0;
+            for (var _iterator = input, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+              var _ref;
+
+              if (_isArray) {
+                if (_i >= _iterator.length) break;
+                _ref = _iterator[_i++];
+              } else {
+                _i = _iterator.next();
+                if (_i.done) break;
+                _ref = _i.value;
+              }
+
+              var blob = _ref;
+
+              form.append('input#' + inputIndex++, blob.content, blob.name);
+            }
+            return form;
+          }
+        }
+      } else if (this._automationParams.input instanceof Blob) {
+        var _automationParams = {
+          params: this._automationParams.params,
+          context: this._automationParams.context
+        };
+        var _form = new FormData();
+        _form.append('params', JSON.stringify(_automationParams));
+        _form.append('input', input.content, input.name);
+        return _form;
+      }
+      return this._automationParams;
+    }
+  }, {
+    key: '_isMultipartInput',
+    value: function _isMultipartInput(input) {
+      if (input instanceof Array) {
+        if (input.length > 0) {
+          var first = input[0];
+          if (first instanceof Blob) {
+            return true;
+          }
+        }
+      } else if (input instanceof Blob) {
+        return true;
+      }
+      return false;
+    }
+  }, {
+    key: '_isBatchInput',
+    value: function _isBatchInput(input) {
+      return input instanceof BatchUpload || input instanceof BatchBlob;
+    }
+  }]);
+
+  return Operation;
+}(Base);
+
+module.exports = Operation;
+
+},{"./base":2,"./blob":3,"./deps/form-data":6,"./deps/utils/join":11,"./upload/batch":23,"./upload/blob":24,"extend":36}],20:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = require('./base');
+var join = require('./deps/utils/join');
+
+function computePath(ref) {
+  return join(ref.indexOf('/') === 0 ? 'path' : 'id', ref);
+}
+
+/**
+ * The `Repository` class allows to work with documents on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * nuxeo.repository('default')
+ *   .fetch('/default-domain')
+ *   .then(function(res) {
+ *     // res.uid !== null
+ *     // res.type === 'Domain'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
+ */
+
+var Repository = function (_Base) {
+  _inherits(Repository, _Base);
+
+  /**
+   * Creates a Repository.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this repository.
+   */
+  function Repository() {
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, Repository);
+
+    var _this = _possibleConstructorReturn(this, (Repository.__proto__ || Object.getPrototypeOf(Repository)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    return _this;
+  }
+
+  /**
+   * Fetches a document given a document ref.
+   * @param {string} ref - The document ref. A path if starting with '/', otherwise and id.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the {@link Document}.
+   */
+
+
+  _createClass(Repository, [{
+    key: 'fetch',
+    value: function fetch(ref) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = computePath(ref);
+      options.repository = this;
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Creates a document.
+     * @param {string} parentRef - The parent document ref. A path if starting with '/', otherwise and id.
+     * @param {object} doc - The document to be created.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the created {@link Document}.
+     */
+
+  }, {
+    key: 'create',
+    value: function create(parentRef, doc) {
+      var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      opts.body = {
+        'entity-type': 'document',
+        type: doc.type,
+        name: doc.name,
+        properties: doc.properties
+      };
+      var options = this._computeOptions(opts);
+      var path = computePath(parentRef);
+      options.repository = this;
+      return this._nuxeo.request(path).post(options);
+    }
+
+    /**
+     * Updates a document. Assumes that the doc object has an uid field.
+     * @param {object} doc - The document to be updated.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the updated {@link Document}.
+     */
+
+  }, {
+    key: 'update',
+    value: function update(doc) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        'entity-type': 'document',
+        uid: doc.uid,
+        properties: doc.properties
+      };
+      var options = this._computeOptions(opts);
+      var path = join('id', doc.uid);
+      options.repository = this;
+      return this._nuxeo.request(path).put(options);
+    }
+
+    /**
+     * Deletes a document given a document ref.
+     * @param {string} ref - The document ref. A path if starting with '/', otherwise and id.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
+     */
+
+  }, {
+    key: 'delete',
+    value: function _delete(ref) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = computePath(ref);
+      return this._nuxeo.request(path).delete(options);
+    }
+
+    /**
+     * Performs a query returning documents.
+     * Named parameters can be set in the `queryOpts` object, such as
+     * { query: ..., customParam1: 'foo', anotherParam: 'bar'}
+     * @param {object} queryOpts - The query options.
+     * @param {string} queryOpts.query - The query to execute. `query` or `pageProvider` must be set.
+     * @param {string} queryOpts.pageProvider - The page provider name to execute. `query` or `pageProvider` must be set.
+     * @param {array} [queryOpts.queryParams] - Ordered parameters for the query or page provider.
+     * @param {number} [queryOpts.pageSize=0] - The number of results per page.
+     * @param {number} [queryOpts.currentPageIndex=0] - The current page index.
+     * @param {number} [queryOpts.maxResults] - The expected max results.
+     * @param {string} [queryOpts.sortBy] - The sort by info.
+     * @param {string} [queryOpts.sortOrder] - The sort order info.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the response where the entries are replaced
+     *                    with Document objetcs.
+     */
+
+  }, {
+    key: 'query',
+    value: function query(queryOpts) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join('query', queryOpts.query ? 'NXQL' : queryOpts.pageProvider);
+      options.repository = this;
+      return this._nuxeo.request(path).queryParams(queryOpts).get(options);
+    }
+  }]);
+
+  return Repository;
+}(Base);
+
+module.exports = Repository;
+
+},{"./base":2,"./deps/utils/join":11}],21:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var join = require('./deps/utils/join');
+var Base = require('./base');
+
+var defaultOptions = {
+  path: '',
+  queryParams: {}
+};
+
+/**
+ * The `Request` class allows to execute REST request on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * nuxeo.request('/path/default-domain')
+ *   .get()
+ *   .then(function(res) {
+ *     // res.uid !== null
+ *     // res.type === 'Domain'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
+ */
+
+var Request = function (_Base) {
+  _inherits(Request, _Base);
+
+  /**
+   * Creates a Request.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this groups object.
+   * @param {string} opts.path - The initial path of the request.
+   * @param {string} opts.queryParams - The initial query parameters of the request.
+   * @param {string} opts.url - The REST API URL.
+   */
+  function Request() {
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, Request);
+
+    var options = extend(true, {}, defaultOptions, opts);
+
+    var _this = _possibleConstructorReturn(this, (Request.__proto__ || Object.getPrototypeOf(Request)).call(this, options));
+
+    _this._nuxeo = options.nuxeo;
+    _this._path = options.path;
+    _this._queryParams = options.queryParams;
+    _this._url = options.url;
+    return _this;
+  }
+
+  /**
+   * Adds path segment.
+   * @param {string} path - The path segment.
+   * @returns {Request} The request itself.
+   */
+
+
+  _createClass(Request, [{
+    key: 'path',
+    value: function path(_path) {
+      this._path = join(this._path, _path);
+      return this;
+    }
+
+    /**
+     * Adds query params. The given query params are merged with the existing ones if any.
+     * @param {object} queryParams - The query params to be merged with the existing ones.
+     * @returns {Request} The request itself.
+     */
+
+  }, {
+    key: 'queryParams',
+    value: function queryParams(_queryParams) {
+      this._queryParams = extend(true, {}, this._queryParams, _queryParams);
+      return this;
+    }
+
+    /**
+     * Performs a GET request.
+     * @param {object} opts - Options overriding the ones from the Request object.
+     * @returns {Promise} A Promise object resolved with the result of the request.
+     */
+
+  }, {
+    key: 'get',
+    value: function get() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      opts.method = 'GET';
+      return this.execute(opts);
+    }
+
+    /**
+     * Performs a POST request.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the request.
+     */
+
+  }, {
+    key: 'post',
+    value: function post() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      opts.method = 'POST';
+      return this.execute(opts);
+    }
+
+    /**
+     * Performs a PUT request.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the request.
+     */
+
+  }, {
+    key: 'put',
+    value: function put() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      opts.method = 'PUT';
+      return this.execute(opts);
+    }
+
+    /**
+     * Performs a DELETE request.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the request.
+     */
+
+  }, {
+    key: 'delete',
+    value: function _delete() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      opts.method = 'DELETE';
+      return this.execute(opts);
+    }
+
+    /**
+     * Performs a Request.
+     * @param {object} opts - Options overriding the ones from this object.
+     * @param {string} opts.method - The HTTP method.
+     * @returns {Promise} A Promise object resolved with the result of the request.
+     */
+
+  }, {
+    key: 'execute',
+    value: function execute() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      var url = this._url;
+      var repositoryName = options.repositoryName;
+      if (repositoryName !== undefined) {
+        url = join(url, 'repo', repositoryName);
+      }
+      url = join(url, this._path);
+
+      var finalOptions = {
+        url: url,
+        queryParams: this._queryParams
+      };
+      finalOptions = extend(true, finalOptions, options);
+      return this._nuxeo._http(finalOptions);
+    }
+  }]);
+
+  return Request;
+}(Base);
+
+module.exports = Request;
+
+},{"./base":2,"./deps/utils/join":11,"extend":36}],22:[function(require,module,exports){
+'use strict';
+
+var Document = require('../document');
+var Workflow = require('../workflow/workflow');
+var Task = require('../workflow/task');
+var User = require('../user/user');
+var Group = require('../group/group');
+
+var unmarshallers = {};
+
+var Unmarshallers = {
+  registerUnmarshaller: function registerUnmarshaller(entityType, unmarshaller) {
+    unmarshallers[entityType] = unmarshaller;
+  },
+
+  unmarshall: function unmarshall(json, options) {
+    var entityType = json['entity-type'];
+    var unmarshaller = unmarshallers[entityType];
+    return unmarshaller && unmarshaller(json, options) || json;
+  }
+};
+
+// default unmarshallers
+
+var documentUnmarshaller = function documentUnmarshaller(json, options) {
+  return new Document(json, options);
+};
+
+var documentsUnmarshaller = function documentsUnmarshaller(json, options) {
+  var entries = json.entries;
+
+  var docs = entries.map(function (doc) {
+    return new Document(doc, options);
+  });
+  json.entries = docs;
+  return json;
+};
+
+var workflowUnmarshaller = function workflowUnmarshaller(json, options) {
+  return new Workflow(json, options);
+};
+
+var workflowsUnmarshaller = function workflowsUnmarshaller(json, options) {
+  var entries = json.entries;
+
+  var workflows = entries.map(function (workflow) {
+    return new Workflow(workflow, options);
+  });
+  json.entries = workflows;
+  return json;
+};
+
+var taskUnmarshaller = function taskUnmarshaller(json, options) {
+  return new Task(json, options);
+};
+
+var tasksUnmarshaller = function tasksUnmarshaller(json, options) {
+  var entries = json.entries;
+
+  var tasks = entries.map(function (task) {
+    return new Task(task, options);
+  });
+  json.entries = tasks;
+  return json;
+};
+
+var userUnmarshaller = function userUnmarshaller(json, options) {
+  return new User(json, options);
+};
+
+var groupUnmarshaller = function groupUnmarshaller(json, options) {
+  return new Group(json, options);
+};
+
+Unmarshallers.documentUnmarshaller = documentUnmarshaller;
+Unmarshallers.documentsUnmarshaller = documentsUnmarshaller;
+Unmarshallers.workflowUnmarshaller = workflowUnmarshaller;
+Unmarshallers.workflowsUnmarshaller = workflowsUnmarshaller;
+Unmarshallers.taskUnmarshaller = taskUnmarshaller;
+Unmarshallers.tasksUnmarshaller = tasksUnmarshaller;
+Unmarshallers.userUnmarshaller = userUnmarshaller;
+Unmarshallers.groupUnmarshaller = groupUnmarshaller;
+
+module.exports = Unmarshallers;
+
+},{"../document":14,"../group/group":15,"../user/user":25,"../workflow/task":27,"../workflow/workflow":28}],23:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('../base');
+var join = require('../deps/utils/join');
+var flatten = require('../deps/utils/flatten');
+var Queue = require('promise-queue');
+var BatchBlob = require('./blob');
+
+var DEFAULT_OPTS = {
+  concurrency: 5
+};
+
+/**
+ * The **BatchUpload** class allows to upload {@link Blob} objets to a Nuxeo Platform instance
+ * using the batch upload API.
+ *
+ * It creates and maintains a batch id from the Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * var batch = nuxeo.batchUpload();
+ * var nuxeoBlob = new Nuxeo.Blob(...);
+ * batch.upload(nuxeoBlob)
+ *   .then(function(res) {
+ *     // res.blob instanceof BatchBlob === true
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
+ */
+
+var BatchUpload = function (_Base) {
+  _inherits(BatchUpload, _Base);
+
+  /**
+   * Creates a BatchUpload.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this BatchUpload object.
+   * @param {Number} [opts.concurrency=5] - Number of concurrent uploads.
+   */
+  function BatchUpload() {
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, BatchUpload);
+
+    var options = extend(true, {}, DEFAULT_OPTS, opts);
+
+    var _this = _possibleConstructorReturn(this, (BatchUpload.__proto__ || Object.getPrototypeOf(BatchUpload)).call(this, options));
+
+    _this._url = join(options.url, 'upload/');
+    _this._nuxeo = options.nuxeo;
+    _this._uploadIndex = 0;
+    Queue.configure(_this._nuxeo.Promise);
+    _this._queue = new Queue(options.concurrency, Infinity);
+    _this._batchIdPromise = null;
+    _this._batchId = null;
+    _this._promises = [];
+    return _this;
+  }
+
+  /**
+   * Upload one or more blobs.
+   * @param {...Blob} blobs - Blobs to be uploaded.
+   * @returns {Promise} A Promise object resolved when all blobs are uploaded.
+   *
+   * @example
+   * ...
+   * nuxeoBatch.upload(blob1, blob2, blob3)
+   *   .then(function(res) {
+   *     // res.batch === nuxeoBatch
+   *     // res.blobs[0] is the BatchBlob object related to blob1
+   *     // res.blobs[1] is the BatchBlob object related to blob2
+   *     // res.blobs[2] is the BatchBlob object related to blob3
+   *   })
+   *   .catch(function(error) {
+   *     throw new Error(error);
+   *   });
+   */
+
+
+  _createClass(BatchUpload, [{
+    key: 'upload',
+    value: function upload() {
+      var _this2 = this;
+
+      for (var _len = arguments.length, blobs = Array(_len), _key = 0; _key < _len; _key++) {
+        blobs[_key] = arguments[_key];
+      }
+
+      var allBlobs = flatten(blobs);
+      var promises = allBlobs.map(function (blob) {
+        var promise = _this2._queue.add(_this2._upload.bind(_this2, blob));
+        _this2._promises.push(promise);
+        return promise;
+      });
+      if (promises.length === 1) {
+        return promises[0];
+      }
+
+      var Promise = this._nuxeo.Promise;
+      return Promise.all(promises).then(function (batchBlobs) {
+        return {
+          blobs: batchBlobs.map(function (batchBlob) {
+            return batchBlob.blob;
+          }),
+          batch: _this2
+        };
+      });
+    }
+  }, {
+    key: '_upload',
+    value: function _upload(blob) {
+      var _this3 = this;
+
+      if (!this._batchIdPromise) {
+        this._batchIdPromise = this._fetchBatchId();
+      }
+
+      var uploadIndex = this._uploadIndex++;
+      return this._batchIdPromise.then(function () {
+        var opts = {
+          json: false,
+          method: 'POST',
+          url: join(_this3._url, _this3._batchId, uploadIndex),
+          body: blob.content,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'X-File-Name': encodeURIComponent(blob.name),
+            'X-File-Size': blob.size,
+            'X-File-Type': blob.mimeType,
+            'Content-Length': blob.size
+          }
+        };
+        var options = _this3._computeOptions(opts);
+        return _this3._nuxeo._http(options);
+      }).then(function (res) {
+        res.batchId = _this3._batchId;
+        res.index = uploadIndex;
+        return {
+          blob: new BatchBlob(res),
+          batch: _this3
+        };
+      });
+    }
+  }, {
+    key: '_fetchBatchId',
+    value: function _fetchBatchId() {
+      var _this4 = this;
+
+      var opts = {
+        method: 'POST',
+        url: this._url
+      };
+
+      var Promise = this._nuxeo.Promise;
+      if (this._batchId) {
+        return Promise.resolve(this);
+      }
+      var options = this._computeOptions(opts);
+      return this._nuxeo._http(options).then(function (res) {
+        _this4._batchId = res.batchId;
+        return _this4;
+      });
+    }
+
+    /**
+     * Wait for all the current uploads to be finished. Note that it won't wait for uploads added after done() being call.
+     * If an uploaded is added, you should call again done().
+     * The {@link BatchUpload#isFinished} method can be used to know if the batch is finished.
+     * @returns {Promise} A Promise object resolved when all the current uploads are finished.
+     *
+     * @example
+     * ...
+     * nuxeoBatch.upload(blob1, blob2, blob3);
+     * nuxeoBatch.done()
+     *   .then(function(res) {
+     *     // res.batch === nuxeoBatch
+     *     // res.blobs[0] is the BatchBlob object related to blob1
+     *     // res.blobs[1] is the BatchBlob object related to blob2
+     *     // res.blobs[2] is the BatchBlob object related to blob3
+     *   })
+     *   .catch(function(error) {
+     *     throw new Error(error);
+     *   });
+     */
+
+  }, {
+    key: 'done',
+    value: function done() {
+      var _this5 = this;
+
+      var Promise = this._nuxeo.Promise;
+      return Promise.all(this._promises).then(function (batchBlobs) {
+        return {
+          blobs: batchBlobs.map(function (batchBlob) {
+            return batchBlob.blob;
+          }),
+          batch: _this5
+        };
+      });
+    }
+
+    /**
+     * Returns weither the BatchUpload is finished, ie. has uploads running, or not.
+     * @returns {Boolean} true if the BatchUpload is finished, false otherwise.
+     */
+
+  }, {
+    key: 'isFinished',
+    value: function isFinished() {
+      return this._queue.getQueueLength() === 0 && this._queue.getPendingLength() === 0;
+    }
+
+    /**
+     * Cancels a BatchUpload.
+     * @returns {Promise} A Promise object resolved with the BatchUpload itself.
+     */
+
+  }, {
+    key: 'cancel',
+    value: function cancel(opts) {
+      var _this6 = this;
+
+      var Promise = this._nuxeo.Promise;
+      if (!this._batchIdPromise) {
+        return Promise.resolve(this);
+      }
+
+      var path = join('upload', this._batchId);
+      return this._batchIdPromise.then(function () {
+        var options = _this6._computeOptions(opts);
+        return _this6._nuxeo.request(path).delete(options);
+      }).then(function () {
+        _this6._batchIdPromise = null;
+        _this6._batchId = null;
+        return _this6;
+      });
+    }
+
+    /**
+     * Fetches a blob at a given index from the batch.
+     * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlob.
+     */
+
+  }, {
+    key: 'fetchBlob',
+    value: function fetchBlob(index) {
+      var _this7 = this;
+
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var Promise = this._nuxeo.Promise;
+      if (!this._batchId) {
+        return Promise.reject(new Error('No \'batchId\' set'));
+      }
+
+      var options = {
+        method: 'GET',
+        url: join(this._url, this._batchId, index)
+      };
+      options = extend(true, options, opts);
+      options = this._computeOptions(options);
+      return this._nuxeo._http(options).then(function (res) {
+        res.batchId = _this7._batchId;
+        res.index = index;
+        return {
+          batch: _this7,
+          blob: new BatchBlob(res)
+        };
+      });
+    }
+
+    /**
+     * Fetches the blobs from the batch.
+     * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlobs.
+     */
+
+  }, {
+    key: 'fetchBlobs',
+    value: function fetchBlobs(opts) {
+      var _this8 = this;
+
+      var Promise = this._nuxeo.Promise;
+      if (!this._batchId) {
+        return Promise.reject(new Error('No \'batchId\' set'));
+      }
+
+      var options = {
+        method: 'GET',
+        url: join(this._url, this._batchId)
+      };
+      options = extend(true, options, opts);
+      options = this._computeOptions(options);
+      return this._nuxeo._http(options).then(function (blobs) {
+        var batchBlobs = blobs.map(function (blob, index) {
+          blob.batchId = _this8._batchId;
+          blob.index = index;
+          return new BatchBlob(blob);
+        });
+        return {
+          batch: _this8,
+          blobs: batchBlobs
+        };
+      });
+    }
+  }]);
+
+  return BatchUpload;
+}(Base);
+
+module.exports = BatchUpload;
+
+},{"../base":2,"../deps/utils/flatten":10,"../deps/utils/join":11,"./blob":24,"extend":36,"promise-queue":41}],24:[function(require,module,exports){
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var extend = require('extend');
+
+/**
+ * The `BatchBlob` class wraps a blob uploaded through a {@link BatchUpload} to be used
+ * in an {@link Operation} input or as a property value on a {@link Document}.
+ */
+
+var BatchBlob = function BatchBlob() {
+  var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  _classCallCheck(this, BatchBlob);
+
+  this['upload-batch'] = data.batchId;
+  this['upload-fileId'] = '' + data.index;
+  delete data.batchId;
+  delete data.index;
+  extend(this, data);
+};
+
+module.exports = BatchBlob;
+
+},{"extend":36}],25:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('../base');
+
+/**
+ * The `User` class wraps an user.
+ *
+ * **Cannot directly be instantiated**
+ */
+
+var User = function (_Base) {
+  _inherits(User, _Base);
+
+  /**
+   * Creates a User.
+   * @param {object} user - The initial user object. This User object will be extended with user properties.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.users - The {@link Users} object linked to this user.
+   */
+  function User(user, opts) {
+    _classCallCheck(this, User);
+
+    var _this = _possibleConstructorReturn(this, (User.__proto__ || Object.getPrototypeOf(User)).call(this, opts));
+
+    _this._users = opts.users;
+    _this.properties = {};
+    _this._dirtyProperties = {};
+    extend(true, _this, user);
+    return _this;
+  }
+
+  /**
+   * Sets user properties.
+   * @param {object} properties - The properties to set.
+   * @returns {User}
+   *
+   * @example
+   * user.set({
+   *   firstName: 'new first name',
+   *   company: 'new company',
+   * });
+   */
+
+
+  _createClass(User, [{
+    key: 'set',
+    value: function set(properties) {
+      this._dirtyProperties = extend(true, {}, this._dirtyProperties, properties);
+      return this;
+    }
+
+    /**
+     * Gets a user property.
+     * @param {string} propertyName - The property name, such as 'fistName', 'email', ...
+     * @returns {User}
+     */
+
+  }, {
+    key: 'get',
+    value: function get(propertyName) {
+      return this._dirtyProperties[propertyName] || this.properties[propertyName];
+    }
+
+    /**
+     * Saves the user. It updates only the 'dirty properties' set through the {@link User#set} method.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the updated user.
+     */
+
+  }, {
+    key: 'save',
+    value: function save() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      return this._users.update({
+        id: this.id,
+        properties: this._dirtyProperties
+      }, options);
+    }
+  }]);
+
+  return User;
+}(Base);
+
+module.exports = User;
+
+},{"../base":2,"extend":36}],26:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = require('../base');
+var join = require('../deps/utils/join');
+
+var USER_PATH = 'user';
+
+/**
+ * The `Users` class allows to work with users on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator',
+ *  }
+ * });
+ * nuxeo.users()
+ *   .fetch('Administrator')
+ *   .then(function(res) => {
+ *     // res.id === 'Administrator'
+ *     // res.properties.username === 'Administrator'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
+ */
+
+var Users = function (_Base) {
+  _inherits(Users, _Base);
+
+  /**
+   * Creates a Users object.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Users object.
+   */
+  function Users(opts) {
+    _classCallCheck(this, Users);
+
+    var _this = _possibleConstructorReturn(this, (Users.__proto__ || Object.getPrototypeOf(Users)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    return _this;
+  }
+
+  /**
+   * Fetches an user given an username.
+   * @param {string} username - The username.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the {@link User}.
+   */
+
+
+  _createClass(Users, [{
+    key: 'fetch',
+    value: function fetch(username) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(USER_PATH, username);
+      options.users = this;
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Creates an user.
+     * @param {object} user - The user to be created.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the created {@link User}.
+     */
+
+  }, {
+    key: 'create',
+    value: function create(user) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        'entity-type': 'user',
+        properties: user.properties
+      };
+      var options = this._computeOptions(opts);
+      options.users = this;
+      return this._nuxeo.request(USER_PATH).post(options);
+    }
+
+    /**
+     * Updates an user. Assumes that the user object has an id field.
+     * @param {object} user - The user to be updated.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the updated {@link User}.
+     */
+
+  }, {
+    key: 'update',
+    value: function update(user) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      opts.body = {
+        'entity-type': 'user',
+        id: user.id,
+        properties: user.properties
+      };
+      var options = this._computeOptions(opts);
+      var path = join(USER_PATH, user.id);
+      options.users = this;
+      return this._nuxeo.request(path).put(options);
+    }
+
+    /**
+     * Deletes an user given an username.
+     * @param {string} username - The username.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
+     */
+
+  }, {
+    key: 'delete',
+    value: function _delete(username) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(USER_PATH, username);
+      return this._nuxeo.request(path).delete(options);
+    }
+  }]);
+
+  return Users;
+}(Base);
+
+module.exports = Users;
+
+},{"../base":2,"../deps/utils/join":11}],27:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('../base');
+var join = require('../deps/utils/join');
+
+var TASK_PATH = 'task';
+
+/**
+ * The `Task` class wraps a task.
+ *
+ * **Cannot directly be instantiated**
+ */
+
+var Task = function (_Base) {
+  _inherits(Task, _Base);
+
+  /**
+   * Creates a `Task`.
+   * @param {object} task - The initial task object. This Task object will be extended with task properties.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this task.
+   * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
+   */
+  function Task(task, opts) {
+    _classCallCheck(this, Task);
+
+    var _this = _possibleConstructorReturn(this, (Task.__proto__ || Object.getPrototypeOf(Task)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    _this._documentId = opts.documentId;
+    extend(true, _this, task);
+    return _this;
+  }
+
+  /**
+   * Sets a task variable.
+   * @param {string} name - The name of the variable.
+   * @param {string} value - The value of the variable.
+   * @returns {Task} The task itself.
+   */
+
+
+  _createClass(Task, [{
+    key: 'variable',
+    value: function variable(name, value) {
+      this.variables[name] = value;
+      return this;
+    }
+
+    /**
+     * Completes the task.
+     * @param {string} action - The action name to complete the task.
+     * @param {object} [taskOpts] - Configuration options for the task completion.
+     * @param {string} [taskOpts.variables] - Optional variables to override the existing ones.
+     * @param {string} [taskOpts.comment] - Optional comment.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the completed task.
+     */
+
+  }, {
+    key: 'complete',
+    value: function complete(action) {
+      var taskOpts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      var variables = taskOpts.variables || this.variables;
+      opts.body = {
+        variables: variables,
+        'entity-type': 'task',
+        id: this.id,
+        comment: taskOpts.comment
+      };
+      var options = this._computeOptions(opts);
+      var path = join(TASK_PATH, this.id, action);
+      return this._nuxeo.request(path).put(options);
+    }
+
+    /**
+     * Reassigns the task to the given actors.
+     * @param {string} actors - Actors to reassign the task.
+     * @param {object} [taskOpts] - Configuration options for the task reassignment.
+     * @param {string} [taskOpts.comment] - Optional comment.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with nothing.
+     */
+
+  }, {
+    key: 'reassign',
+    value: function reassign(actors) {
+      var taskOpts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(TASK_PATH, this.id, 'reassign');
+      return this._nuxeo.request(path).queryParams({
+        actors: actors,
+        comment: taskOpts.comment
+      }).put(options);
+    }
+
+    /**
+     * Delegates the task to the given actors.
+     * @param {string} actors - Actors to delegate the task.
+     * @param {object} [taskOpts] - Configuration options for the task delegation.
+     * @param {string} [taskOpts.comment] - Optional comment.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with nothing.
+     */
+
+  }, {
+    key: 'delegate',
+    value: function delegate(actors) {
+      var taskOpts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(TASK_PATH, this.id, 'delegate');
+      return this._nuxeo.request(path).queryParams({
+        delegatedActors: actors,
+        comment: taskOpts.comment
+      }).put(options);
+    }
+  }]);
+
+  return Task;
+}(Base);
+
+module.exports = Task;
+
+},{"../base":2,"../deps/utils/join":11,"extend":36}],28:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var extend = require('extend');
+var Base = require('../base');
+var join = require('../deps/utils/join');
+
+var WORKFLOW_PATH = 'workflow';
+
+/**
+ * The `Workflow` class wraps a workflow.
+ *
+ * **Cannot directly be instantiated**
+ */
+
+var Workflow = function (_Base) {
+  _inherits(Workflow, _Base);
+
+  /**
+   * Creates a `Workflow`.
+   * @param {object} workflow - The initial workflow object. This User object will be extended with workflow properties.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this workflow.
+   * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
+   */
+  function Workflow(workflow, opts) {
+    _classCallCheck(this, Workflow);
+
+    var _this = _possibleConstructorReturn(this, (Workflow.__proto__ || Object.getPrototypeOf(Workflow)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    _this._documentId = opts.documentId;
+    extend(true, _this, workflow);
+    return _this;
+  }
+
+  /**
+   * Fetches the tasks of this workflow.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A promise object resolved with the tasks.
+   */
+
+
+  _createClass(Workflow, [{
+    key: 'fetchTasks',
+    value: function fetchTasks() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      options.documentId = this.uid;
+      return this._buildTasksRequest().get(options);
+    }
+
+    /**
+     * Fetches this workflow graph.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the workflow graph.
+     */
+
+  }, {
+    key: 'fetchGraph',
+    value: function fetchGraph() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(WORKFLOW_PATH, this.id, 'graph');
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Builds the correct `Request` object depending of wether this workflow is attached to a document or not.
+     * @returns {Request} A request object.
+     */
+
+  }, {
+    key: '_buildTasksRequest',
+    value: function _buildTasksRequest() {
+      if (this._documentId) {
+        var path = join('id', this._documentId, '@workflow', this.id, 'task');
+        return this._nuxeo.request(path);
+      }
+      return this._nuxeo.request('task').queryParams({
+        workflowInstanceId: this.id
+      });
+    }
+  }]);
+
+  return Workflow;
+}(Base);
+
+module.exports = Workflow;
+
+},{"../base":2,"../deps/utils/join":11,"extend":36}],29:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = require('../base');
+var join = require('../deps/utils/join');
+
+var WORKFLOW_PATH = 'workflow';
+var TASK_PATH = 'task';
+
+/**
+ * The `Workflows` class allows to work with workflows on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseUrl: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator',
+ *  }
+ * });
+ * nuxeo.workflows()
+ *   .start('SerialDocumentReview')
+ *   .then(function(res) {
+ *     // res['entity-type'] === 'workflow'
+ *     // res.workflowModelName === 'SerialDocumentReview'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error);
+ *   });
+ */
+
+var Workflows = function (_Base) {
+  _inherits(Workflows, _Base);
+
+  /**
+   * Creates a Workflows object.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Workflows object.
+   */
+  function Workflows() {
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, Workflows);
+
+    var _this = _possibleConstructorReturn(this, (Workflows.__proto__ || Object.getPrototypeOf(Workflows)).call(this, opts));
+
+    _this._nuxeo = opts.nuxeo;
+    return _this;
+  }
+
+  /**
+   * Starts a workflow given a workflow model name.
+   * @param {string} workflowModelName - The workflow model name.
+   * @param {object} [workflowOpts] - Configuration options for the start of the workflow.
+   * @param {Array} [workflowOpts.attachedDocumentIds] - The attached documents id for the workflow.
+   * @param {object} [workflowOpts.variables] - The initial variables of the workflow.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A promise object resolved with the started `Workflow` object.
+   */
+
+
+  _createClass(Workflows, [{
+    key: 'start',
+    value: function start(workflowModelName) {
+      var workflowOpts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      opts.body = {
+        workflowModelName: workflowModelName,
+        'entity-type': 'workflow',
+        attachedDocumentIds: workflowOpts.attachedDocumentIds,
+        variables: workflowOpts.variables
+      };
+      var options = this._computeOptions(opts);
+      return this._nuxeo.request(WORKFLOW_PATH).post(options);
+    }
+
+    /**
+     * Fetches a workflow given a workflow instance id.
+     * @param {string} workflowInstanceId - The workflow instance id.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the `Workflow` object.
+     */
+
+  }, {
+    key: 'fetch',
+    value: function fetch(workflowInstanceId) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(WORKFLOW_PATH, workflowInstanceId);
+      return this._nuxeo.request(path).get(options);
+    }
+
+    /**
+     * Deletes a workflow instance given a workflow instance id.
+     * @param {string} workflowInstanceId - The workflow instance id.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
+     */
+
+  }, {
+    key: 'delete',
+    value: function _delete(workflowInstanceId) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      var path = join(WORKFLOW_PATH, workflowInstanceId);
+      return this._nuxeo.request(path).delete(options);
+    }
+
+    /**
+     * Fetches the workflows started by the current user.
+     * @param {string} workflowModelName - The workflow model name.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the started workflows.
+     */
+
+  }, {
+    key: 'fetchStartedWorkflows',
+    value: function fetchStartedWorkflows(workflowModelName) {
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      return this._nuxeo.request(WORKFLOW_PATH).queryParams({ workflowModelName: workflowModelName }).get(options);
+    }
+
+    /**
+     * Fetches the tasks for a given workflow id and/or workflow model name and/or actor id.
+     * @param {object} [tasksOpts] - Configuration options for the tasks fetch.
+     * @param {object} [tasksOpts.actorId] - The actor id.
+     * @param {object} [tasksOpts.workflowInstanceId] - The workflow id.
+     * @param {object} [tasksOpts.workflowModelName] - The workflow model name.
+     * @param {object} [opts] - Options overriding the ones from this object.
+     * @returns {Promise} A promise object resolved with the tasks.
+     */
+
+  }, {
+    key: 'fetchTasks',
+    value: function fetchTasks() {
+      var tasksOpts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var options = this._computeOptions(opts);
+      return this._nuxeo.request(TASK_PATH).queryParams({
+        userId: tasksOpts.actorId,
+        workflowInstanceId: tasksOpts.workflowInstanceId,
+        workflowModelName: tasksOpts.workflowModelName
+      }).get(options);
+    }
+  }]);
+
+  return Workflows;
+}(Base);
+
+module.exports = Workflows;
+
+},{"../base":2,"../deps/utils/join":11}],30:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -124,7 +3926,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],2:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -1676,970 +5478,1304 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":1,"ieee754":5,"isarray":6}],3:[function(require,module,exports){
+},{"base64-js":30,"ieee754":37,"isarray":32}],32:[function(require,module,exports){
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
+
+},{}],33:[function(require,module,exports){
+var charenc = {
+  // UTF-8 encoding
+  utf8: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      return charenc.bin.stringToBytes(unescape(encodeURIComponent(str)));
+    },
+
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      return decodeURIComponent(escape(charenc.bin.bytesToString(bytes)));
+    }
+  },
+
+  // Binary encoding
+  bin: {
+    // Convert a string to a byte array
+    stringToBytes: function(str) {
+      for (var bytes = [], i = 0; i < str.length; i++)
+        bytes.push(str.charCodeAt(i) & 0xFF);
+      return bytes;
+    },
+
+    // Convert a byte array to a string
+    bytesToString: function(bytes) {
+      for (var str = [], i = 0; i < bytes.length; i++)
+        str.push(String.fromCharCode(bytes[i]));
+      return str.join('');
+    }
+  }
+};
+
+module.exports = charenc;
+
+},{}],34:[function(require,module,exports){
+(function() {
+  var base64map
+      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+
+  crypt = {
+    // Bit-wise rotation left
+    rotl: function(n, b) {
+      return (n << b) | (n >>> (32 - b));
+    },
+
+    // Bit-wise rotation right
+    rotr: function(n, b) {
+      return (n << (32 - b)) | (n >>> b);
+    },
+
+    // Swap big-endian to little-endian and vice versa
+    endian: function(n) {
+      // If number given, swap endian
+      if (n.constructor == Number) {
+        return crypt.rotl(n, 8) & 0x00FF00FF | crypt.rotl(n, 24) & 0xFF00FF00;
+      }
+
+      // Else, assume array and swap all items
+      for (var i = 0; i < n.length; i++)
+        n[i] = crypt.endian(n[i]);
+      return n;
+    },
+
+    // Generate an array of any length of random bytes
+    randomBytes: function(n) {
+      for (var bytes = []; n > 0; n--)
+        bytes.push(Math.floor(Math.random() * 256));
+      return bytes;
+    },
+
+    // Convert a byte array to big-endian 32-bit words
+    bytesToWords: function(bytes) {
+      for (var words = [], i = 0, b = 0; i < bytes.length; i++, b += 8)
+        words[b >>> 5] |= bytes[i] << (24 - b % 32);
+      return words;
+    },
+
+    // Convert big-endian 32-bit words to a byte array
+    wordsToBytes: function(words) {
+      for (var bytes = [], b = 0; b < words.length * 32; b += 8)
+        bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 0xFF);
+      return bytes;
+    },
+
+    // Convert a byte array to a hex string
+    bytesToHex: function(bytes) {
+      for (var hex = [], i = 0; i < bytes.length; i++) {
+        hex.push((bytes[i] >>> 4).toString(16));
+        hex.push((bytes[i] & 0xF).toString(16));
+      }
+      return hex.join('');
+    },
+
+    // Convert a hex string to a byte array
+    hexToBytes: function(hex) {
+      for (var bytes = [], c = 0; c < hex.length; c += 2)
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+      return bytes;
+    },
+
+    // Convert a byte array to a base-64 string
+    bytesToBase64: function(bytes) {
+      for (var base64 = [], i = 0; i < bytes.length; i += 3) {
+        var triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+        for (var j = 0; j < 4; j++)
+          if (i * 8 + j * 6 <= bytes.length * 8)
+            base64.push(base64map.charAt((triplet >>> 6 * (3 - j)) & 0x3F));
+          else
+            base64.push('=');
+      }
+      return base64.join('');
+    },
+
+    // Convert a base-64 string to a byte array
+    base64ToBytes: function(base64) {
+      // Remove non-base-64 characters
+      base64 = base64.replace(/[^A-Z0-9+\/]/ig, '');
+
+      for (var bytes = [], i = 0, imod4 = 0; i < base64.length;
+          imod4 = ++i % 4) {
+        if (imod4 == 0) continue;
+        bytes.push(((base64map.indexOf(base64.charAt(i - 1))
+            & (Math.pow(2, -2 * imod4 + 8) - 1)) << (imod4 * 2))
+            | (base64map.indexOf(base64.charAt(i)) >>> (6 - imod4 * 2)));
+      }
+      return bytes;
+    }
+  };
+
+  module.exports = crypt;
+})();
+
+},{}],35:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
- *            See https://raw.githubusercontent.com/jakearchibald/es6-promise/master/LICENSE
- * @version   3.2.1
+ *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
+ * @version   3.3.1
  */
 
-(function() {
-    "use strict";
-    function lib$es6$promise$utils$$objectOrFunction(x) {
-      return typeof x === 'function' || (typeof x === 'object' && x !== null);
-    }
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (global.ES6Promise = factory());
+}(this, (function () { 'use strict';
 
-    function lib$es6$promise$utils$$isFunction(x) {
-      return typeof x === 'function';
-    }
+function objectOrFunction(x) {
+  return typeof x === 'function' || typeof x === 'object' && x !== null;
+}
 
-    function lib$es6$promise$utils$$isMaybeThenable(x) {
-      return typeof x === 'object' && x !== null;
-    }
+function isFunction(x) {
+  return typeof x === 'function';
+}
 
-    var lib$es6$promise$utils$$_isArray;
-    if (!Array.isArray) {
-      lib$es6$promise$utils$$_isArray = function (x) {
-        return Object.prototype.toString.call(x) === '[object Array]';
-      };
+var _isArray = undefined;
+if (!Array.isArray) {
+  _isArray = function (x) {
+    return Object.prototype.toString.call(x) === '[object Array]';
+  };
+} else {
+  _isArray = Array.isArray;
+}
+
+var isArray = _isArray;
+
+var len = 0;
+var vertxNext = undefined;
+var customSchedulerFn = undefined;
+
+var asap = function asap(callback, arg) {
+  queue[len] = callback;
+  queue[len + 1] = arg;
+  len += 2;
+  if (len === 2) {
+    // If len is 2, that means that we need to schedule an async flush.
+    // If additional callbacks are queued before the queue is flushed, they
+    // will be processed by this flush that we are scheduling.
+    if (customSchedulerFn) {
+      customSchedulerFn(flush);
     } else {
-      lib$es6$promise$utils$$_isArray = Array.isArray;
+      scheduleFlush();
     }
+  }
+};
+
+function setScheduler(scheduleFn) {
+  customSchedulerFn = scheduleFn;
+}
+
+function setAsap(asapFn) {
+  asap = asapFn;
+}
+
+var browserWindow = typeof window !== 'undefined' ? window : undefined;
+var browserGlobal = browserWindow || {};
+var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && ({}).toString.call(process) === '[object process]';
+
+// test for web worker but not in IE10
+var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
+
+// node
+function useNextTick() {
+  // node version 0.10.x displays a deprecation warning when nextTick is used recursively
+  // see https://github.com/cujojs/when/issues/410 for details
+  return function () {
+    return process.nextTick(flush);
+  };
+}
+
+// vertx
+function useVertxTimer() {
+  return function () {
+    vertxNext(flush);
+  };
+}
+
+function useMutationObserver() {
+  var iterations = 0;
+  var observer = new BrowserMutationObserver(flush);
+  var node = document.createTextNode('');
+  observer.observe(node, { characterData: true });
+
+  return function () {
+    node.data = iterations = ++iterations % 2;
+  };
+}
+
+// web worker
+function useMessageChannel() {
+  var channel = new MessageChannel();
+  channel.port1.onmessage = flush;
+  return function () {
+    return channel.port2.postMessage(0);
+  };
+}
+
+function useSetTimeout() {
+  // Store setTimeout reference so es6-promise will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var globalSetTimeout = setTimeout;
+  return function () {
+    return globalSetTimeout(flush, 1);
+  };
+}
+
+var queue = new Array(1000);
+function flush() {
+  for (var i = 0; i < len; i += 2) {
+    var callback = queue[i];
+    var arg = queue[i + 1];
+
+    callback(arg);
+
+    queue[i] = undefined;
+    queue[i + 1] = undefined;
+  }
+
+  len = 0;
+}
+
+function attemptVertx() {
+  try {
+    var r = require;
+    var vertx = r('vertx');
+    vertxNext = vertx.runOnLoop || vertx.runOnContext;
+    return useVertxTimer();
+  } catch (e) {
+    return useSetTimeout();
+  }
+}
+
+var scheduleFlush = undefined;
+// Decide what async method to use to triggering processing of queued callbacks:
+if (isNode) {
+  scheduleFlush = useNextTick();
+} else if (BrowserMutationObserver) {
+  scheduleFlush = useMutationObserver();
+} else if (isWorker) {
+  scheduleFlush = useMessageChannel();
+} else if (browserWindow === undefined && typeof require === 'function') {
+  scheduleFlush = attemptVertx();
+} else {
+  scheduleFlush = useSetTimeout();
+}
 
-    var lib$es6$promise$utils$$isArray = lib$es6$promise$utils$$_isArray;
-    var lib$es6$promise$asap$$len = 0;
-    var lib$es6$promise$asap$$vertxNext;
-    var lib$es6$promise$asap$$customSchedulerFn;
-
-    var lib$es6$promise$asap$$asap = function asap(callback, arg) {
-      lib$es6$promise$asap$$queue[lib$es6$promise$asap$$len] = callback;
-      lib$es6$promise$asap$$queue[lib$es6$promise$asap$$len + 1] = arg;
-      lib$es6$promise$asap$$len += 2;
-      if (lib$es6$promise$asap$$len === 2) {
-        // If len is 2, that means that we need to schedule an async flush.
-        // If additional callbacks are queued before the queue is flushed, they
-        // will be processed by this flush that we are scheduling.
-        if (lib$es6$promise$asap$$customSchedulerFn) {
-          lib$es6$promise$asap$$customSchedulerFn(lib$es6$promise$asap$$flush);
-        } else {
-          lib$es6$promise$asap$$scheduleFlush();
-        }
-      }
-    }
-
-    function lib$es6$promise$asap$$setScheduler(scheduleFn) {
-      lib$es6$promise$asap$$customSchedulerFn = scheduleFn;
-    }
-
-    function lib$es6$promise$asap$$setAsap(asapFn) {
-      lib$es6$promise$asap$$asap = asapFn;
-    }
-
-    var lib$es6$promise$asap$$browserWindow = (typeof window !== 'undefined') ? window : undefined;
-    var lib$es6$promise$asap$$browserGlobal = lib$es6$promise$asap$$browserWindow || {};
-    var lib$es6$promise$asap$$BrowserMutationObserver = lib$es6$promise$asap$$browserGlobal.MutationObserver || lib$es6$promise$asap$$browserGlobal.WebKitMutationObserver;
-    var lib$es6$promise$asap$$isNode = typeof self === 'undefined' && typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
-
-    // test for web worker but not in IE10
-    var lib$es6$promise$asap$$isWorker = typeof Uint8ClampedArray !== 'undefined' &&
-      typeof importScripts !== 'undefined' &&
-      typeof MessageChannel !== 'undefined';
-
-    // node
-    function lib$es6$promise$asap$$useNextTick() {
-      // node version 0.10.x displays a deprecation warning when nextTick is used recursively
-      // see https://github.com/cujojs/when/issues/410 for details
-      return function() {
-        process.nextTick(lib$es6$promise$asap$$flush);
-      };
-    }
-
-    // vertx
-    function lib$es6$promise$asap$$useVertxTimer() {
-      return function() {
-        lib$es6$promise$asap$$vertxNext(lib$es6$promise$asap$$flush);
-      };
-    }
-
-    function lib$es6$promise$asap$$useMutationObserver() {
-      var iterations = 0;
-      var observer = new lib$es6$promise$asap$$BrowserMutationObserver(lib$es6$promise$asap$$flush);
-      var node = document.createTextNode('');
-      observer.observe(node, { characterData: true });
-
-      return function() {
-        node.data = (iterations = ++iterations % 2);
-      };
-    }
-
-    // web worker
-    function lib$es6$promise$asap$$useMessageChannel() {
-      var channel = new MessageChannel();
-      channel.port1.onmessage = lib$es6$promise$asap$$flush;
-      return function () {
-        channel.port2.postMessage(0);
-      };
-    }
-
-    function lib$es6$promise$asap$$useSetTimeout() {
-      return function() {
-        setTimeout(lib$es6$promise$asap$$flush, 1);
-      };
-    }
-
-    var lib$es6$promise$asap$$queue = new Array(1000);
-    function lib$es6$promise$asap$$flush() {
-      for (var i = 0; i < lib$es6$promise$asap$$len; i+=2) {
-        var callback = lib$es6$promise$asap$$queue[i];
-        var arg = lib$es6$promise$asap$$queue[i+1];
-
-        callback(arg);
-
-        lib$es6$promise$asap$$queue[i] = undefined;
-        lib$es6$promise$asap$$queue[i+1] = undefined;
-      }
-
-      lib$es6$promise$asap$$len = 0;
-    }
-
-    function lib$es6$promise$asap$$attemptVertx() {
-      try {
-        var r = require;
-        var vertx = r('vertx');
-        lib$es6$promise$asap$$vertxNext = vertx.runOnLoop || vertx.runOnContext;
-        return lib$es6$promise$asap$$useVertxTimer();
-      } catch(e) {
-        return lib$es6$promise$asap$$useSetTimeout();
-      }
-    }
-
-    var lib$es6$promise$asap$$scheduleFlush;
-    // Decide what async method to use to triggering processing of queued callbacks:
-    if (lib$es6$promise$asap$$isNode) {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useNextTick();
-    } else if (lib$es6$promise$asap$$BrowserMutationObserver) {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useMutationObserver();
-    } else if (lib$es6$promise$asap$$isWorker) {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useMessageChannel();
-    } else if (lib$es6$promise$asap$$browserWindow === undefined && typeof require === 'function') {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$attemptVertx();
-    } else {
-      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useSetTimeout();
-    }
-    function lib$es6$promise$then$$then(onFulfillment, onRejection) {
-      var parent = this;
-
-      var child = new this.constructor(lib$es6$promise$$internal$$noop);
-
-      if (child[lib$es6$promise$$internal$$PROMISE_ID] === undefined) {
-        lib$es6$promise$$internal$$makePromise(child);
-      }
-
-      var state = parent._state;
-
-      if (state) {
-        var callback = arguments[state - 1];
-        lib$es6$promise$asap$$asap(function(){
-          lib$es6$promise$$internal$$invokeCallback(state, child, callback, parent._result);
-        });
-      } else {
-        lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection);
-      }
-
-      return child;
-    }
-    var lib$es6$promise$then$$default = lib$es6$promise$then$$then;
-    function lib$es6$promise$promise$resolve$$resolve(object) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      if (object && typeof object === 'object' && object.constructor === Constructor) {
-        return object;
-      }
-
-      var promise = new Constructor(lib$es6$promise$$internal$$noop);
-      lib$es6$promise$$internal$$resolve(promise, object);
-      return promise;
-    }
-    var lib$es6$promise$promise$resolve$$default = lib$es6$promise$promise$resolve$$resolve;
-    var lib$es6$promise$$internal$$PROMISE_ID = Math.random().toString(36).substring(16);
-
-    function lib$es6$promise$$internal$$noop() {}
-
-    var lib$es6$promise$$internal$$PENDING   = void 0;
-    var lib$es6$promise$$internal$$FULFILLED = 1;
-    var lib$es6$promise$$internal$$REJECTED  = 2;
-
-    var lib$es6$promise$$internal$$GET_THEN_ERROR = new lib$es6$promise$$internal$$ErrorObject();
-
-    function lib$es6$promise$$internal$$selfFulfillment() {
-      return new TypeError("You cannot resolve a promise with itself");
-    }
-
-    function lib$es6$promise$$internal$$cannotReturnOwn() {
-      return new TypeError('A promises callback cannot return that same promise.');
-    }
-
-    function lib$es6$promise$$internal$$getThen(promise) {
-      try {
-        return promise.then;
-      } catch(error) {
-        lib$es6$promise$$internal$$GET_THEN_ERROR.error = error;
-        return lib$es6$promise$$internal$$GET_THEN_ERROR;
-      }
-    }
-
-    function lib$es6$promise$$internal$$tryThen(then, value, fulfillmentHandler, rejectionHandler) {
-      try {
-        then.call(value, fulfillmentHandler, rejectionHandler);
-      } catch(e) {
-        return e;
-      }
-    }
-
-    function lib$es6$promise$$internal$$handleForeignThenable(promise, thenable, then) {
-       lib$es6$promise$asap$$asap(function(promise) {
-        var sealed = false;
-        var error = lib$es6$promise$$internal$$tryThen(then, thenable, function(value) {
-          if (sealed) { return; }
-          sealed = true;
-          if (thenable !== value) {
-            lib$es6$promise$$internal$$resolve(promise, value);
-          } else {
-            lib$es6$promise$$internal$$fulfill(promise, value);
-          }
-        }, function(reason) {
-          if (sealed) { return; }
-          sealed = true;
-
-          lib$es6$promise$$internal$$reject(promise, reason);
-        }, 'Settle: ' + (promise._label || ' unknown promise'));
-
-        if (!sealed && error) {
-          sealed = true;
-          lib$es6$promise$$internal$$reject(promise, error);
-        }
-      }, promise);
-    }
-
-    function lib$es6$promise$$internal$$handleOwnThenable(promise, thenable) {
-      if (thenable._state === lib$es6$promise$$internal$$FULFILLED) {
-        lib$es6$promise$$internal$$fulfill(promise, thenable._result);
-      } else if (thenable._state === lib$es6$promise$$internal$$REJECTED) {
-        lib$es6$promise$$internal$$reject(promise, thenable._result);
-      } else {
-        lib$es6$promise$$internal$$subscribe(thenable, undefined, function(value) {
-          lib$es6$promise$$internal$$resolve(promise, value);
-        }, function(reason) {
-          lib$es6$promise$$internal$$reject(promise, reason);
-        });
-      }
-    }
-
-    function lib$es6$promise$$internal$$handleMaybeThenable(promise, maybeThenable, then) {
-      if (maybeThenable.constructor === promise.constructor &&
-          then === lib$es6$promise$then$$default &&
-          constructor.resolve === lib$es6$promise$promise$resolve$$default) {
-        lib$es6$promise$$internal$$handleOwnThenable(promise, maybeThenable);
-      } else {
-        if (then === lib$es6$promise$$internal$$GET_THEN_ERROR) {
-          lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$GET_THEN_ERROR.error);
-        } else if (then === undefined) {
-          lib$es6$promise$$internal$$fulfill(promise, maybeThenable);
-        } else if (lib$es6$promise$utils$$isFunction(then)) {
-          lib$es6$promise$$internal$$handleForeignThenable(promise, maybeThenable, then);
-        } else {
-          lib$es6$promise$$internal$$fulfill(promise, maybeThenable);
-        }
-      }
-    }
-
-    function lib$es6$promise$$internal$$resolve(promise, value) {
-      if (promise === value) {
-        lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$selfFulfillment());
-      } else if (lib$es6$promise$utils$$objectOrFunction(value)) {
-        lib$es6$promise$$internal$$handleMaybeThenable(promise, value, lib$es6$promise$$internal$$getThen(value));
-      } else {
-        lib$es6$promise$$internal$$fulfill(promise, value);
-      }
-    }
-
-    function lib$es6$promise$$internal$$publishRejection(promise) {
-      if (promise._onerror) {
-        promise._onerror(promise._result);
-      }
-
-      lib$es6$promise$$internal$$publish(promise);
-    }
-
-    function lib$es6$promise$$internal$$fulfill(promise, value) {
-      if (promise._state !== lib$es6$promise$$internal$$PENDING) { return; }
-
-      promise._result = value;
-      promise._state = lib$es6$promise$$internal$$FULFILLED;
-
-      if (promise._subscribers.length !== 0) {
-        lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publish, promise);
-      }
-    }
-
-    function lib$es6$promise$$internal$$reject(promise, reason) {
-      if (promise._state !== lib$es6$promise$$internal$$PENDING) { return; }
-      promise._state = lib$es6$promise$$internal$$REJECTED;
-      promise._result = reason;
-
-      lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publishRejection, promise);
-    }
-
-    function lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection) {
-      var subscribers = parent._subscribers;
-      var length = subscribers.length;
-
-      parent._onerror = null;
-
-      subscribers[length] = child;
-      subscribers[length + lib$es6$promise$$internal$$FULFILLED] = onFulfillment;
-      subscribers[length + lib$es6$promise$$internal$$REJECTED]  = onRejection;
-
-      if (length === 0 && parent._state) {
-        lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publish, parent);
-      }
-    }
-
-    function lib$es6$promise$$internal$$publish(promise) {
-      var subscribers = promise._subscribers;
-      var settled = promise._state;
-
-      if (subscribers.length === 0) { return; }
-
-      var child, callback, detail = promise._result;
-
-      for (var i = 0; i < subscribers.length; i += 3) {
-        child = subscribers[i];
-        callback = subscribers[i + settled];
-
-        if (child) {
-          lib$es6$promise$$internal$$invokeCallback(settled, child, callback, detail);
-        } else {
-          callback(detail);
-        }
-      }
-
-      promise._subscribers.length = 0;
-    }
-
-    function lib$es6$promise$$internal$$ErrorObject() {
-      this.error = null;
-    }
-
-    var lib$es6$promise$$internal$$TRY_CATCH_ERROR = new lib$es6$promise$$internal$$ErrorObject();
-
-    function lib$es6$promise$$internal$$tryCatch(callback, detail) {
-      try {
-        return callback(detail);
-      } catch(e) {
-        lib$es6$promise$$internal$$TRY_CATCH_ERROR.error = e;
-        return lib$es6$promise$$internal$$TRY_CATCH_ERROR;
-      }
-    }
-
-    function lib$es6$promise$$internal$$invokeCallback(settled, promise, callback, detail) {
-      var hasCallback = lib$es6$promise$utils$$isFunction(callback),
-          value, error, succeeded, failed;
-
-      if (hasCallback) {
-        value = lib$es6$promise$$internal$$tryCatch(callback, detail);
-
-        if (value === lib$es6$promise$$internal$$TRY_CATCH_ERROR) {
-          failed = true;
-          error = value.error;
-          value = null;
-        } else {
-          succeeded = true;
-        }
-
-        if (promise === value) {
-          lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$cannotReturnOwn());
-          return;
-        }
-
-      } else {
-        value = detail;
-        succeeded = true;
-      }
-
-      if (promise._state !== lib$es6$promise$$internal$$PENDING) {
-        // noop
-      } else if (hasCallback && succeeded) {
-        lib$es6$promise$$internal$$resolve(promise, value);
-      } else if (failed) {
-        lib$es6$promise$$internal$$reject(promise, error);
-      } else if (settled === lib$es6$promise$$internal$$FULFILLED) {
-        lib$es6$promise$$internal$$fulfill(promise, value);
-      } else if (settled === lib$es6$promise$$internal$$REJECTED) {
-        lib$es6$promise$$internal$$reject(promise, value);
-      }
-    }
-
-    function lib$es6$promise$$internal$$initializePromise(promise, resolver) {
-      try {
-        resolver(function resolvePromise(value){
-          lib$es6$promise$$internal$$resolve(promise, value);
-        }, function rejectPromise(reason) {
-          lib$es6$promise$$internal$$reject(promise, reason);
-        });
-      } catch(e) {
-        lib$es6$promise$$internal$$reject(promise, e);
-      }
-    }
-
-    var lib$es6$promise$$internal$$id = 0;
-    function lib$es6$promise$$internal$$nextId() {
-      return lib$es6$promise$$internal$$id++;
-    }
-
-    function lib$es6$promise$$internal$$makePromise(promise) {
-      promise[lib$es6$promise$$internal$$PROMISE_ID] = lib$es6$promise$$internal$$id++;
-      promise._state = undefined;
-      promise._result = undefined;
-      promise._subscribers = [];
-    }
-
-    function lib$es6$promise$promise$all$$all(entries) {
-      return new lib$es6$promise$enumerator$$default(this, entries).promise;
-    }
-    var lib$es6$promise$promise$all$$default = lib$es6$promise$promise$all$$all;
-    function lib$es6$promise$promise$race$$race(entries) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      if (!lib$es6$promise$utils$$isArray(entries)) {
-        return new Constructor(function(resolve, reject) {
-          reject(new TypeError('You must pass an array to race.'));
-        });
-      } else {
-        return new Constructor(function(resolve, reject) {
-          var length = entries.length;
-          for (var i = 0; i < length; i++) {
-            Constructor.resolve(entries[i]).then(resolve, reject);
-          }
-        });
-      }
-    }
-    var lib$es6$promise$promise$race$$default = lib$es6$promise$promise$race$$race;
-    function lib$es6$promise$promise$reject$$reject(reason) {
-      /*jshint validthis:true */
-      var Constructor = this;
-      var promise = new Constructor(lib$es6$promise$$internal$$noop);
-      lib$es6$promise$$internal$$reject(promise, reason);
-      return promise;
-    }
-    var lib$es6$promise$promise$reject$$default = lib$es6$promise$promise$reject$$reject;
-
-
-    function lib$es6$promise$promise$$needsResolver() {
-      throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
-    }
-
-    function lib$es6$promise$promise$$needsNew() {
-      throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
-    }
-
-    var lib$es6$promise$promise$$default = lib$es6$promise$promise$$Promise;
-    /**
-      Promise objects represent the eventual result of an asynchronous operation. The
-      primary way of interacting with a promise is through its `then` method, which
-      registers callbacks to receive either a promise's eventual value or the reason
-      why the promise cannot be fulfilled.
-
-      Terminology
-      -----------
-
-      - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
-      - `thenable` is an object or function that defines a `then` method.
-      - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
-      - `exception` is a value that is thrown using the throw statement.
-      - `reason` is a value that indicates why a promise was rejected.
-      - `settled` the final resting state of a promise, fulfilled or rejected.
-
-      A promise can be in one of three states: pending, fulfilled, or rejected.
-
-      Promises that are fulfilled have a fulfillment value and are in the fulfilled
-      state.  Promises that are rejected have a rejection reason and are in the
-      rejected state.  A fulfillment value is never a thenable.
-
-      Promises can also be said to *resolve* a value.  If this value is also a
-      promise, then the original promise's settled state will match the value's
-      settled state.  So a promise that *resolves* a promise that rejects will
-      itself reject, and a promise that *resolves* a promise that fulfills will
-      itself fulfill.
-
-
-      Basic Usage:
-      ------------
-
-      ```js
-      var promise = new Promise(function(resolve, reject) {
-        // on success
-        resolve(value);
-
-        // on failure
-        reject(reason);
+function then(onFulfillment, onRejection) {
+  var _arguments = arguments;
+
+  var parent = this;
+
+  var child = new this.constructor(noop);
+
+  if (child[PROMISE_ID] === undefined) {
+    makePromise(child);
+  }
+
+  var _state = parent._state;
+
+  if (_state) {
+    (function () {
+      var callback = _arguments[_state - 1];
+      asap(function () {
+        return invokeCallback(_state, child, callback, parent._result);
       });
-
-      promise.then(function(value) {
-        // on fulfillment
-      }, function(reason) {
-        // on rejection
-      });
-      ```
-
-      Advanced Usage:
-      ---------------
-
-      Promises shine when abstracting away asynchronous interactions such as
-      `XMLHttpRequest`s.
-
-      ```js
-      function getJSON(url) {
-        return new Promise(function(resolve, reject){
-          var xhr = new XMLHttpRequest();
-
-          xhr.open('GET', url);
-          xhr.onreadystatechange = handler;
-          xhr.responseType = 'json';
-          xhr.setRequestHeader('Accept', 'application/json');
-          xhr.send();
-
-          function handler() {
-            if (this.readyState === this.DONE) {
-              if (this.status === 200) {
-                resolve(this.response);
-              } else {
-                reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
-              }
-            }
-          };
-        });
-      }
-
-      getJSON('/posts.json').then(function(json) {
-        // on fulfillment
-      }, function(reason) {
-        // on rejection
-      });
-      ```
-
-      Unlike callbacks, promises are great composable primitives.
-
-      ```js
-      Promise.all([
-        getJSON('/posts'),
-        getJSON('/comments')
-      ]).then(function(values){
-        values[0] // => postsJSON
-        values[1] // => commentsJSON
-
-        return values;
-      });
-      ```
-
-      @class Promise
-      @param {function} resolver
-      Useful for tooling.
-      @constructor
-    */
-    function lib$es6$promise$promise$$Promise(resolver) {
-      this[lib$es6$promise$$internal$$PROMISE_ID] = lib$es6$promise$$internal$$nextId();
-      this._result = this._state = undefined;
-      this._subscribers = [];
-
-      if (lib$es6$promise$$internal$$noop !== resolver) {
-        typeof resolver !== 'function' && lib$es6$promise$promise$$needsResolver();
-        this instanceof lib$es6$promise$promise$$Promise ? lib$es6$promise$$internal$$initializePromise(this, resolver) : lib$es6$promise$promise$$needsNew();
-      }
-    }
-
-    lib$es6$promise$promise$$Promise.all = lib$es6$promise$promise$all$$default;
-    lib$es6$promise$promise$$Promise.race = lib$es6$promise$promise$race$$default;
-    lib$es6$promise$promise$$Promise.resolve = lib$es6$promise$promise$resolve$$default;
-    lib$es6$promise$promise$$Promise.reject = lib$es6$promise$promise$reject$$default;
-    lib$es6$promise$promise$$Promise._setScheduler = lib$es6$promise$asap$$setScheduler;
-    lib$es6$promise$promise$$Promise._setAsap = lib$es6$promise$asap$$setAsap;
-    lib$es6$promise$promise$$Promise._asap = lib$es6$promise$asap$$asap;
-
-    lib$es6$promise$promise$$Promise.prototype = {
-      constructor: lib$es6$promise$promise$$Promise,
-
-    /**
-      The primary way of interacting with a promise is through its `then` method,
-      which registers callbacks to receive either a promise's eventual value or the
-      reason why the promise cannot be fulfilled.
-
-      ```js
-      findUser().then(function(user){
-        // user is available
-      }, function(reason){
-        // user is unavailable, and you are given the reason why
-      });
-      ```
-
-      Chaining
-      --------
-
-      The return value of `then` is itself a promise.  This second, 'downstream'
-      promise is resolved with the return value of the first promise's fulfillment
-      or rejection handler, or rejected if the handler throws an exception.
-
-      ```js
-      findUser().then(function (user) {
-        return user.name;
-      }, function (reason) {
-        return 'default name';
-      }).then(function (userName) {
-        // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
-        // will be `'default name'`
-      });
-
-      findUser().then(function (user) {
-        throw new Error('Found user, but still unhappy');
-      }, function (reason) {
-        throw new Error('`findUser` rejected and we're unhappy');
-      }).then(function (value) {
-        // never reached
-      }, function (reason) {
-        // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
-        // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
-      });
-      ```
-      If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-
-      ```js
-      findUser().then(function (user) {
-        throw new PedagogicalException('Upstream error');
-      }).then(function (value) {
-        // never reached
-      }).then(function (value) {
-        // never reached
-      }, function (reason) {
-        // The `PedgagocialException` is propagated all the way down to here
-      });
-      ```
-
-      Assimilation
-      ------------
-
-      Sometimes the value you want to propagate to a downstream promise can only be
-      retrieved asynchronously. This can be achieved by returning a promise in the
-      fulfillment or rejection handler. The downstream promise will then be pending
-      until the returned promise is settled. This is called *assimilation*.
-
-      ```js
-      findUser().then(function (user) {
-        return findCommentsByAuthor(user);
-      }).then(function (comments) {
-        // The user's comments are now available
-      });
-      ```
-
-      If the assimliated promise rejects, then the downstream promise will also reject.
-
-      ```js
-      findUser().then(function (user) {
-        return findCommentsByAuthor(user);
-      }).then(function (comments) {
-        // If `findCommentsByAuthor` fulfills, we'll have the value here
-      }, function (reason) {
-        // If `findCommentsByAuthor` rejects, we'll have the reason here
-      });
-      ```
-
-      Simple Example
-      --------------
-
-      Synchronous Example
-
-      ```javascript
-      var result;
-
-      try {
-        result = findResult();
-        // success
-      } catch(reason) {
-        // failure
-      }
-      ```
-
-      Errback Example
-
-      ```js
-      findResult(function(result, err){
-        if (err) {
-          // failure
-        } else {
-          // success
-        }
-      });
-      ```
-
-      Promise Example;
-
-      ```javascript
-      findResult().then(function(result){
-        // success
-      }, function(reason){
-        // failure
-      });
-      ```
-
-      Advanced Example
-      --------------
-
-      Synchronous Example
-
-      ```javascript
-      var author, books;
-
-      try {
-        author = findAuthor();
-        books  = findBooksByAuthor(author);
-        // success
-      } catch(reason) {
-        // failure
-      }
-      ```
-
-      Errback Example
-
-      ```js
-
-      function foundBooks(books) {
-
-      }
-
-      function failure(reason) {
-
-      }
-
-      findAuthor(function(author, err){
-        if (err) {
-          failure(err);
-          // failure
-        } else {
-          try {
-            findBoooksByAuthor(author, function(books, err) {
-              if (err) {
-                failure(err);
-              } else {
-                try {
-                  foundBooks(books);
-                } catch(reason) {
-                  failure(reason);
-                }
-              }
-            });
-          } catch(error) {
-            failure(err);
-          }
-          // success
-        }
-      });
-      ```
-
-      Promise Example;
-
-      ```javascript
-      findAuthor().
-        then(findBooksByAuthor).
-        then(function(books){
-          // found books
-      }).catch(function(reason){
-        // something went wrong
-      });
-      ```
-
-      @method then
-      @param {Function} onFulfilled
-      @param {Function} onRejected
-      Useful for tooling.
-      @return {Promise}
-    */
-      then: lib$es6$promise$then$$default,
-
-    /**
-      `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
-      as the catch block of a try/catch statement.
-
-      ```js
-      function findAuthor(){
-        throw new Error('couldn't find that author');
-      }
-
-      // synchronous
-      try {
-        findAuthor();
-      } catch(reason) {
-        // something went wrong
-      }
-
-      // async with promises
-      findAuthor().catch(function(reason){
-        // something went wrong
-      });
-      ```
-
-      @method catch
-      @param {Function} onRejection
-      Useful for tooling.
-      @return {Promise}
-    */
-      'catch': function(onRejection) {
-        return this.then(null, onRejection);
-      }
-    };
-    var lib$es6$promise$enumerator$$default = lib$es6$promise$enumerator$$Enumerator;
-    function lib$es6$promise$enumerator$$Enumerator(Constructor, input) {
-      this._instanceConstructor = Constructor;
-      this.promise = new Constructor(lib$es6$promise$$internal$$noop);
-
-      if (!this.promise[lib$es6$promise$$internal$$PROMISE_ID]) {
-        lib$es6$promise$$internal$$makePromise(this.promise);
-      }
-
-      if (lib$es6$promise$utils$$isArray(input)) {
-        this._input     = input;
-        this.length     = input.length;
-        this._remaining = input.length;
-
-        this._result = new Array(this.length);
-
-        if (this.length === 0) {
-          lib$es6$promise$$internal$$fulfill(this.promise, this._result);
-        } else {
-          this.length = this.length || 0;
-          this._enumerate();
-          if (this._remaining === 0) {
-            lib$es6$promise$$internal$$fulfill(this.promise, this._result);
-          }
-        }
-      } else {
-        lib$es6$promise$$internal$$reject(this.promise, lib$es6$promise$enumerator$$validationError());
-      }
-    }
-
-    function lib$es6$promise$enumerator$$validationError() {
-      return new Error('Array Methods must be provided an Array');
-    }
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._enumerate = function() {
-      var length  = this.length;
-      var input   = this._input;
-
-      for (var i = 0; this._state === lib$es6$promise$$internal$$PENDING && i < length; i++) {
-        this._eachEntry(input[i], i);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
-      var c = this._instanceConstructor;
-      var resolve = c.resolve;
-
-      if (resolve === lib$es6$promise$promise$resolve$$default) {
-        var then = lib$es6$promise$$internal$$getThen(entry);
-
-        if (then === lib$es6$promise$then$$default &&
-            entry._state !== lib$es6$promise$$internal$$PENDING) {
-          this._settledAt(entry._state, i, entry._result);
-        } else if (typeof then !== 'function') {
-          this._remaining--;
-          this._result[i] = entry;
-        } else if (c === lib$es6$promise$promise$$default) {
-          var promise = new c(lib$es6$promise$$internal$$noop);
-          lib$es6$promise$$internal$$handleMaybeThenable(promise, entry, then);
-          this._willSettleAt(promise, i);
-        } else {
-          this._willSettleAt(new c(function(resolve) { resolve(entry); }), i);
-        }
-      } else {
-        this._willSettleAt(resolve(entry), i);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
-      var promise = this.promise;
-
-      if (promise._state === lib$es6$promise$$internal$$PENDING) {
-        this._remaining--;
-
-        if (state === lib$es6$promise$$internal$$REJECTED) {
-          lib$es6$promise$$internal$$reject(promise, value);
-        } else {
-          this._result[i] = value;
-        }
-      }
-
-      if (this._remaining === 0) {
-        lib$es6$promise$$internal$$fulfill(promise, this._result);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._willSettleAt = function(promise, i) {
-      var enumerator = this;
-
-      lib$es6$promise$$internal$$subscribe(promise, undefined, function(value) {
-        enumerator._settledAt(lib$es6$promise$$internal$$FULFILLED, i, value);
-      }, function(reason) {
-        enumerator._settledAt(lib$es6$promise$$internal$$REJECTED, i, reason);
-      });
-    };
-    function lib$es6$promise$polyfill$$polyfill() {
-      var local;
-
-      if (typeof global !== 'undefined') {
-          local = global;
-      } else if (typeof self !== 'undefined') {
-          local = self;
-      } else {
-          try {
-              local = Function('return this')();
-          } catch (e) {
-              throw new Error('polyfill failed because global object is unavailable in this environment');
-          }
-      }
-
-      var P = local.Promise;
-
-      if (P && Object.prototype.toString.call(P.resolve()) === '[object Promise]' && !P.cast) {
+    })();
+  } else {
+    subscribe(parent, child, onFulfillment, onRejection);
+  }
+
+  return child;
+}
+
+/**
+  `Promise.resolve` returns a promise that will become resolved with the
+  passed `value`. It is shorthand for the following:
+
+  ```javascript
+  let promise = new Promise(function(resolve, reject){
+    resolve(1);
+  });
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = Promise.resolve(1);
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  @method resolve
+  @static
+  @param {Any} value value that the returned promise will be resolved with
+  Useful for tooling.
+  @return {Promise} a promise that will become fulfilled with the given
+  `value`
+*/
+function resolve(object) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  if (object && typeof object === 'object' && object.constructor === Constructor) {
+    return object;
+  }
+
+  var promise = new Constructor(noop);
+  _resolve(promise, object);
+  return promise;
+}
+
+var PROMISE_ID = Math.random().toString(36).substring(16);
+
+function noop() {}
+
+var PENDING = void 0;
+var FULFILLED = 1;
+var REJECTED = 2;
+
+var GET_THEN_ERROR = new ErrorObject();
+
+function selfFulfillment() {
+  return new TypeError("You cannot resolve a promise with itself");
+}
+
+function cannotReturnOwn() {
+  return new TypeError('A promises callback cannot return that same promise.');
+}
+
+function getThen(promise) {
+  try {
+    return promise.then;
+  } catch (error) {
+    GET_THEN_ERROR.error = error;
+    return GET_THEN_ERROR;
+  }
+}
+
+function tryThen(then, value, fulfillmentHandler, rejectionHandler) {
+  try {
+    then.call(value, fulfillmentHandler, rejectionHandler);
+  } catch (e) {
+    return e;
+  }
+}
+
+function handleForeignThenable(promise, thenable, then) {
+  asap(function (promise) {
+    var sealed = false;
+    var error = tryThen(then, thenable, function (value) {
+      if (sealed) {
         return;
       }
+      sealed = true;
+      if (thenable !== value) {
+        _resolve(promise, value);
+      } else {
+        fulfill(promise, value);
+      }
+    }, function (reason) {
+      if (sealed) {
+        return;
+      }
+      sealed = true;
 
-      local.Promise = lib$es6$promise$promise$$default;
+      _reject(promise, reason);
+    }, 'Settle: ' + (promise._label || ' unknown promise'));
+
+    if (!sealed && error) {
+      sealed = true;
+      _reject(promise, error);
     }
-    var lib$es6$promise$polyfill$$default = lib$es6$promise$polyfill$$polyfill;
+  }, promise);
+}
 
-    var lib$es6$promise$umd$$ES6Promise = {
-      'Promise': lib$es6$promise$promise$$default,
-      'polyfill': lib$es6$promise$polyfill$$default
-    };
+function handleOwnThenable(promise, thenable) {
+  if (thenable._state === FULFILLED) {
+    fulfill(promise, thenable._result);
+  } else if (thenable._state === REJECTED) {
+    _reject(promise, thenable._result);
+  } else {
+    subscribe(thenable, undefined, function (value) {
+      return _resolve(promise, value);
+    }, function (reason) {
+      return _reject(promise, reason);
+    });
+  }
+}
 
-    /* global define:true module:true window: true */
-    if (typeof define === 'function' && define['amd']) {
-      define(function() { return lib$es6$promise$umd$$ES6Promise; });
-    } else if (typeof module !== 'undefined' && module['exports']) {
-      module['exports'] = lib$es6$promise$umd$$ES6Promise;
-    } else if (typeof this !== 'undefined') {
-      this['ES6Promise'] = lib$es6$promise$umd$$ES6Promise;
+function handleMaybeThenable(promise, maybeThenable, then$$) {
+  if (maybeThenable.constructor === promise.constructor && then$$ === then && maybeThenable.constructor.resolve === resolve) {
+    handleOwnThenable(promise, maybeThenable);
+  } else {
+    if (then$$ === GET_THEN_ERROR) {
+      _reject(promise, GET_THEN_ERROR.error);
+    } else if (then$$ === undefined) {
+      fulfill(promise, maybeThenable);
+    } else if (isFunction(then$$)) {
+      handleForeignThenable(promise, maybeThenable, then$$);
+    } else {
+      fulfill(promise, maybeThenable);
+    }
+  }
+}
+
+function _resolve(promise, value) {
+  if (promise === value) {
+    _reject(promise, selfFulfillment());
+  } else if (objectOrFunction(value)) {
+    handleMaybeThenable(promise, value, getThen(value));
+  } else {
+    fulfill(promise, value);
+  }
+}
+
+function publishRejection(promise) {
+  if (promise._onerror) {
+    promise._onerror(promise._result);
+  }
+
+  publish(promise);
+}
+
+function fulfill(promise, value) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+
+  promise._result = value;
+  promise._state = FULFILLED;
+
+  if (promise._subscribers.length !== 0) {
+    asap(publish, promise);
+  }
+}
+
+function _reject(promise, reason) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+  promise._state = REJECTED;
+  promise._result = reason;
+
+  asap(publishRejection, promise);
+}
+
+function subscribe(parent, child, onFulfillment, onRejection) {
+  var _subscribers = parent._subscribers;
+  var length = _subscribers.length;
+
+  parent._onerror = null;
+
+  _subscribers[length] = child;
+  _subscribers[length + FULFILLED] = onFulfillment;
+  _subscribers[length + REJECTED] = onRejection;
+
+  if (length === 0 && parent._state) {
+    asap(publish, parent);
+  }
+}
+
+function publish(promise) {
+  var subscribers = promise._subscribers;
+  var settled = promise._state;
+
+  if (subscribers.length === 0) {
+    return;
+  }
+
+  var child = undefined,
+      callback = undefined,
+      detail = promise._result;
+
+  for (var i = 0; i < subscribers.length; i += 3) {
+    child = subscribers[i];
+    callback = subscribers[i + settled];
+
+    if (child) {
+      invokeCallback(settled, child, callback, detail);
+    } else {
+      callback(detail);
+    }
+  }
+
+  promise._subscribers.length = 0;
+}
+
+function ErrorObject() {
+  this.error = null;
+}
+
+var TRY_CATCH_ERROR = new ErrorObject();
+
+function tryCatch(callback, detail) {
+  try {
+    return callback(detail);
+  } catch (e) {
+    TRY_CATCH_ERROR.error = e;
+    return TRY_CATCH_ERROR;
+  }
+}
+
+function invokeCallback(settled, promise, callback, detail) {
+  var hasCallback = isFunction(callback),
+      value = undefined,
+      error = undefined,
+      succeeded = undefined,
+      failed = undefined;
+
+  if (hasCallback) {
+    value = tryCatch(callback, detail);
+
+    if (value === TRY_CATCH_ERROR) {
+      failed = true;
+      error = value.error;
+      value = null;
+    } else {
+      succeeded = true;
     }
 
-    lib$es6$promise$polyfill$$default();
-}).call(this);
+    if (promise === value) {
+      _reject(promise, cannotReturnOwn());
+      return;
+    }
+  } else {
+    value = detail;
+    succeeded = true;
+  }
 
+  if (promise._state !== PENDING) {
+    // noop
+  } else if (hasCallback && succeeded) {
+      _resolve(promise, value);
+    } else if (failed) {
+      _reject(promise, error);
+    } else if (settled === FULFILLED) {
+      fulfill(promise, value);
+    } else if (settled === REJECTED) {
+      _reject(promise, value);
+    }
+}
+
+function initializePromise(promise, resolver) {
+  try {
+    resolver(function resolvePromise(value) {
+      _resolve(promise, value);
+    }, function rejectPromise(reason) {
+      _reject(promise, reason);
+    });
+  } catch (e) {
+    _reject(promise, e);
+  }
+}
+
+var id = 0;
+function nextId() {
+  return id++;
+}
+
+function makePromise(promise) {
+  promise[PROMISE_ID] = id++;
+  promise._state = undefined;
+  promise._result = undefined;
+  promise._subscribers = [];
+}
+
+function Enumerator(Constructor, input) {
+  this._instanceConstructor = Constructor;
+  this.promise = new Constructor(noop);
+
+  if (!this.promise[PROMISE_ID]) {
+    makePromise(this.promise);
+  }
+
+  if (isArray(input)) {
+    this._input = input;
+    this.length = input.length;
+    this._remaining = input.length;
+
+    this._result = new Array(this.length);
+
+    if (this.length === 0) {
+      fulfill(this.promise, this._result);
+    } else {
+      this.length = this.length || 0;
+      this._enumerate();
+      if (this._remaining === 0) {
+        fulfill(this.promise, this._result);
+      }
+    }
+  } else {
+    _reject(this.promise, validationError());
+  }
+}
+
+function validationError() {
+  return new Error('Array Methods must be provided an Array');
+};
+
+Enumerator.prototype._enumerate = function () {
+  var length = this.length;
+  var _input = this._input;
+
+  for (var i = 0; this._state === PENDING && i < length; i++) {
+    this._eachEntry(_input[i], i);
+  }
+};
+
+Enumerator.prototype._eachEntry = function (entry, i) {
+  var c = this._instanceConstructor;
+  var resolve$$ = c.resolve;
+
+  if (resolve$$ === resolve) {
+    var _then = getThen(entry);
+
+    if (_then === then && entry._state !== PENDING) {
+      this._settledAt(entry._state, i, entry._result);
+    } else if (typeof _then !== 'function') {
+      this._remaining--;
+      this._result[i] = entry;
+    } else if (c === Promise) {
+      var promise = new c(noop);
+      handleMaybeThenable(promise, entry, _then);
+      this._willSettleAt(promise, i);
+    } else {
+      this._willSettleAt(new c(function (resolve$$) {
+        return resolve$$(entry);
+      }), i);
+    }
+  } else {
+    this._willSettleAt(resolve$$(entry), i);
+  }
+};
+
+Enumerator.prototype._settledAt = function (state, i, value) {
+  var promise = this.promise;
+
+  if (promise._state === PENDING) {
+    this._remaining--;
+
+    if (state === REJECTED) {
+      _reject(promise, value);
+    } else {
+      this._result[i] = value;
+    }
+  }
+
+  if (this._remaining === 0) {
+    fulfill(promise, this._result);
+  }
+};
+
+Enumerator.prototype._willSettleAt = function (promise, i) {
+  var enumerator = this;
+
+  subscribe(promise, undefined, function (value) {
+    return enumerator._settledAt(FULFILLED, i, value);
+  }, function (reason) {
+    return enumerator._settledAt(REJECTED, i, reason);
+  });
+};
+
+/**
+  `Promise.all` accepts an array of promises, and returns a new promise which
+  is fulfilled with an array of fulfillment values for the passed promises, or
+  rejected with the reason of the first passed promise to be rejected. It casts all
+  elements of the passed iterable to promises as it runs this algorithm.
+
+  Example:
+
+  ```javascript
+  let promise1 = resolve(1);
+  let promise2 = resolve(2);
+  let promise3 = resolve(3);
+  let promises = [ promise1, promise2, promise3 ];
+
+  Promise.all(promises).then(function(array){
+    // The array here would be [ 1, 2, 3 ];
+  });
+  ```
+
+  If any of the `promises` given to `all` are rejected, the first promise
+  that is rejected will be given as an argument to the returned promises's
+  rejection handler. For example:
+
+  Example:
+
+  ```javascript
+  let promise1 = resolve(1);
+  let promise2 = reject(new Error("2"));
+  let promise3 = reject(new Error("3"));
+  let promises = [ promise1, promise2, promise3 ];
+
+  Promise.all(promises).then(function(array){
+    // Code here never runs because there are rejected promises!
+  }, function(error) {
+    // error.message === "2"
+  });
+  ```
+
+  @method all
+  @static
+  @param {Array} entries array of promises
+  @param {String} label optional string for labeling the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled when all `promises` have been
+  fulfilled, or rejected if any of them become rejected.
+  @static
+*/
+function all(entries) {
+  return new Enumerator(this, entries).promise;
+}
+
+/**
+  `Promise.race` returns a new promise which is settled in the same way as the
+  first passed promise to settle.
+
+  Example:
+
+  ```javascript
+  let promise1 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 2');
+    }, 100);
+  });
+
+  Promise.race([promise1, promise2]).then(function(result){
+    // result === 'promise 2' because it was resolved before promise1
+    // was resolved.
+  });
+  ```
+
+  `Promise.race` is deterministic in that only the state of the first
+  settled promise matters. For example, even if other promises given to the
+  `promises` array argument are resolved, but the first settled promise has
+  become rejected before the other promises became fulfilled, the returned
+  promise will become rejected:
+
+  ```javascript
+  let promise1 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      reject(new Error('promise 2'));
+    }, 100);
+  });
+
+  Promise.race([promise1, promise2]).then(function(result){
+    // Code here never runs
+  }, function(reason){
+    // reason.message === 'promise 2' because promise 2 became rejected before
+    // promise 1 became fulfilled
+  });
+  ```
+
+  An example real-world use case is implementing timeouts:
+
+  ```javascript
+  Promise.race([ajax('foo.json'), timeout(5000)])
+  ```
+
+  @method race
+  @static
+  @param {Array} promises array of promises to observe
+  Useful for tooling.
+  @return {Promise} a promise which settles in the same way as the first passed
+  promise to settle.
+*/
+function race(entries) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  if (!isArray(entries)) {
+    return new Constructor(function (_, reject) {
+      return reject(new TypeError('You must pass an array to race.'));
+    });
+  } else {
+    return new Constructor(function (resolve, reject) {
+      var length = entries.length;
+      for (var i = 0; i < length; i++) {
+        Constructor.resolve(entries[i]).then(resolve, reject);
+      }
+    });
+  }
+}
+
+/**
+  `Promise.reject` returns a promise rejected with the passed `reason`.
+  It is shorthand for the following:
+
+  ```javascript
+  let promise = new Promise(function(resolve, reject){
+    reject(new Error('WHOOPS'));
+  });
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = Promise.reject(new Error('WHOOPS'));
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  @method reject
+  @static
+  @param {Any} reason value that the returned promise will be rejected with.
+  Useful for tooling.
+  @return {Promise} a promise rejected with the given `reason`.
+*/
+function reject(reason) {
+  /*jshint validthis:true */
+  var Constructor = this;
+  var promise = new Constructor(noop);
+  _reject(promise, reason);
+  return promise;
+}
+
+function needsResolver() {
+  throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+}
+
+function needsNew() {
+  throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+}
+
+/**
+  Promise objects represent the eventual result of an asynchronous operation. The
+  primary way of interacting with a promise is through its `then` method, which
+  registers callbacks to receive either a promise's eventual value or the reason
+  why the promise cannot be fulfilled.
+
+  Terminology
+  -----------
+
+  - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
+  - `thenable` is an object or function that defines a `then` method.
+  - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
+  - `exception` is a value that is thrown using the throw statement.
+  - `reason` is a value that indicates why a promise was rejected.
+  - `settled` the final resting state of a promise, fulfilled or rejected.
+
+  A promise can be in one of three states: pending, fulfilled, or rejected.
+
+  Promises that are fulfilled have a fulfillment value and are in the fulfilled
+  state.  Promises that are rejected have a rejection reason and are in the
+  rejected state.  A fulfillment value is never a thenable.
+
+  Promises can also be said to *resolve* a value.  If this value is also a
+  promise, then the original promise's settled state will match the value's
+  settled state.  So a promise that *resolves* a promise that rejects will
+  itself reject, and a promise that *resolves* a promise that fulfills will
+  itself fulfill.
+
+
+  Basic Usage:
+  ------------
+
+  ```js
+  let promise = new Promise(function(resolve, reject) {
+    // on success
+    resolve(value);
+
+    // on failure
+    reject(reason);
+  });
+
+  promise.then(function(value) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Advanced Usage:
+  ---------------
+
+  Promises shine when abstracting away asynchronous interactions such as
+  `XMLHttpRequest`s.
+
+  ```js
+  function getJSON(url) {
+    return new Promise(function(resolve, reject){
+      let xhr = new XMLHttpRequest();
+
+      xhr.open('GET', url);
+      xhr.onreadystatechange = handler;
+      xhr.responseType = 'json';
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.send();
+
+      function handler() {
+        if (this.readyState === this.DONE) {
+          if (this.status === 200) {
+            resolve(this.response);
+          } else {
+            reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
+          }
+        }
+      };
+    });
+  }
+
+  getJSON('/posts.json').then(function(json) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Unlike callbacks, promises are great composable primitives.
+
+  ```js
+  Promise.all([
+    getJSON('/posts'),
+    getJSON('/comments')
+  ]).then(function(values){
+    values[0] // => postsJSON
+    values[1] // => commentsJSON
+
+    return values;
+  });
+  ```
+
+  @class Promise
+  @param {function} resolver
+  Useful for tooling.
+  @constructor
+*/
+function Promise(resolver) {
+  this[PROMISE_ID] = nextId();
+  this._result = this._state = undefined;
+  this._subscribers = [];
+
+  if (noop !== resolver) {
+    typeof resolver !== 'function' && needsResolver();
+    this instanceof Promise ? initializePromise(this, resolver) : needsNew();
+  }
+}
+
+Promise.all = all;
+Promise.race = race;
+Promise.resolve = resolve;
+Promise.reject = reject;
+Promise._setScheduler = setScheduler;
+Promise._setAsap = setAsap;
+Promise._asap = asap;
+
+Promise.prototype = {
+  constructor: Promise,
+
+  /**
+    The primary way of interacting with a promise is through its `then` method,
+    which registers callbacks to receive either a promise's eventual value or the
+    reason why the promise cannot be fulfilled.
+  
+    ```js
+    findUser().then(function(user){
+      // user is available
+    }, function(reason){
+      // user is unavailable, and you are given the reason why
+    });
+    ```
+  
+    Chaining
+    --------
+  
+    The return value of `then` is itself a promise.  This second, 'downstream'
+    promise is resolved with the return value of the first promise's fulfillment
+    or rejection handler, or rejected if the handler throws an exception.
+  
+    ```js
+    findUser().then(function (user) {
+      return user.name;
+    }, function (reason) {
+      return 'default name';
+    }).then(function (userName) {
+      // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+      // will be `'default name'`
+    });
+  
+    findUser().then(function (user) {
+      throw new Error('Found user, but still unhappy');
+    }, function (reason) {
+      throw new Error('`findUser` rejected and we're unhappy');
+    }).then(function (value) {
+      // never reached
+    }, function (reason) {
+      // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
+      // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
+    });
+    ```
+    If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+  
+    ```js
+    findUser().then(function (user) {
+      throw new PedagogicalException('Upstream error');
+    }).then(function (value) {
+      // never reached
+    }).then(function (value) {
+      // never reached
+    }, function (reason) {
+      // The `PedgagocialException` is propagated all the way down to here
+    });
+    ```
+  
+    Assimilation
+    ------------
+  
+    Sometimes the value you want to propagate to a downstream promise can only be
+    retrieved asynchronously. This can be achieved by returning a promise in the
+    fulfillment or rejection handler. The downstream promise will then be pending
+    until the returned promise is settled. This is called *assimilation*.
+  
+    ```js
+    findUser().then(function (user) {
+      return findCommentsByAuthor(user);
+    }).then(function (comments) {
+      // The user's comments are now available
+    });
+    ```
+  
+    If the assimliated promise rejects, then the downstream promise will also reject.
+  
+    ```js
+    findUser().then(function (user) {
+      return findCommentsByAuthor(user);
+    }).then(function (comments) {
+      // If `findCommentsByAuthor` fulfills, we'll have the value here
+    }, function (reason) {
+      // If `findCommentsByAuthor` rejects, we'll have the reason here
+    });
+    ```
+  
+    Simple Example
+    --------------
+  
+    Synchronous Example
+  
+    ```javascript
+    let result;
+  
+    try {
+      result = findResult();
+      // success
+    } catch(reason) {
+      // failure
+    }
+    ```
+  
+    Errback Example
+  
+    ```js
+    findResult(function(result, err){
+      if (err) {
+        // failure
+      } else {
+        // success
+      }
+    });
+    ```
+  
+    Promise Example;
+  
+    ```javascript
+    findResult().then(function(result){
+      // success
+    }, function(reason){
+      // failure
+    });
+    ```
+  
+    Advanced Example
+    --------------
+  
+    Synchronous Example
+  
+    ```javascript
+    let author, books;
+  
+    try {
+      author = findAuthor();
+      books  = findBooksByAuthor(author);
+      // success
+    } catch(reason) {
+      // failure
+    }
+    ```
+  
+    Errback Example
+  
+    ```js
+  
+    function foundBooks(books) {
+  
+    }
+  
+    function failure(reason) {
+  
+    }
+  
+    findAuthor(function(author, err){
+      if (err) {
+        failure(err);
+        // failure
+      } else {
+        try {
+          findBoooksByAuthor(author, function(books, err) {
+            if (err) {
+              failure(err);
+            } else {
+              try {
+                foundBooks(books);
+              } catch(reason) {
+                failure(reason);
+              }
+            }
+          });
+        } catch(error) {
+          failure(err);
+        }
+        // success
+      }
+    });
+    ```
+  
+    Promise Example;
+  
+    ```javascript
+    findAuthor().
+      then(findBooksByAuthor).
+      then(function(books){
+        // found books
+    }).catch(function(reason){
+      // something went wrong
+    });
+    ```
+  
+    @method then
+    @param {Function} onFulfilled
+    @param {Function} onRejected
+    Useful for tooling.
+    @return {Promise}
+  */
+  then: then,
+
+  /**
+    `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
+    as the catch block of a try/catch statement.
+  
+    ```js
+    function findAuthor(){
+      throw new Error('couldn't find that author');
+    }
+  
+    // synchronous
+    try {
+      findAuthor();
+    } catch(reason) {
+      // something went wrong
+    }
+  
+    // async with promises
+    findAuthor().catch(function(reason){
+      // something went wrong
+    });
+    ```
+  
+    @method catch
+    @param {Function} onRejection
+    Useful for tooling.
+    @return {Promise}
+  */
+  'catch': function _catch(onRejection) {
+    return this.then(null, onRejection);
+  }
+};
+
+function polyfill() {
+    var local = undefined;
+
+    if (typeof global !== 'undefined') {
+        local = global;
+    } else if (typeof self !== 'undefined') {
+        local = self;
+    } else {
+        try {
+            local = Function('return this')();
+        } catch (e) {
+            throw new Error('polyfill failed because global object is unavailable in this environment');
+        }
+    }
+
+    var P = local.Promise;
+
+    if (P) {
+        var promiseToString = null;
+        try {
+            promiseToString = Object.prototype.toString.call(P.resolve());
+        } catch (e) {
+            // silently ignored
+        }
+
+        if (promiseToString === '[object Promise]' && !P.cast) {
+            return;
+        }
+    }
+
+    local.Promise = Promise;
+}
+
+polyfill();
+// Strange compat..
+Promise.polyfill = polyfill;
+Promise.Promise = Promise;
+
+return Promise;
+
+})));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":7}],4:[function(require,module,exports){
+},{"_process":40}],36:[function(require,module,exports){
 'use strict';
 
 var hasOwn = Object.prototype.hasOwnProperty;
@@ -2727,7 +6863,7 @@ module.exports = function extend() {
 };
 
 
-},{}],5:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -2813,14 +6949,192 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],6:[function(require,module,exports){
-var toString = {}.toString;
+},{}],38:[function(require,module,exports){
+/*!
+ * Determine if an object is a Buffer
+ *
+ * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @license  MIT
+ */
 
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
+// The _isBuffer check is for Safari 5-7 support, because it's missing
+// Object.prototype.constructor. Remove this eventually
+module.exports = function (obj) {
+  return obj != null && (isBuffer(obj) || isSlowBuffer(obj) || !!obj._isBuffer)
+}
 
-},{}],7:[function(require,module,exports){
+function isBuffer (obj) {
+  return !!obj.constructor && typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj)
+}
+
+// For Node v0.10 support. Remove this eventually.
+function isSlowBuffer (obj) {
+  return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
+}
+
+},{}],39:[function(require,module,exports){
+(function(){
+  var crypt = require('crypt'),
+      utf8 = require('charenc').utf8,
+      isBuffer = require('is-buffer'),
+      bin = require('charenc').bin,
+
+  // The core
+  md5 = function (message, options) {
+    // Convert to byte array
+    if (message.constructor == String)
+      if (options && options.encoding === 'binary')
+        message = bin.stringToBytes(message);
+      else
+        message = utf8.stringToBytes(message);
+    else if (isBuffer(message))
+      message = Array.prototype.slice.call(message, 0);
+    else if (!Array.isArray(message))
+      message = message.toString();
+    // else, assume byte array already
+
+    var m = crypt.bytesToWords(message),
+        l = message.length * 8,
+        a =  1732584193,
+        b = -271733879,
+        c = -1732584194,
+        d =  271733878;
+
+    // Swap endian
+    for (var i = 0; i < m.length; i++) {
+      m[i] = ((m[i] <<  8) | (m[i] >>> 24)) & 0x00FF00FF |
+             ((m[i] << 24) | (m[i] >>>  8)) & 0xFF00FF00;
+    }
+
+    // Padding
+    m[l >>> 5] |= 0x80 << (l % 32);
+    m[(((l + 64) >>> 9) << 4) + 14] = l;
+
+    // Method shortcuts
+    var FF = md5._ff,
+        GG = md5._gg,
+        HH = md5._hh,
+        II = md5._ii;
+
+    for (var i = 0; i < m.length; i += 16) {
+
+      var aa = a,
+          bb = b,
+          cc = c,
+          dd = d;
+
+      a = FF(a, b, c, d, m[i+ 0],  7, -680876936);
+      d = FF(d, a, b, c, m[i+ 1], 12, -389564586);
+      c = FF(c, d, a, b, m[i+ 2], 17,  606105819);
+      b = FF(b, c, d, a, m[i+ 3], 22, -1044525330);
+      a = FF(a, b, c, d, m[i+ 4],  7, -176418897);
+      d = FF(d, a, b, c, m[i+ 5], 12,  1200080426);
+      c = FF(c, d, a, b, m[i+ 6], 17, -1473231341);
+      b = FF(b, c, d, a, m[i+ 7], 22, -45705983);
+      a = FF(a, b, c, d, m[i+ 8],  7,  1770035416);
+      d = FF(d, a, b, c, m[i+ 9], 12, -1958414417);
+      c = FF(c, d, a, b, m[i+10], 17, -42063);
+      b = FF(b, c, d, a, m[i+11], 22, -1990404162);
+      a = FF(a, b, c, d, m[i+12],  7,  1804603682);
+      d = FF(d, a, b, c, m[i+13], 12, -40341101);
+      c = FF(c, d, a, b, m[i+14], 17, -1502002290);
+      b = FF(b, c, d, a, m[i+15], 22,  1236535329);
+
+      a = GG(a, b, c, d, m[i+ 1],  5, -165796510);
+      d = GG(d, a, b, c, m[i+ 6],  9, -1069501632);
+      c = GG(c, d, a, b, m[i+11], 14,  643717713);
+      b = GG(b, c, d, a, m[i+ 0], 20, -373897302);
+      a = GG(a, b, c, d, m[i+ 5],  5, -701558691);
+      d = GG(d, a, b, c, m[i+10],  9,  38016083);
+      c = GG(c, d, a, b, m[i+15], 14, -660478335);
+      b = GG(b, c, d, a, m[i+ 4], 20, -405537848);
+      a = GG(a, b, c, d, m[i+ 9],  5,  568446438);
+      d = GG(d, a, b, c, m[i+14],  9, -1019803690);
+      c = GG(c, d, a, b, m[i+ 3], 14, -187363961);
+      b = GG(b, c, d, a, m[i+ 8], 20,  1163531501);
+      a = GG(a, b, c, d, m[i+13],  5, -1444681467);
+      d = GG(d, a, b, c, m[i+ 2],  9, -51403784);
+      c = GG(c, d, a, b, m[i+ 7], 14,  1735328473);
+      b = GG(b, c, d, a, m[i+12], 20, -1926607734);
+
+      a = HH(a, b, c, d, m[i+ 5],  4, -378558);
+      d = HH(d, a, b, c, m[i+ 8], 11, -2022574463);
+      c = HH(c, d, a, b, m[i+11], 16,  1839030562);
+      b = HH(b, c, d, a, m[i+14], 23, -35309556);
+      a = HH(a, b, c, d, m[i+ 1],  4, -1530992060);
+      d = HH(d, a, b, c, m[i+ 4], 11,  1272893353);
+      c = HH(c, d, a, b, m[i+ 7], 16, -155497632);
+      b = HH(b, c, d, a, m[i+10], 23, -1094730640);
+      a = HH(a, b, c, d, m[i+13],  4,  681279174);
+      d = HH(d, a, b, c, m[i+ 0], 11, -358537222);
+      c = HH(c, d, a, b, m[i+ 3], 16, -722521979);
+      b = HH(b, c, d, a, m[i+ 6], 23,  76029189);
+      a = HH(a, b, c, d, m[i+ 9],  4, -640364487);
+      d = HH(d, a, b, c, m[i+12], 11, -421815835);
+      c = HH(c, d, a, b, m[i+15], 16,  530742520);
+      b = HH(b, c, d, a, m[i+ 2], 23, -995338651);
+
+      a = II(a, b, c, d, m[i+ 0],  6, -198630844);
+      d = II(d, a, b, c, m[i+ 7], 10,  1126891415);
+      c = II(c, d, a, b, m[i+14], 15, -1416354905);
+      b = II(b, c, d, a, m[i+ 5], 21, -57434055);
+      a = II(a, b, c, d, m[i+12],  6,  1700485571);
+      d = II(d, a, b, c, m[i+ 3], 10, -1894986606);
+      c = II(c, d, a, b, m[i+10], 15, -1051523);
+      b = II(b, c, d, a, m[i+ 1], 21, -2054922799);
+      a = II(a, b, c, d, m[i+ 8],  6,  1873313359);
+      d = II(d, a, b, c, m[i+15], 10, -30611744);
+      c = II(c, d, a, b, m[i+ 6], 15, -1560198380);
+      b = II(b, c, d, a, m[i+13], 21,  1309151649);
+      a = II(a, b, c, d, m[i+ 4],  6, -145523070);
+      d = II(d, a, b, c, m[i+11], 10, -1120210379);
+      c = II(c, d, a, b, m[i+ 2], 15,  718787259);
+      b = II(b, c, d, a, m[i+ 9], 21, -343485551);
+
+      a = (a + aa) >>> 0;
+      b = (b + bb) >>> 0;
+      c = (c + cc) >>> 0;
+      d = (d + dd) >>> 0;
+    }
+
+    return crypt.endian([a, b, c, d]);
+  };
+
+  // Auxiliary functions
+  md5._ff  = function (a, b, c, d, x, s, t) {
+    var n = a + (b & c | ~b & d) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+  md5._gg  = function (a, b, c, d, x, s, t) {
+    var n = a + (b & d | c & ~d) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+  md5._hh  = function (a, b, c, d, x, s, t) {
+    var n = a + (b ^ c ^ d) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+  md5._ii  = function (a, b, c, d, x, s, t) {
+    var n = a + (c ^ (b | ~d)) + (x >>> 0) + t;
+    return ((n << s) | (n >>> (32 - s))) + b;
+  };
+
+  // Package private blocksize
+  md5._blocksize = 16;
+  md5._digestsize = 16;
+
+  module.exports = function (message, options) {
+    if (message === undefined || message === null)
+      throw new Error('Illegal argument ' + message);
+
+    var digestbytes = crypt.wordsToBytes(md5(message, options));
+    return options && options.asBytes ? digestbytes :
+        options && options.asString ? bin.bytesToString(digestbytes) :
+        crypt.bytesToHex(digestbytes);
+  };
+
+})();
+
+},{"charenc":33,"crypt":34,"is-buffer":38}],40:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2832,35 +7146,83 @@ var process = module.exports = {};
 var cachedSetTimeout;
 var cachedClearTimeout;
 
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
 (function () {
     try {
-        cachedSetTimeout = setTimeout;
-    } catch (e) {
-        cachedSetTimeout = function () {
-            throw new Error('setTimeout is not defined');
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
         }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
     }
     try {
-        cachedClearTimeout = clearTimeout;
-    } catch (e) {
-        cachedClearTimeout = function () {
-            throw new Error('clearTimeout is not defined');
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
         }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
     }
 } ())
 function runTimeout(fun) {
     if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
         return setTimeout(fun, 0);
-    } else {
-        return cachedSetTimeout.call(null, fun, 0);
     }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
 }
 function runClearTimeout(marker) {
     if (cachedClearTimeout === clearTimeout) {
-        clearTimeout(marker);
-    } else {
-        cachedClearTimeout.call(null, marker);
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
     }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
 }
 var queue = [];
 var draining = false;
@@ -2954,16 +7316,16 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],8:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (process){
 module.exports = process.env.PROMISE_QUEUE_COVERAGE ?
     require('./lib-cov') :
     require('./lib');
 
 }).call(this,require('_process'))
-},{"./lib":10,"./lib-cov":9,"_process":7}],9:[function(require,module,exports){
+},{"./lib":43,"./lib-cov":42,"_process":40}],42:[function(require,module,exports){
 
-},{}],10:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /* global define, Promise */
 (function (root, factory) {
     'use strict';
@@ -3143,7 +7505,7 @@ module.exports = process.env.PROMISE_QUEUE_COVERAGE ?
     return Queue;
 });
 
-},{}],11:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3229,7 +7591,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],12:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3316,13 +7678,730 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],13:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":11,"./encode":12}],14:[function(require,module,exports){
+},{"./decode":44,"./encode":45}],47:[function(require,module,exports){
+/*jshint eqnull:true*/
+(function (root) {
+  "use strict";
+
+  var GLOBAL_KEY = "Random";
+
+  var imul = (typeof Math.imul !== "function" || Math.imul(0xffffffff, 5) !== -5 ?
+    function (a, b) {
+      var ah = (a >>> 16) & 0xffff;
+      var al = a & 0xffff;
+      var bh = (b >>> 16) & 0xffff;
+      var bl = b & 0xffff;
+      // the shift by 0 fixes the sign on the high part
+      // the final |0 converts the unsigned value into a signed value
+      return (al * bl) + (((ah * bl + al * bh) << 16) >>> 0) | 0;
+    } :
+    Math.imul);
+
+  var stringRepeat = (typeof String.prototype.repeat === "function" && "x".repeat(3) === "xxx" ?
+    function (x, y) {
+      return x.repeat(y);
+    } : function (pattern, count) {
+      var result = "";
+      while (count > 0) {
+        if (count & 1) {
+          result += pattern;
+        }
+        count >>= 1;
+        pattern += pattern;
+      }
+      return result;
+    });
+
+  function Random(engine) {
+    if (!(this instanceof Random)) {
+      return new Random(engine);
+    }
+
+    if (engine == null) {
+      engine = Random.engines.nativeMath;
+    } else if (typeof engine !== "function") {
+      throw new TypeError("Expected engine to be a function, got " + typeof engine);
+    }
+    this.engine = engine;
+  }
+  var proto = Random.prototype;
+
+  Random.engines = {
+    nativeMath: function () {
+      return (Math.random() * 0x100000000) | 0;
+    },
+    mt19937: (function (Int32Array) {
+      // http://en.wikipedia.org/wiki/Mersenne_twister
+      function refreshData(data) {
+        var k = 0;
+        var tmp = 0;
+        for (;
+          (k | 0) < 227; k = (k + 1) | 0) {
+          tmp = (data[k] & 0x80000000) | (data[(k + 1) | 0] & 0x7fffffff);
+          data[k] = data[(k + 397) | 0] ^ (tmp >>> 1) ^ ((tmp & 0x1) ? 0x9908b0df : 0);
+        }
+
+        for (;
+          (k | 0) < 623; k = (k + 1) | 0) {
+          tmp = (data[k] & 0x80000000) | (data[(k + 1) | 0] & 0x7fffffff);
+          data[k] = data[(k - 227) | 0] ^ (tmp >>> 1) ^ ((tmp & 0x1) ? 0x9908b0df : 0);
+        }
+
+        tmp = (data[623] & 0x80000000) | (data[0] & 0x7fffffff);
+        data[623] = data[396] ^ (tmp >>> 1) ^ ((tmp & 0x1) ? 0x9908b0df : 0);
+      }
+
+      function temper(value) {
+        value ^= value >>> 11;
+        value ^= (value << 7) & 0x9d2c5680;
+        value ^= (value << 15) & 0xefc60000;
+        return value ^ (value >>> 18);
+      }
+
+      function seedWithArray(data, source) {
+        var i = 1;
+        var j = 0;
+        var sourceLength = source.length;
+        var k = Math.max(sourceLength, 624) | 0;
+        var previous = data[0] | 0;
+        for (;
+          (k | 0) > 0; --k) {
+          data[i] = previous = ((data[i] ^ imul((previous ^ (previous >>> 30)), 0x0019660d)) + (source[j] | 0) + (j | 0)) | 0;
+          i = (i + 1) | 0;
+          ++j;
+          if ((i | 0) > 623) {
+            data[0] = data[623];
+            i = 1;
+          }
+          if (j >= sourceLength) {
+            j = 0;
+          }
+        }
+        for (k = 623;
+          (k | 0) > 0; --k) {
+          data[i] = previous = ((data[i] ^ imul((previous ^ (previous >>> 30)), 0x5d588b65)) - i) | 0;
+          i = (i + 1) | 0;
+          if ((i | 0) > 623) {
+            data[0] = data[623];
+            i = 1;
+          }
+        }
+        data[0] = 0x80000000;
+      }
+
+      function mt19937() {
+        var data = new Int32Array(624);
+        var index = 0;
+        var uses = 0;
+
+        function next() {
+          if ((index | 0) >= 624) {
+            refreshData(data);
+            index = 0;
+          }
+
+          var value = data[index];
+          index = (index + 1) | 0;
+          uses += 1;
+          return temper(value) | 0;
+        }
+        next.getUseCount = function() {
+          return uses;
+        };
+        next.discard = function (count) {
+          uses += count;
+          if ((index | 0) >= 624) {
+            refreshData(data);
+            index = 0;
+          }
+          while ((count - index) > 624) {
+            count -= 624 - index;
+            refreshData(data);
+            index = 0;
+          }
+          index = (index + count) | 0;
+          return next;
+        };
+        next.seed = function (initial) {
+          var previous = 0;
+          data[0] = previous = initial | 0;
+
+          for (var i = 1; i < 624; i = (i + 1) | 0) {
+            data[i] = previous = (imul((previous ^ (previous >>> 30)), 0x6c078965) + i) | 0;
+          }
+          index = 624;
+          uses = 0;
+          return next;
+        };
+        next.seedWithArray = function (source) {
+          next.seed(0x012bd6aa);
+          seedWithArray(data, source);
+          return next;
+        };
+        next.autoSeed = function () {
+          return next.seedWithArray(Random.generateEntropyArray());
+        };
+        return next;
+      }
+
+      return mt19937;
+    }(typeof Int32Array === "function" ? Int32Array : Array)),
+    browserCrypto: (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function" && typeof Int32Array === "function") ? (function () {
+      var data = null;
+      var index = 128;
+
+      return function () {
+        if (index >= 128) {
+          if (data === null) {
+            data = new Int32Array(128);
+          }
+          crypto.getRandomValues(data);
+          index = 0;
+        }
+
+        return data[index++] | 0;
+      };
+    }()) : null
+  };
+
+  Random.generateEntropyArray = function () {
+    var array = [];
+    var engine = Random.engines.nativeMath;
+    for (var i = 0; i < 16; ++i) {
+      array[i] = engine() | 0;
+    }
+    array.push(new Date().getTime() | 0);
+    return array;
+  };
+
+  function returnValue(value) {
+    return function () {
+      return value;
+    };
+  }
+
+  // [-0x80000000, 0x7fffffff]
+  Random.int32 = function (engine) {
+    return engine() | 0;
+  };
+  proto.int32 = function () {
+    return Random.int32(this.engine);
+  };
+
+  // [0, 0xffffffff]
+  Random.uint32 = function (engine) {
+    return engine() >>> 0;
+  };
+  proto.uint32 = function () {
+    return Random.uint32(this.engine);
+  };
+
+  // [0, 0x1fffffffffffff]
+  Random.uint53 = function (engine) {
+    var high = engine() & 0x1fffff;
+    var low = engine() >>> 0;
+    return (high * 0x100000000) + low;
+  };
+  proto.uint53 = function () {
+    return Random.uint53(this.engine);
+  };
+
+  // [0, 0x20000000000000]
+  Random.uint53Full = function (engine) {
+    while (true) {
+      var high = engine() | 0;
+      if (high & 0x200000) {
+        if ((high & 0x3fffff) === 0x200000 && (engine() | 0) === 0) {
+          return 0x20000000000000;
+        }
+      } else {
+        var low = engine() >>> 0;
+        return ((high & 0x1fffff) * 0x100000000) + low;
+      }
+    }
+  };
+  proto.uint53Full = function () {
+    return Random.uint53Full(this.engine);
+  };
+
+  // [-0x20000000000000, 0x1fffffffffffff]
+  Random.int53 = function (engine) {
+    var high = engine() | 0;
+    var low = engine() >>> 0;
+    return ((high & 0x1fffff) * 0x100000000) + low + (high & 0x200000 ? -0x20000000000000 : 0);
+  };
+  proto.int53 = function () {
+    return Random.int53(this.engine);
+  };
+
+  // [-0x20000000000000, 0x20000000000000]
+  Random.int53Full = function (engine) {
+    while (true) {
+      var high = engine() | 0;
+      if (high & 0x400000) {
+        if ((high & 0x7fffff) === 0x400000 && (engine() | 0) === 0) {
+          return 0x20000000000000;
+        }
+      } else {
+        var low = engine() >>> 0;
+        return ((high & 0x1fffff) * 0x100000000) + low + (high & 0x200000 ? -0x20000000000000 : 0);
+      }
+    }
+  };
+  proto.int53Full = function () {
+    return Random.int53Full(this.engine);
+  };
+
+  function add(generate, addend) {
+    if (addend === 0) {
+      return generate;
+    } else {
+      return function (engine) {
+        return generate(engine) + addend;
+      };
+    }
+  }
+
+  Random.integer = (function () {
+    function isPowerOfTwoMinusOne(value) {
+      return ((value + 1) & value) === 0;
+    }
+
+    function bitmask(masking) {
+      return function (engine) {
+        return engine() & masking;
+      };
+    }
+
+    function downscaleToLoopCheckedRange(range) {
+      var extendedRange = range + 1;
+      var maximum = extendedRange * Math.floor(0x100000000 / extendedRange);
+      return function (engine) {
+        var value = 0;
+        do {
+          value = engine() >>> 0;
+        } while (value >= maximum);
+        return value % extendedRange;
+      };
+    }
+
+    function downscaleToRange(range) {
+      if (isPowerOfTwoMinusOne(range)) {
+        return bitmask(range);
+      } else {
+        return downscaleToLoopCheckedRange(range);
+      }
+    }
+
+    function isEvenlyDivisibleByMaxInt32(value) {
+      return (value | 0) === 0;
+    }
+
+    function upscaleWithHighMasking(masking) {
+      return function (engine) {
+        var high = engine() & masking;
+        var low = engine() >>> 0;
+        return (high * 0x100000000) + low;
+      };
+    }
+
+    function upscaleToLoopCheckedRange(extendedRange) {
+      var maximum = extendedRange * Math.floor(0x20000000000000 / extendedRange);
+      return function (engine) {
+        var ret = 0;
+        do {
+          var high = engine() & 0x1fffff;
+          var low = engine() >>> 0;
+          ret = (high * 0x100000000) + low;
+        } while (ret >= maximum);
+        return ret % extendedRange;
+      };
+    }
+
+    function upscaleWithinU53(range) {
+      var extendedRange = range + 1;
+      if (isEvenlyDivisibleByMaxInt32(extendedRange)) {
+        var highRange = ((extendedRange / 0x100000000) | 0) - 1;
+        if (isPowerOfTwoMinusOne(highRange)) {
+          return upscaleWithHighMasking(highRange);
+        }
+      }
+      return upscaleToLoopCheckedRange(extendedRange);
+    }
+
+    function upscaleWithinI53AndLoopCheck(min, max) {
+      return function (engine) {
+        var ret = 0;
+        do {
+          var high = engine() | 0;
+          var low = engine() >>> 0;
+          ret = ((high & 0x1fffff) * 0x100000000) + low + (high & 0x200000 ? -0x20000000000000 : 0);
+        } while (ret < min || ret > max);
+        return ret;
+      };
+    }
+
+    return function (min, max) {
+      min = Math.floor(min);
+      max = Math.floor(max);
+      if (min < -0x20000000000000 || !isFinite(min)) {
+        throw new RangeError("Expected min to be at least " + (-0x20000000000000));
+      } else if (max > 0x20000000000000 || !isFinite(max)) {
+        throw new RangeError("Expected max to be at most " + 0x20000000000000);
+      }
+
+      var range = max - min;
+      if (range <= 0 || !isFinite(range)) {
+        return returnValue(min);
+      } else if (range === 0xffffffff) {
+        if (min === 0) {
+          return Random.uint32;
+        } else {
+          return add(Random.int32, min + 0x80000000);
+        }
+      } else if (range < 0xffffffff) {
+        return add(downscaleToRange(range), min);
+      } else if (range === 0x1fffffffffffff) {
+        return add(Random.uint53, min);
+      } else if (range < 0x1fffffffffffff) {
+        return add(upscaleWithinU53(range), min);
+      } else if (max - 1 - min === 0x1fffffffffffff) {
+        return add(Random.uint53Full, min);
+      } else if (min === -0x20000000000000 && max === 0x20000000000000) {
+        return Random.int53Full;
+      } else if (min === -0x20000000000000 && max === 0x1fffffffffffff) {
+        return Random.int53;
+      } else if (min === -0x1fffffffffffff && max === 0x20000000000000) {
+        return add(Random.int53, 1);
+      } else if (max === 0x20000000000000) {
+        return add(upscaleWithinI53AndLoopCheck(min - 1, max - 1), 1);
+      } else {
+        return upscaleWithinI53AndLoopCheck(min, max);
+      }
+    };
+  }());
+  proto.integer = function (min, max) {
+    return Random.integer(min, max)(this.engine);
+  };
+
+  // [0, 1] (floating point)
+  Random.realZeroToOneInclusive = function (engine) {
+    return Random.uint53Full(engine) / 0x20000000000000;
+  };
+  proto.realZeroToOneInclusive = function () {
+    return Random.realZeroToOneInclusive(this.engine);
+  };
+
+  // [0, 1) (floating point)
+  Random.realZeroToOneExclusive = function (engine) {
+    return Random.uint53(engine) / 0x20000000000000;
+  };
+  proto.realZeroToOneExclusive = function () {
+    return Random.realZeroToOneExclusive(this.engine);
+  };
+
+  Random.real = (function () {
+    function multiply(generate, multiplier) {
+      if (multiplier === 1) {
+        return generate;
+      } else if (multiplier === 0) {
+        return function () {
+          return 0;
+        };
+      } else {
+        return function (engine) {
+          return generate(engine) * multiplier;
+        };
+      }
+    }
+
+    return function (left, right, inclusive) {
+      if (!isFinite(left)) {
+        throw new RangeError("Expected left to be a finite number");
+      } else if (!isFinite(right)) {
+        throw new RangeError("Expected right to be a finite number");
+      }
+      return add(
+        multiply(
+          inclusive ? Random.realZeroToOneInclusive : Random.realZeroToOneExclusive,
+          right - left),
+        left);
+    };
+  }());
+  proto.real = function (min, max, inclusive) {
+    return Random.real(min, max, inclusive)(this.engine);
+  };
+
+  Random.bool = (function () {
+    function isLeastBitTrue(engine) {
+      return (engine() & 1) === 1;
+    }
+
+    function lessThan(generate, value) {
+      return function (engine) {
+        return generate(engine) < value;
+      };
+    }
+
+    function probability(percentage) {
+      if (percentage <= 0) {
+        return returnValue(false);
+      } else if (percentage >= 1) {
+        return returnValue(true);
+      } else {
+        var scaled = percentage * 0x100000000;
+        if (scaled % 1 === 0) {
+          return lessThan(Random.int32, (scaled - 0x80000000) | 0);
+        } else {
+          return lessThan(Random.uint53, Math.round(percentage * 0x20000000000000));
+        }
+      }
+    }
+
+    return function (numerator, denominator) {
+      if (denominator == null) {
+        if (numerator == null) {
+          return isLeastBitTrue;
+        }
+        return probability(numerator);
+      } else {
+        if (numerator <= 0) {
+          return returnValue(false);
+        } else if (numerator >= denominator) {
+          return returnValue(true);
+        }
+        return lessThan(Random.integer(0, denominator - 1), numerator);
+      }
+    };
+  }());
+  proto.bool = function (numerator, denominator) {
+    return Random.bool(numerator, denominator)(this.engine);
+  };
+
+  function toInteger(value) {
+    var number = +value;
+    if (number < 0) {
+      return Math.ceil(number);
+    } else {
+      return Math.floor(number);
+    }
+  }
+
+  function convertSliceArgument(value, length) {
+    if (value < 0) {
+      return Math.max(value + length, 0);
+    } else {
+      return Math.min(value, length);
+    }
+  }
+  Random.pick = function (engine, array, begin, end) {
+    var length = array.length;
+    var start = begin == null ? 0 : convertSliceArgument(toInteger(begin), length);
+    var finish = end === void 0 ? length : convertSliceArgument(toInteger(end), length);
+    if (start >= finish) {
+      return void 0;
+    }
+    var distribution = Random.integer(start, finish - 1);
+    return array[distribution(engine)];
+  };
+  proto.pick = function (array, begin, end) {
+    return Random.pick(this.engine, array, begin, end);
+  };
+
+  function returnUndefined() {
+    return void 0;
+  }
+  var slice = Array.prototype.slice;
+  Random.picker = function (array, begin, end) {
+    var clone = slice.call(array, begin, end);
+    if (!clone.length) {
+      return returnUndefined;
+    }
+    var distribution = Random.integer(0, clone.length - 1);
+    return function (engine) {
+      return clone[distribution(engine)];
+    };
+  };
+
+  Random.shuffle = function (engine, array, downTo) {
+    var length = array.length;
+    if (length) {
+      if (downTo == null) {
+        downTo = 0;
+      }
+      for (var i = (length - 1) >>> 0; i > downTo; --i) {
+        var distribution = Random.integer(0, i);
+        var j = distribution(engine);
+        if (i !== j) {
+          var tmp = array[i];
+          array[i] = array[j];
+          array[j] = tmp;
+        }
+      }
+    }
+    return array;
+  };
+  proto.shuffle = function (array) {
+    return Random.shuffle(this.engine, array);
+  };
+
+  Random.sample = function (engine, population, sampleSize) {
+    if (sampleSize < 0 || sampleSize > population.length || !isFinite(sampleSize)) {
+      throw new RangeError("Expected sampleSize to be within 0 and the length of the population");
+    }
+
+    if (sampleSize === 0) {
+      return [];
+    }
+
+    var clone = slice.call(population);
+    var length = clone.length;
+    if (length === sampleSize) {
+      return Random.shuffle(engine, clone, 0);
+    }
+    var tailLength = length - sampleSize;
+    return Random.shuffle(engine, clone, tailLength - 1).slice(tailLength);
+  };
+  proto.sample = function (population, sampleSize) {
+    return Random.sample(this.engine, population, sampleSize);
+  };
+
+  Random.die = function (sideCount) {
+    return Random.integer(1, sideCount);
+  };
+  proto.die = function (sideCount) {
+    return Random.die(sideCount)(this.engine);
+  };
+
+  Random.dice = function (sideCount, dieCount) {
+    var distribution = Random.die(sideCount);
+    return function (engine) {
+      var result = [];
+      result.length = dieCount;
+      for (var i = 0; i < dieCount; ++i) {
+        result[i] = distribution(engine);
+      }
+      return result;
+    };
+  };
+  proto.dice = function (sideCount, dieCount) {
+    return Random.dice(sideCount, dieCount)(this.engine);
+  };
+
+  // http://en.wikipedia.org/wiki/Universally_unique_identifier
+  Random.uuid4 = (function () {
+    function zeroPad(string, zeroCount) {
+      return stringRepeat("0", zeroCount - string.length) + string;
+    }
+
+    return function (engine) {
+      var a = engine() >>> 0;
+      var b = engine() | 0;
+      var c = engine() | 0;
+      var d = engine() >>> 0;
+
+      return (
+        zeroPad(a.toString(16), 8) +
+        "-" +
+        zeroPad((b & 0xffff).toString(16), 4) +
+        "-" +
+        zeroPad((((b >> 4) & 0x0fff) | 0x4000).toString(16), 4) +
+        "-" +
+        zeroPad(((c & 0x3fff) | 0x8000).toString(16), 4) +
+        "-" +
+        zeroPad(((c >> 4) & 0xffff).toString(16), 4) +
+        zeroPad(d.toString(16), 8));
+    };
+  }());
+  proto.uuid4 = function () {
+    return Random.uuid4(this.engine);
+  };
+
+  Random.string = (function () {
+    // has 2**x chars, for faster uniform distribution
+    var DEFAULT_STRING_POOL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+
+    return function (pool) {
+      if (pool == null) {
+        pool = DEFAULT_STRING_POOL;
+      }
+
+      var length = pool.length;
+      if (!length) {
+        throw new Error("Expected pool not to be an empty string");
+      }
+
+      var distribution = Random.integer(0, length - 1);
+      return function (engine, length) {
+        var result = "";
+        for (var i = 0; i < length; ++i) {
+          var j = distribution(engine);
+          result += pool.charAt(j);
+        }
+        return result;
+      };
+    };
+  }());
+  proto.string = function (length, pool) {
+    return Random.string(pool)(this.engine, length);
+  };
+
+  Random.hex = (function () {
+    var LOWER_HEX_POOL = "0123456789abcdef";
+    var lowerHex = Random.string(LOWER_HEX_POOL);
+    var upperHex = Random.string(LOWER_HEX_POOL.toUpperCase());
+
+    return function (upper) {
+      if (upper) {
+        return upperHex;
+      } else {
+        return lowerHex;
+      }
+    };
+  }());
+  proto.hex = function (length, upper) {
+    return Random.hex(upper)(this.engine, length);
+  };
+
+  Random.date = function (start, end) {
+    if (!(start instanceof Date)) {
+      throw new TypeError("Expected start to be a Date, got " + typeof start);
+    } else if (!(end instanceof Date)) {
+      throw new TypeError("Expected end to be a Date, got " + typeof end);
+    }
+    var distribution = Random.integer(start.getTime(), end.getTime());
+    return function (engine) {
+      return new Date(distribution(engine));
+    };
+  };
+  proto.date = function (start, end) {
+    return Random.date(start, end)(this.engine);
+  };
+
+  if (typeof define === "function" && define.amd) {
+    define(function () {
+      return Random;
+    });
+  } else if (typeof module !== "undefined" && typeof require === "function") {
+    module.exports = Random;
+  } else {
+    (function () {
+      var oldGlobal = root[GLOBAL_KEY];
+      Random.noConflict = function () {
+        root[GLOBAL_KEY] = oldGlobal;
+        return this;
+      };
+    }());
+    root[GLOBAL_KEY] = Random;
+  }
+}(this));
+},{}],48:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -3717,4162 +8796,96 @@ exports.encode = exports.stringify = require('./encode');
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],15:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.tokenAuthenticator = exports.basicAuthenticator = undefined;
-
-var _base = require('../deps/utils/base64');
-
-var authenticators = {};
-
-var Authentication = {
-  registerAuthenticator: function registerAuthenticator(method, authenticator) {
-    authenticators[method] = authenticator;
+},{}],49:[function(require,module,exports){
+module.exports={
+  "name": "nuxeo",
+  "description": "JavaScript client library for Nuxeo API",
+  "version": "2.1.1",
+  "main": "./lib/index.js",
+  "author": "Nuxeo (http://www.nuxeo.com/)",
+  "contributors": [
+    {
+      "name": "Thomas Roger",
+      "email": "troger@nuxeo.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/nuxeo/nuxeo-js-client",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nuxeo/nuxeo-js-client.git"
   },
-
-  computeAuthentication: function computeAuthentication(auth, headers) {
-    if (auth) {
-      var authenticator = authenticators[auth.method];
-      if (authenticator) {
-        authenticator(auth, headers);
-      }
-    }
-    return headers;
-  }
-};
-exports.default = Authentication;
-
-// default authenticators
-
-var basicAuthenticator = exports.basicAuthenticator = function basicAuthenticator(auth, headers) {
-  if (auth.username && auth.password) {
-    var authorization = 'Basic ' + (0, _base.btoa)(auth.username + ':' + auth.password);
-    headers.Authorization = authorization;
-  }
-};
-
-var tokenAuthenticator = exports.tokenAuthenticator = function tokenAuthenticator(auth, headers) {
-  if (auth.token) {
-    headers['X-Authentication-Token'] = auth.token;
-  }
-};
-
-},{"../deps/utils/base64":22}],16:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var DEFAULT_OPTS = {
-  repositoryName: 'default',
-  schemas: [],
-  enrichers: {},
-  fetchProperties: {},
-  headers: {},
-  timeout: 30000
-};
-
-/**
- * This provides methods to store and use global settings when interacting with Nuxeo Platform.
- *
- * It's not meant to be used directly.
- *
- * @mixin
- */
-
-var Base = function () {
-  function Base() {
-    var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, Base);
-
-    var options = (0, _extend2.default)(true, {}, DEFAULT_OPTS, opts);
-    this._baseOptions = {};
-    this._baseOptions.repositoryName = options.repositoryName;
-    this._baseOptions.schemas = options.schemas;
-    this._baseOptions.enrichers = options.enrichers;
-    this._baseOptions.fetchProperties = options.fetchProperties;
-    this._baseOptions.depth = options.depth;
-    this._baseOptions.headers = options.headers;
-    this._baseOptions.timeout = options.timeout;
-    this._baseOptions.transactionTimeout = options.transationTimeout;
-    this._baseOptions.httpTimeout = options.httpTimeout;
-  }
-
-  /**
-   * Sets the repository name.
-   * @param {string} repositoryName - The repository name.
-   * @returns {Base} The object itself.
-   */
-
-
-  _createClass(Base, [{
-    key: 'repositoryName',
-    value: function repositoryName(_repositoryName) {
-      this._baseOptions.repositoryName = _repositoryName;
-      return this;
-    }
-
-    /**
-     * Sets the schemas.
-     * @param {Array} schemas - The schemas.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'schemas',
-    value: function schemas(_schemas) {
-      this._baseOptions.schemas = [].concat(_toConsumableArray(_schemas));
-      return this;
-    }
-
-    /**
-     * Sets the enrichers.
-     * @example
-     * { document: ['acls', 'permissions'] }
-     * @param {object} enrichers - The new enrichers.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'enrichers',
-    value: function enrichers(_enrichers) {
-      this._baseOptions.enrichers = {};
-      for (var _iterator = Object.keys(_enrichers), _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-        var _ref;
-
-        if (_isArray) {
-          if (_i >= _iterator.length) break;
-          _ref = _iterator[_i++];
-        } else {
-          _i = _iterator.next();
-          if (_i.done) break;
-          _ref = _i.value;
-        }
-
-        var key = _ref;
-
-        this._baseOptions.enrichers[key] = _enrichers[key];
-      }
-      return this;
-    }
-
-    /**
-     * Adds an enricher for a given entity.
-     * @param {string} entity - The entity name.
-     * @param {string} name - The enricher name.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'enricher',
-    value: function enricher(entity, name) {
-      var enrichers = this._baseOptions.enrichers[entity] || [];
-      enrichers.push(name);
-      this._baseOptions.enrichers[entity] = enrichers;
-      return this;
-    }
-
-    /**
-     * Sets the properties to fetch.
-     * @example
-     * { document: ['dc:creator'] }
-     * @param {object} fetchProperties - The new properties to fetch.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'fetchProperties',
-    value: function fetchProperties(_fetchProperties) {
-      this._baseOptions.fetchProperties = {};
-      for (var _iterator2 = Object.keys(_fetchProperties), _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-        var _ref2;
-
-        if (_isArray2) {
-          if (_i2 >= _iterator2.length) break;
-          _ref2 = _iterator2[_i2++];
-        } else {
-          _i2 = _iterator2.next();
-          if (_i2.done) break;
-          _ref2 = _i2.value;
-        }
-
-        var key = _ref2;
-
-        this._baseOptions.fetchProperties[key] = _fetchProperties[key];
-      }
-      return this;
-    }
-
-    /**
-     * Adds a property to fetch for a given entity.
-     * @param {string} entity - The entity name.
-     * @param {string} name - The property name.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'fetchProperty',
-    value: function fetchProperty(entity, name) {
-      var fetchProperties = this._baseOptions.fetchProperties[entity] || [];
-      fetchProperties.push(name);
-      this._baseOptions.fetchProperties[entity] = fetchProperties;
-      return this;
-    }
-
-    /**
-     * Sets the depth.
-     * Possible values are: `root`, `children` and `max`.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'depth',
-    value: function depth(_depth) {
-      this._baseOptions.depth = _depth;
-      return this;
-    }
-
-    /**
-     * Sets the headers.
-     * @param {object} headers - the new headers.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'headers',
-    value: function headers(_headers) {
-      this._baseOptions.headers = {};
-      for (var _iterator3 = Object.keys(_headers), _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-        var _ref3;
-
-        if (_isArray3) {
-          if (_i3 >= _iterator3.length) break;
-          _ref3 = _iterator3[_i3++];
-        } else {
-          _i3 = _iterator3.next();
-          if (_i3.done) break;
-          _ref3 = _i3.value;
-        }
-
-        var key = _ref3;
-
-        this._baseOptions.headers[key] = _headers[key];
-      }
-      return this;
-    }
-
-    /**
-     * Adds a header.
-     * @param {string} name - the header name
-     * @param {string} value - the header value
-     * @returns {Base} The object itself..
-     */
-
-  }, {
-    key: 'header',
-    value: function header(name, value) {
-      this._baseOptions.headers[name] = value;
-      return this;
-    }
-
-    /**
-     * Sets the global timeout, used as HTTP timeout and transaction timeout
-     * by default.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'timeout',
-    value: function timeout(_timeout) {
-      this._baseOptions.timeout = _timeout;
-      return this;
-    }
-
-    /**
-     * Sets the transaction timeout.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'transactionTimeout',
-    value: function transactionTimeout(_transactionTimeout) {
-      this._baseOptions.transactionTimeout = _transactionTimeout;
-      return this;
-    }
-
-    /**
-     * Sets the HTTP timeout.
-     * @returns {Base} The object itself.
-     */
-
-  }, {
-    key: 'httpTimeout',
-    value: function httpTimeout(_httpTimeout) {
-      this._baseOptions.httpTimeout = _httpTimeout;
-      return this;
-    }
-
-    /**
-     * Computes a full options object from an optional `opts` object and the ones from this object.
-     * `schemas`, `enrichers`, `fetchProperties` and `headers` are not merged but the ones from the `opts` object
-     * override the ones from this object.
-     */
-
-  }, {
-    key: '_computeOptions',
-    value: function _computeOptions() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = (0, _extend2.default)(true, {}, this._baseOptions, opts);
-      // force some options that we don't merge
-      if (opts.schemas) {
-        options.schemas = [].concat(_toConsumableArray(opts.schemas));
-      }
-      if (opts.enrichers) {
-        options.enrichers = {};
-        Object.keys(opts.enrichers).forEach(function (key) {
-          options.enrichers[key] = opts.enrichers[key];
-        });
-      }
-      if (opts.fetchProperties) {
-        options.fetchProperties = {};
-        Object.keys(opts.fetchProperties).forEach(function (key) {
-          options.fetchProperties[key] = opts.fetchProperties[key];
-        });
-      }
-      if (opts.headers) {
-        options.headers = {};
-        Object.keys(opts.headers).forEach(function (key) {
-          options.headers[key] = opts.headers[key];
-        });
-      }
-      return options;
-    }
-  }]);
-
-  return Base;
-}();
-
-exports.default = Base;
-module.exports = exports['default'];
-
-},{"extend":4}],17:[function(require,module,exports){
-'use strict';
-
-/**
- * The `Blob` class represents an abstraction over a blob to be used in the APIs.
- *
- * @example
- * // in the browser, assuming you have a File object from an input for instance
- * var blob = new Nuxeo.Blob({ content: file });
- * // in node
- * var file = fs.createReadStream(filePath);
- * var stats = fs.statSync(filePath);
- * var blob = new Nuxeo.Blob({
- *    content: file,
- *    name: path.basename(filePath1),
- *    mimeType: 'text/plain',
- *    size: stats.size,
- *  });
- */
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Blob =
-/*
- * Creates a Blob.
- * @param {string} opts.content - The content of the Blob. Could be a File or Blob object in the browser.
- * @param {string} [opts.name] - The name of the Blob. It overrides the one from content.name.
- * @param {string} [opts.mimeType] - The mime-type of the Blob. It overrides the one from content.type.
- * @param {string} [opts.size] - The size of the Blob. It overrides the one from content.size.
- */
-function Blob(opts) {
-  _classCallCheck(this, Blob);
-
-  this.content = opts.content;
-  this.name = opts.name || this.content.name;
-  this.mimeType = opts.mimeType || this.content.type;
-  this.size = opts.size || this.content.size;
-};
-
-exports.default = Blob;
-module.exports = exports['default'];
-
-},{}],18:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var depth = {
-  ROOT: 'root',
-  CHILDREN: 'children',
-  MAX: 'max'
-};
-
-var enricher = {
-  document: {
-    ACLS: 'acls',
-    BREADCRUMB: 'breadcrumb',
-    CHILDREN: 'children',
-    DOCUMENT_URL: 'documentURL',
-    PERMISSIONS: 'permissions',
-    PREVIEW: 'preview'
-  }
-};
-
-exports.default = {
-  depth: depth,
-  enricher: enricher
-};
-module.exports = exports['default'];
-
-},{}],19:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-require('whatwg-fetch');
-exports.default = self.fetch.bind(self);
-module.exports = exports['default'];
-
-},{"whatwg-fetch":14}],20:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = FormData;
-module.exports = exports['default'];
-
-},{}],21:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _es6Promise = require('es6-promise');
-
-var _es6Promise2 = _interopRequireDefault(_es6Promise);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_es6Promise2.default.polyfill();
-
-exports.default = Promise;
-module.exports = exports['default'];
-
-},{"es6-promise":3}],22:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.btoa = btoa;
-
-var _buffer = require('./buffer');
-
-var _buffer2 = _interopRequireDefault(_buffer);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function btoa(str) {
-  return new _buffer2.default(str).toString('base64');
-}
-
-},{"./buffer":23}],23:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _buffer = require('buffer/');
-
-exports.default = _buffer.Buffer;
-module.exports = exports['default'];
-
-},{"buffer/":2}],24:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = flatten;
-function flatten(list) {
-  return list.reduce(function (a, b) {
-    return a.concat(Array.isArray(b) ? flatten(b) : b);
-  }, []);
-}
-module.exports = exports['default'];
-
-},{}],25:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = join;
-function join() {
-  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
-
-  var joined = args.join('/');
-  return joined.replace(/(^\/+)|([^:])\/\/+/g, '$2/');
-}
-module.exports = exports['default'];
-
-},{}],26:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('../deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-var _entry = require('./entry');
-
-var _entry2 = _interopRequireDefault(_entry);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-/**
- * The `Directory` class allows to work with directories on a Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator'
- *  }
- * });
- * nuxeo.directory('nature')
- *   .fetch('article')
- *   .then(function(res) {
- *     // res.properties.id === 'article'
- *     // res.properties.label === 'article	label.directories.nature.article'
- *   })
- *   .catch(function(error) {
- *     throw new Error(error));
- *   });
- */
-var Directory = function (_Base) {
-  _inherits(Directory, _Base);
-
-  /**
-   * Creates a Directory.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this directory.
-   * @param {string} opts.directoryName - The name of this directory.
-   */
-  function Directory(opts) {
-    _classCallCheck(this, Directory);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Directory).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    _this._directoryName = opts.directoryName;
-    _this._path = (0, _join2.default)('directory', _this._directoryName);
-    return _this;
-  }
-
-  /**
-   * Fetches all directory entries.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A Promise object resolved with the entries.
-   */
-
-
-  _createClass(Directory, [{
-    key: 'fetchAll',
-    value: function fetchAll() {
-      var _this2 = this;
-
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      var path = this._path;
-      return this._nuxeo.request(path).get(options).then(function (res) {
-        options.nuxeo = _this2._nuxeo;
-        options.directory = _this2;
-        var entries = res.entries.map(function (entry) {
-          return new _entry2.default(entry, options);
-        });
-        return entries;
-      });
-    }
-
-    /**
-     * Fetches a directory entry given its id.
-     * @param {string} id - The entry id.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the {@link DirectoryEntry}.
-     */
-
-  }, {
-    key: 'fetch',
-    value: function fetch(id, opts) {
-      var _this3 = this;
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(this._path, id);
-      return this._nuxeo.request(path).get(options).then(function (res) {
-        options.nuxeo = _this3._nuxeo;
-        options.directory = _this3;
-        return new _entry2.default(res, options);
-      });
-    }
-
-    /**
-     * Creates an entry.
-     * @param {object} entry - The entry to be created.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the created {@link DirectoryEntry}.
-     */
-
-  }, {
-    key: 'create',
-    value: function create(entry) {
-      var _this4 = this;
-
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        'entity-type': 'directoryEntry',
-        directoryName: this._directoryName,
-        properties: entry.properties
-      };
-      var options = this._computeOptions(opts);
-      var path = this._path;
-      return this._nuxeo.request(path).post(opts).then(function (res) {
-        options.nuxeo = _this4._nuxeo;
-        options.directory = _this4;
-        return new _entry2.default(res, options);
-      });
-    }
-
-    /**
-     * Updates an entry. Assumes that the entry object has an `id` property.
-     * @param {object} entry - The entry to be updated.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the updated {@link DirectoryEntry}.
-     */
-
-  }, {
-    key: 'update',
-    value: function update(entry) {
-      var _this5 = this;
-
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        'entity-type': 'directoryEntry',
-        directoryName: this._directoryName,
-        properties: entry.properties
-      };
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(this._path, entry.properties.id);
-      return this._nuxeo.request(path).put(options).then(function (res) {
-        options.nuxeo = _this5._nuxeo;
-        options.directory = _this5;
-        return new _entry2.default(res, options);
-      });
-    }
-
-    /**
-     * Deletes an entry given its id.
-     * @param {string} id - The entry id.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
-     */
-
-  }, {
-    key: 'delete',
-    value: function _delete(id, opts) {
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(this._path, id);
-      return this._nuxeo.request(path).delete(options);
-    }
-  }]);
-
-  return Directory;
-}(_base2.default);
-
-exports.default = Directory;
-module.exports = exports['default'];
-
-},{"../base":16,"../deps/utils/join":25,"./entry":27}],27:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-/**
- * The `DirectoryEntry` class wraps a directory entry.
- *
- * **Cannot directly be instantiated**
- */
-var DirectoryEntry = function (_Base) {
-  _inherits(DirectoryEntry, _Base);
-
-  /**
-   * Creates a DirectoryEntry.
-   * @param {object} entry - The initial entry object.
-   *                         This DirectoryEntry object will be extended with entry properties.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.directory - The {@link Directory} object linked to this entry.
-   */
-  function DirectoryEntry(entry, opts) {
-    _classCallCheck(this, DirectoryEntry);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DirectoryEntry).call(this, opts));
-
-    _this._directory = opts.directory;
-    _this.properties = {};
-    _this._dirtyProperties = {
-      id: entry.properties.id
-    };
-    (0, _extend2.default)(true, _this, entry);
-    return _this;
-  }
-
-  /**
-   * Sets entry properties.
-   * @param {object} properties - The properties to set.
-   * @returns {DirectoryEntry}
-   *
-   * @example
-   * entry.set({
-   *   'label': 'new label',
-   *   'ordering': 50,
-   * });
-   */
-
-
-  _createClass(DirectoryEntry, [{
-    key: 'set',
-    value: function set(properties) {
-      this._dirtyProperties = (0, _extend2.default)(true, {}, this._dirtyProperties, properties);
-      return this;
-    }
-
-    /**
-     * Gets an entry property.
-     * @param {string} propertyName - The property name, such as 'label', 'ordering', ...
-     * @returns {DirectoryEntry}
-     */
-
-  }, {
-    key: 'get',
-    value: function get(propertyName) {
-      return this._dirtyProperties[propertyName] || this.properties[propertyName];
-    }
-
-    /**
-     * Saves the entry. It updates only the 'dirty properties' set through the {@link DirectoryEntry#set} method.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated entry.
-     */
-
-  }, {
-    key: 'save',
-    value: function save() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      return this._directory.update({
-        properties: this._dirtyProperties
-      }, options);
-    }
-  }]);
-
-  return DirectoryEntry;
-}(_base2.default);
-
-exports.default = DirectoryEntry;
-module.exports = exports['default'];
-
-},{"../base":16,"extend":4}],28:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _querystring = require('querystring');
-
-var _querystring2 = _interopRequireDefault(_querystring);
-
-var _join = require('./deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-var _base = require('./base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _constants = require('./deps/constants');
-
-var _constants2 = _interopRequireDefault(_constants);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-/**
- * The `Document` class wraps a document.
- *
- * **Cannot directly be instantiated**
- */
-var Document = function (_Base) {
-  _inherits(Document, _Base);
-
-  /**
-   * Creates a Document.
-   * @param {object} doc - The initial document object. This Document object will be extended with doc properties.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this `Document` object.
-   * @param {object} opts.repository - The {@link Repository} object linked to this `Document` object.
-   */
-  function Document(doc, opts) {
-    _classCallCheck(this, Document);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Document).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    _this._repository = opts.repository || _this._nuxeo.repository(doc.repository, opts);
-    _this.properties = {};
-    _this._dirtyProperties = {};
-    (0, _extend2.default)(true, _this, doc);
-    return _this;
-  }
-
-  /**
-   * Sets document properties.
-   * @param {object} properties - The properties to set.
-   * @returns {Document}
-   *
-   * @example
-   * doc.set({
-   *   'dc:title': 'new title',
-   *   'dc:description': 'new description',
-   * });
-   */
-
-
-  _createClass(Document, [{
-    key: 'set',
-    value: function set(properties) {
-      this._dirtyProperties = (0, _extend2.default)(true, {}, this._dirtyProperties, properties);
-      return this;
-    }
-
-    /**
-     * Gets a document property.
-     * @param {string} propertyName - The property name, such as 'dc:title', 'file:filename', ...
-     * @returns {Document}
-     */
-
-  }, {
-    key: 'get',
-    value: function get(propertyName) {
-      return this._dirtyProperties[propertyName] || this.properties[propertyName];
-    }
-
-    /**
-     * Saves the document. It updates only the 'dirty properties' set through the {@link Document#set} method.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated document.
-     */
-
-  }, {
-    key: 'save',
-    value: function save() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      return this._repository.update({
-        'entity-type': 'document',
-        uid: this.uid,
-        properties: this._dirtyProperties
-      }, options);
-    }
-
-    /**
-     * Returns weither this document is folderish or not.
-     * @returns {Boolean} true if this document is folderish, false otherwise.
-     */
-
-  }, {
-    key: 'isFolder',
-    value: function isFolder() {
-      return this.facets.indexOf('Folderish') !== -1;
-    }
-
-    /**
-     * Fetch a Blob from this document.
-     * @param {string} [xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the response.
-     */
-
-  }, {
-    key: 'fetchBlob',
-    value: function fetchBlob() {
-      var xpath = arguments.length <= 0 || arguments[0] === undefined ? 'blobholder:0' : arguments[0];
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = opts;
-      var blobXPath = xpath;
-      if ((typeof xpath === 'undefined' ? 'undefined' : _typeof(xpath)) === 'object') {
-        options = xpath;
-        blobXPath = 'blobholder:0';
-      }
-      options = this._computeOptions(options);
-      var path = (0, _join2.default)('id', this.uid, '@blob', blobXPath);
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Moves this document.
-     * @param {string} dst - The destination folder.
-     * @param {string} [name] - The destination name, can be null.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the moved document.
-     */
-
-  }, {
-    key: 'move',
-    value: function move(dst) {
-      var name = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-      var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      var options = this._computeOptions(opts);
-      options.repository = this._repository;
-      return this._nuxeo.operation('Document.Move').input(this.uid).params({
-        name: name,
-        target: dst
-      }).execute(options);
-    }
-
-    /**
-     * Follows a given life cycle transition.
-     * @param {string} transitionName - The life cycle transition to follow.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated document.
-     */
-
-  }, {
-    key: 'followTransition',
-    value: function followTransition(transitionName) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      options.repository = this._repository;
-      return this._nuxeo.operation('Document.FollowLifecycleTransition').input(this.uid).params({
-        value: transitionName
-      }).execute(options);
-    }
-
-    /**
-     * Converts a Blob from this document.
-     * @param {object} convertOpts - Configuration options for the conversion.
-                                     At least one of the 'converter', 'type' or 'format' option must be defined.
-     * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
-     * @param {string} convertOpts.converter - Named converter to use.
-     * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
-     * @param {string} convertOpts.format - The destination format, such as 'pdf'.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the response.
-     */
-
-  }, {
-    key: 'convert',
-    value: function convert(convertOpts) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var xpath = convertOpts.xpath || 'blobholder:0';
-      var path = (0, _join2.default)('id', this.uid, '@blob', xpath, '@convert');
-      return this._nuxeo.request(path).queryParams({
-        converter: convertOpts.converter,
-        type: convertOpts.type,
-        format: convertOpts.format
-      }).get(options);
-    }
-
-    /**
-     * Schedule a conversion of the Blob from this document.
-     * @param {object} convertOpts - Configuration options for the conversion.
-                                     At least one of the 'converter', 'type' or 'format' option must be defined.
-     * @param {string} [convertOpts.xpath=blobholder:0] - The Blob xpath. Default to the main blob 'blobholder:0'.
-     * @param {string} convertOpts.converter - Named converter to use.
-     * @param {string} convertOpts.type - The destination mime type, such as 'application/pdf'.
-     * @param {string} convertOpts.format - The destination format, such as 'pdf'.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the response.
-     */
-
-  }, {
-    key: 'scheduleConversion',
-    value: function scheduleConversion(convertOpts) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var params = {
-        async: true,
-        converter: convertOpts.converter,
-        type: convertOpts.type,
-        format: convertOpts.format
-      };
-      opts.body = _querystring2.default.stringify(params);
-      var options = this._computeOptions(opts);
-      options.headers['Content-Type'] = 'multipart/form-data';
-      var xpath = convertOpts.xpath || 'blobholder:0';
-      var path = (0, _join2.default)('id', this.uid, '@blob', xpath, '@convert');
-      return this._nuxeo.request(path).post(options);
-    }
-
-    /**
-     * Starts a workflow on this document given a workflow model name.
-     * @param {string} workflowModelName - The workflow model name.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the started `Workflow` object.
-     */
-
-  }, {
-    key: 'startWorkflow',
-    value: function startWorkflow(workflowModelName) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        workflowModelName: workflowModelName,
-        'entity-type': 'workflow'
-      };
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)('id', this.uid, '@workflow');
-      options.documentId = this.uid;
-      return this._nuxeo.request(path).post(options);
-    }
-
-    /**
-     * Fetches the started workflows on this document.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the started workflows.
-     */
-
-  }, {
-    key: 'fetchWorkflows',
-    value: function fetchWorkflows() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)('id', this.uid, '@workflow');
-      options.documentId = this.uid;
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Fetches the renditions list of this document.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the rendition definitions.
-     */
-
-  }, {
-    key: 'fetchRenditions',
-    value: function fetchRenditions() {
-      var _this2 = this;
-
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var Promise = this._nuxeo.Promise;
-      if (this.contextParameters && this.contextParameters.renditions) {
-        return Promise.resolve(this.contextParameters.renditions);
-      }
-
-      var options = this._computeOptions(opts);
-      options.enrichers = { document: ['renditions'] };
-      return this._repository.fetch(this.uid, options).then(function (doc) {
-        if (!_this2.contextParameters) {
-          _this2.contextParameters = {};
-        }
-        _this2.contextParameters.renditions = doc.contextParameters.renditions;
-        return _this2.contextParameters.renditions;
-      });
-    }
-
-    /**
-     * Fetch a rendition from this document.
-     * @param {string} name - The rendition name.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the response.
-     */
-
-  }, {
-    key: 'fetchRendition',
-    value: function fetchRendition(name) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)('id', this.uid, '@rendition', name);
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Fetches the ACLs list of this document.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the ACLs.
-     */
-
-  }, {
-    key: 'fetchACLs',
-    value: function fetchACLs() {
-      var _this3 = this;
-
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var Promise = this._nuxeo.Promise;
-      if (this.contextParameters && this.contextParameters.acls) {
-        return Promise.resolve(this.contextParameters.acls);
-      }
-
-      var options = this._computeOptions(opts);
-      options.enrichers = { document: [_constants2.default.enricher.document.ACLS] };
-      return this._repository.fetch(this.uid, options).then(function (doc) {
-        if (!_this3.contextParameters) {
-          _this3.contextParameters = {};
-        }
-        _this3.contextParameters.acls = doc.contextParameters.acls;
-        return _this3.contextParameters.acls;
-      });
-    }
-
-    /**
-     * Checks if the user has a given permission. It only works for now for 'Write', 'Read' and 'Everything' permission.
-     * This method may call the server to compute the available permissions (using the 'permissions' enricher)
-     * if not already present.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with true or false.
-     */
-
-  }, {
-    key: 'hasPermission',
-    value: function hasPermission(name) {
-      var _this4 = this;
-
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var Promise = this._nuxeo.Promise;
-      if (this.contextParameters && this.contextParameters.permissions) {
-        return Promise.resolve(this.contextParameters.permissions.indexOf(name) !== -1);
-      }
-
-      var options = this._computeOptions(opts);
-      options.enrichers = { document: [_constants2.default.enricher.document.PERMISSIONS] };
-      return this._repository.fetch(this.uid, options).then(function (doc) {
-        if (!_this4.contextParameters) {
-          _this4.contextParameters = {};
-        }
-        _this4.contextParameters.permissions = doc.contextParameters.permissions;
-        return _this4.contextParameters.permissions.indexOf(name) !== -1;
-      });
-    }
-
-    /**
-     * Adds a new permission.
-     * @param {object} params - The params needed to add a new permission.
-     * @param {string} params.permission - The permission string to set, such as 'Write', 'Read', ...
-     * @param {string} params.username - The target username. `username` or `email` must be set.
-     * @param {string} params.email - The target email. `username` or `email` must be set.
-     * @param {string} [params.acl] - The ACL name where to add the new permission.
-     * @param {string} [params.begin] - Optional begin date.
-     * @param {string} [params.end] - Optional end date.
-     * @param {string} [params.blockInheritance] - Whether to block the permissions inheritance or not
-     *                                             before adding the new permission.
-     * @param {string} [params.notify] - Optional flag to notify the user of the new permission.
-     * @param {string} [params.comment] - Optional comment used for the user notification.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated document.
-     */
-
-  }, {
-    key: 'addPermission',
-    value: function addPermission(params) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      options.repository = this._repository;
-      return this._nuxeo.operation('Document.AddPermission').input(this.uid).params(params).execute(options);
-    }
-
-    /**
-     * Removes a permission given its id, or all permissions for a given user.
-     * @param {object} params - The params needed to remove a permission.
-     * @param {string} params.id - The permission id. `id` or `user` must be set.
-     * @param {string} params.user - The user to rem. `id` or `user` must be set.
-     * @param {string} [params.acl] - The ACL name where to add the new permission.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated document.
-     */
-
-  }, {
-    key: 'removePermission',
-    value: function removePermission(params) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      options.repository = this._repository;
-      return this._nuxeo.operation('Document.RemovePermission').input(this.uid).params(params).execute(options);
-    }
-
-    /**
-     * Fetches the lock status of the document.
-     * @example
-     * // if the doc is locked
-     * doc.fetchLockStatus()
-     *   .then(function(status) {
-     *     // status.lockOwner === 'Administrator'
-     *     // status.lockCreated === '2011-10-23T12:00:00.00Z'
-     *   });
-     * @example
-     * // if the doc is not locked
-     * doc.fetchLockStatus()
-     *   .then(function(status) {
-     *     // status.lockOwner === undefined
-     *     // status.lockCreated === undefined
-     *   });
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with true or false.
-     */
-
-  }, {
-    key: 'fetchLockStatus',
-    value: function fetchLockStatus() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      options.fetchProperties = { document: ['lock'] };
-      return this._repository.fetch(this.uid, options).then(function (doc) {
-        return {
-          lockOwner: doc.lockOwner,
-          lockCreated: doc.lockCreated
-        };
-      });
-    }
-
-    /**
-     * Locks the document.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated document.
-     */
-
-  }, {
-    key: 'lock',
-    value: function lock() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      options.repository = this._repository;
-      return this._nuxeo.operation('Document.Lock').input(this.uid).execute(options);
-    }
-
-    /**
-     * Unlocks the document.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated document.
-     */
-
-  }, {
-    key: 'unlock',
-    value: function unlock() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      options.repository = this._repository;
-      return this._nuxeo.operation('Document.Unlock').input(this.uid).execute(options);
-    }
-
-    /**
-     * Fetches the audit of the document.
-     * @param {object} [queryOpts] - Parameters for the audit query.
-     * @param {Array} [queryOpts.eventId] - List of event ids to filter.
-     * @param {Array} [queryOpts.category] - List of categories to filter
-     * @param {Array} [queryOpts.principalName] - List of principal names to filter.
-     * @param {object} [queryOpts.startEventDate] - Start date.
-     * @param {object} [queryParams.endEventDate] - End date
-     * @param {number} [queryOpts.pageSize=0] - The number of results per page.
-     * @param {number} [queryOpts.currentPageIndex=0] - The current page index.
-     * @param {number} [queryOpts.maxResults] - The expected max results.
-     * @param {string} [queryOpts.sortBy] - The sort by info.
-     * @param {string} [queryOpts.sortOrder] - The sort order info.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with audit entries.
-     */
-
-  }, {
-    key: 'fetchAudit',
-    value: function fetchAudit() {
-      var queryOpts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)('id', this.uid, '@audit');
-      return this._nuxeo.request(path).queryParams(queryOpts).get(options);
-    }
-  }]);
-
-  return Document;
-}(_base2.default);
-
-exports.default = Document;
-module.exports = exports['default'];
-
-},{"./base":16,"./deps/constants":18,"./deps/utils/join":25,"extend":4,"querystring":13}],29:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-/**
- * The `Group` class wraps a group.
- *
- * **Cannot directly be instantiated**
- */
-var Group = function (_Base) {
-  _inherits(Group, _Base);
-
-  /**
-   * Creates a Group.
-   * @param {object} group - The initial group object. This Group object will be extended with group properties.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.groups - The {@link Groups} object linked to this group.
-   */
-  function Group(group, opts) {
-    _classCallCheck(this, Group);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Group).call(this, opts));
-
-    _this._groups = opts.groups;
-    (0, _extend2.default)(true, _this, group);
-    return _this;
-  }
-
-  /**
-   * Saves the group.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A promise object resolved with the updated group.
-   */
-
-
-  _createClass(Group, [{
-    key: 'save',
-    value: function save() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      return this._groups.update({
-        'entity-type': 'group',
-        groupname: this.groupname,
-        grouplabel: this.grouplabel,
-        memberUsers: this.memberUsers,
-        memberGroups: this.memberGroups
-      }, options);
-    }
-  }]);
-
-  return Group;
-}(_base2.default);
-
-exports.default = Group;
-module.exports = exports['default'];
-
-},{"../base":16,"extend":4}],30:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('../deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var GROUP_PATH = 'group';
-
-/**
- * The `Groups` class allows to work with groups on a Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator'
- *  }
- * });
- * nuxeo.groups()
- *   .fetch('administrators')
- *   .then(function(res) {
- *     // res.groupname === 'administrators'
- *     // res.grouplabel === 'Administrators group'
- *   })
- *   .catch(function(error) {
- *     throw new Error(error));
- *   });
- */
-
-var Groups = function (_Base) {
-  _inherits(Groups, _Base);
-
-  /**
-   * Creates a Groups object.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Groups object.
-   */
-  function Groups(opts) {
-    _classCallCheck(this, Groups);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Groups).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    return _this;
-  }
-
-  /**
-   * Fetches a group given a groupname.
-   * @param {string} groupname - The groupname.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A Promise object resolved with the {@link Group}.
-   */
-
-
-  _createClass(Groups, [{
-    key: 'fetch',
-    value: function fetch(groupname) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(GROUP_PATH, groupname);
-      options.groups = this;
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Creates a group.
-     * @param {object} user - The group to be created.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the created {@link Group}.
-     */
-
-  }, {
-    key: 'create',
-    value: function create(group) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        'entity-type': 'group',
-        groupname: group.groupname,
-        grouplabel: group.grouplabel,
-        memberUsers: group.memberUsers,
-        memberGroups: group.memberGroups
-      };
-      var options = this._computeOptions(opts);
-      options.groups = this;
-      return this._nuxeo.request(GROUP_PATH).post(options);
-    }
-
-    /**
-     * Updates a group. Assumes that the group object has an groupname field.
-     * @param {object} group - The group to be updated.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the updated {@link Group}.
-     */
-
-  }, {
-    key: 'update',
-    value: function update(group) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        'entity-type': 'group',
-        groupname: group.groupname,
-        grouplabel: group.grouplabel,
-        memberUsers: group.memberUsers,
-        memberGroups: group.memberGroups
-      };
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(GROUP_PATH, group.groupname);
-      options.groups = this;
-      return this._nuxeo.request(path).put(options);
-    }
-
-    /**
-     * Deletes a group given a groupname.
-     * @param {string} groupname - The groupname.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
-     */
-
-  }, {
-    key: 'delete',
-    value: function _delete(groupname) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(GROUP_PATH, groupname);
-      return this._nuxeo.request(path).delete(options);
-    }
-  }]);
-
-  return Groups;
-}(_base2.default);
-
-exports.default = Groups;
-module.exports = exports['default'];
-
-},{"../base":16,"../deps/utils/join":25}],31:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _nuxeo = require('./nuxeo');
-
-var _nuxeo2 = _interopRequireDefault(_nuxeo);
-
-var _base = require('./base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _operation = require('./operation');
-
-var _operation2 = _interopRequireDefault(_operation);
-
-var _request = require('./request');
-
-var _request2 = _interopRequireDefault(_request);
-
-var _repository = require('./repository');
-
-var _repository2 = _interopRequireDefault(_repository);
-
-var _document = require('./document');
-
-var _document2 = _interopRequireDefault(_document);
-
-var _batch = require('./upload/batch');
-
-var _batch2 = _interopRequireDefault(_batch);
-
-var _blob = require('./blob');
-
-var _blob2 = _interopRequireDefault(_blob);
-
-var _blob3 = require('./upload/blob');
-
-var _blob4 = _interopRequireDefault(_blob3);
-
-var _users = require('./user/users');
-
-var _users2 = _interopRequireDefault(_users);
-
-var _user = require('./user/user');
-
-var _user2 = _interopRequireDefault(_user);
-
-var _groups = require('./group/groups');
-
-var _groups2 = _interopRequireDefault(_groups);
-
-var _group = require('./group/group');
-
-var _group2 = _interopRequireDefault(_group);
-
-var _directory = require('./directory/directory');
-
-var _directory2 = _interopRequireDefault(_directory);
-
-var _entry = require('./directory/entry');
-
-var _entry2 = _interopRequireDefault(_entry);
-
-var _workflows = require('./workflow/workflows');
-
-var _workflows2 = _interopRequireDefault(_workflows);
-
-var _workflow = require('./workflow/workflow');
-
-var _workflow2 = _interopRequireDefault(_workflow);
-
-var _task = require('./workflow/task');
-
-var _task2 = _interopRequireDefault(_task);
-
-var _constants = require('./deps/constants');
-
-var _constants2 = _interopRequireDefault(_constants);
-
-var _promise = require('./deps/promise');
-
-var _promise2 = _interopRequireDefault(_promise);
-
-var _auth = require('./auth/auth');
-
-var _unmarshallers = require('./unmarshallers/unmarshallers');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_nuxeo2.default.Base = _base2.default;
-_nuxeo2.default.Operation = _operation2.default;
-_nuxeo2.default.Request = _request2.default;
-_nuxeo2.default.Repository = _repository2.default;
-_nuxeo2.default.Document = _document2.default;
-_nuxeo2.default.BatchUpload = _batch2.default;
-_nuxeo2.default.Blob = _blob2.default;
-_nuxeo2.default.BatchBlob = _blob4.default;
-_nuxeo2.default.Users = _users2.default;
-_nuxeo2.default.User = _user2.default;
-_nuxeo2.default.Groups = _groups2.default;
-_nuxeo2.default.Group = _group2.default;
-_nuxeo2.default.Directory = _directory2.default;
-_nuxeo2.default.DirectoryEntry = _entry2.default;
-_nuxeo2.default.Workflows = _workflows2.default;
-_nuxeo2.default.Workflow = _workflow2.default;
-_nuxeo2.default.Task = _task2.default;
-_nuxeo2.default.constants = _constants2.default;
-_nuxeo2.default.version = '2.0.2';
-
-_nuxeo2.default.promiseLibrary(_promise2.default);
-
-// register default authenticators
-_nuxeo2.default.registerAuthenticator('basic', _auth.basicAuthenticator);
-_nuxeo2.default.registerAuthenticator('token', _auth.tokenAuthenticator);
-
-// register default unmarshallers
-_nuxeo2.default.registerUnmarshaller('document', _unmarshallers.documentUnmarshaller);
-_nuxeo2.default.registerUnmarshaller('documents', _unmarshallers.documentsUnmarshaller);
-_nuxeo2.default.registerUnmarshaller('workflow', _unmarshallers.workflowUnmarshaller);
-_nuxeo2.default.registerUnmarshaller('workflows', _unmarshallers.workflowsUnmarshaller);
-_nuxeo2.default.registerUnmarshaller('task', _unmarshallers.taskUnmarshaller);
-_nuxeo2.default.registerUnmarshaller('tasks', _unmarshallers.tasksUnmarshaller);
-_nuxeo2.default.registerUnmarshaller('user', _unmarshallers.userUnmarshaller);
-_nuxeo2.default.registerUnmarshaller('group', _unmarshallers.groupUnmarshaller);
-
-exports.default = _nuxeo2.default;
-module.exports = exports['default'];
-
-},{"./auth/auth":15,"./base":16,"./blob":17,"./deps/constants":18,"./deps/promise":21,"./directory/directory":26,"./directory/entry":27,"./document":28,"./group/group":29,"./group/groups":30,"./nuxeo":32,"./operation":33,"./repository":34,"./request":35,"./unmarshallers/unmarshallers":36,"./upload/batch":37,"./upload/blob":38,"./user/user":39,"./user/users":40,"./workflow/task":41,"./workflow/workflow":42,"./workflow/workflows":43}],32:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('./base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _operation = require('./operation');
-
-var _operation2 = _interopRequireDefault(_operation);
-
-var _request = require('./request');
-
-var _request2 = _interopRequireDefault(_request);
-
-var _repository = require('./repository');
-
-var _repository2 = _interopRequireDefault(_repository);
-
-var _batch = require('./upload/batch');
-
-var _batch2 = _interopRequireDefault(_batch);
-
-var _users = require('./user/users');
-
-var _users2 = _interopRequireDefault(_users);
-
-var _groups = require('./group/groups');
-
-var _groups2 = _interopRequireDefault(_groups);
-
-var _directory = require('./directory/directory');
-
-var _directory2 = _interopRequireDefault(_directory);
-
-var _workflows = require('./workflow/workflows');
-
-var _workflows2 = _interopRequireDefault(_workflows);
-
-var _join = require('./deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-var _promise = require('./deps/promise');
-
-var _promise2 = _interopRequireDefault(_promise);
-
-var _querystring = require('querystring');
-
-var _querystring2 = _interopRequireDefault(_querystring);
-
-var _formData = require('./deps/form-data');
-
-var _formData2 = _interopRequireDefault(_formData);
-
-var _auth = require('./auth/auth');
-
-var _auth2 = _interopRequireDefault(_auth);
-
-var _unmarshallers = require('./unmarshallers/unmarshallers');
-
-var _unmarshallers2 = _interopRequireDefault(_unmarshallers);
-
-var _fetch = require('./deps/fetch');
-
-var _fetch2 = _interopRequireDefault(_fetch);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var API_PATH_V1 = 'api/v1/';
-var AUTOMATION = 'automation/';
-
-var DEFAULT_OPTS = {
-  baseURL: 'http://localhost:8080/nuxeo/',
-  apiPath: API_PATH_V1,
-  promiseLibrary: null,
-  auth: null
-};
-
-/**
- * The `Nuxeo` class allows using the REST API of a Nuxeo Platform instance.
- * @extends Base
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator'
- *  }
- * });
- * nuxeo.request('path/')
- *   .get()
- *   .then(function(doc) {
- *     // doc.uid !== null
- *   });
- */
-
-var Nuxeo = function (_Base) {
-  _inherits(Nuxeo, _Base);
-
-  /**
-   * Creates a new Nuxeo instance.
-   * @param {object} [opts] - The configuration options.
-   * @param {string} [opts.baseURL=http://localhost:8080/nuxeo/] - Base URL of the Nuxeo Platform.
-   * @param {string} [opts.apiPath=api/v1] - The API path.
-   * @param {object} [opts.auth] - The authentication configuration.
-   */
-  function Nuxeo() {
-    var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, Nuxeo);
-
-    var options = (0, _extend2.default)(true, {}, DEFAULT_OPTS, opts);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Nuxeo).call(this, options));
-
-    _this._baseURL = options.baseURL;
-    _this._restURL = (0, _join2.default)(_this._baseURL, options.apiPath);
-    _this._automationURL = (0, _join2.default)(_this._restURL, AUTOMATION);
-    _this._auth = options.auth;
-    _this.connected = false;
-    _this.Promise = Nuxeo.Promise || _promise2.default;
-    _this._activeRequests = 0;
-    return _this;
-  }
-
-  /**
-   * Connects to the Nuxeo Platform instance using the configured authentication.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A promise resolved with the logged in user.
-   */
-
-
-  _createClass(Nuxeo, [{
-    key: 'login',
-    value: function login() {
-      var _this2 = this;
-
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var finalOptions = {
-        method: 'POST',
-        url: (0, _join2.default)(this._automationURL, 'login')
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return this._http(finalOptions).then(function (res) {
-        return _this2.request('user').path(res.username).get().then(function (user) {
-          _this2.user = user;
-          _this2.connected = true;
-          return user;
-        });
-      });
-    }
-
-    /**
-     * Does a http request.
-     *
-     * To be used when doing any call on Nuxeo Platform.
-     */
-
-  }, {
-    key: '_http',
-    value: function _http() {
-      var _this3 = this;
-
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeFetchOptions(opts);
-      return new this.Promise(function (resolve, reject) {
-        _this3._activeRequests++;
-
-        var fetchOptions = {
-          method: options.method,
-          headers: options.headers,
-          body: options.body
-        };
-        if (!_this3._auth) {
-          fetchOptions.credentials = 'include';
-        }
-        (0, _fetch2.default)(options.url, fetchOptions).then(function (res) {
-          _this3._activeRequests--;
-          if (!/^2/.test('' + res.status)) {
-            var error = new Error(res.statusText);
-            error.response = res;
-            return reject(error);
-          }
-
-          if (options.resolveWithFullResponse || res.status === 204) {
-            return resolve(res);
-          }
-
-          var contentType = res.headers.get('content-type');
-          if (contentType && contentType.indexOf('application/json') === 0) {
-            options.nuxeo = _this3;
-            return resolve(res.json().then(function (json) {
-              return _unmarshallers2.default.unmarshall(json, options, res);
-            }));
-          }
-          return resolve(res);
-        }).catch(function (error) {
-          _this3._activeRequests--;
-          return reject(error);
-        });
-      });
-    }
-  }, {
-    key: '_computeFetchOptions',
-    value: function _computeFetchOptions(opts) {
-      var options = {
-        method: 'GET',
-        headers: {},
-        json: true,
-        timeout: 30000,
-        cache: false,
-        resolveWithFullResponse: false
-      };
-      options = (0, _extend2.default)(true, {}, options, opts);
-      options.headers = _auth2.default.computeAuthentication(this._auth, options.headers);
-
-      if (options.schemas && options.schemas.length > 0) {
-        options.headers['X-NXDocumentProperties'] = options.schemas.join(',');
-      }
-      if (opts.repositoryName !== undefined) {
-        options.headers['X-NXRepository'] = options.repositoryName;
-      }
-
-      if (opts.enrichers) {
-        Object.keys(opts.enrichers).forEach(function (key) {
-          options.headers['enrichers-' + key] = options.enrichers[key].join(',');
-        });
-      }
-
-      if (opts.fetchProperties) {
-        Object.keys(opts.fetchProperties).forEach(function (key) {
-          options.headers['fetch-' + key] = options.fetchProperties[key].join(',');
-        });
-      }
-
-      if (options.depth) {
-        options.headers.depth = options.depth;
-      }
-
-      var transactionTimeout = options.transactionTimeout || options.timeout;
-      var httpTimeout = options.httpTimeout || 5 + transactionTimeout;
-      options.headers['Nuxeo-Transaction-Timeout'] = transactionTimeout;
-      options.timeout = httpTimeout;
-
-      if (options.json) {
-        options.headers.Accept = 'application/json';
-        options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
-        // do not stringify FormData
-        if (_typeof(options.body) === 'object' && !(options.body instanceof _formData2.default)) {
-          options.body = JSON.stringify(options.body);
-        }
-      }
-
-      if (options.method === 'GET') {
-        delete options.headers['Content-Type'];
-      }
-
-      if (options.queryParams) {
-        options.url += options.url.indexOf('?') === -1 ? '?' : '';
-        options.url += _querystring2.default.stringify(options.queryParams);
-      }
-      return options;
-    }
-
-    /**
-     * Creates a new {@link Operation} object.
-     * @param {string} id - The operation ID.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Operation}
-     */
-
-  }, {
-    key: 'operation',
-    value: function operation(id) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var finalOptions = {
-        id: id,
-        nuxeo: this,
-        url: this._automationURL
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _operation2.default(finalOptions);
-    }
-
-    /**
-     * Creates a new {@link Request} object.
-     * @param {string} path - The request default path.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Request}
-     */
-
-  }, {
-    key: 'request',
-    value: function request(path) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var finalOptions = {
-        path: path,
-        nuxeo: this,
-        url: this._restURL
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _request2.default(finalOptions);
-    }
-
-    /**
-     * Creates a new {@link Repository} object.
-     * @param {string} name - The repository name. Default to the Nuxeo's repository name.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Repository}
-     */
-
-  }, {
-    key: 'repository',
-    value: function repository() {
-      var name = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var repositoryName = name;
-      var options = opts;
-      if ((typeof repositoryName === 'undefined' ? 'undefined' : _typeof(repositoryName)) === 'object') {
-        options = repositoryName;
-        repositoryName = null;
-      }
-
-      var finalOptions = {
-        nuxeo: this
-      };
-      if (repositoryName) {
-        finalOptions.repositoryName = repositoryName;
-      }
-      finalOptions = (0, _extend2.default)(true, finalOptions, options);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _repository2.default(finalOptions);
-    }
-
-    /**
-     * Creates a new {@link BatchUpload} object.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {BatchUpload}
-     */
-
-  }, {
-    key: 'batchUpload',
-    value: function batchUpload() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var finalOptions = {
-        nuxeo: this,
-        url: this._restURL
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _batch2.default(finalOptions);
-    }
-
-    /**
-     * Creates a new {@link Users} object to manage users.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Users}
-     */
-
-  }, {
-    key: 'users',
-    value: function users() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var finalOptions = {
-        nuxeo: this
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _users2.default(finalOptions);
-    }
-
-    /**
-     * Creates a new {@link Groups} object to manage groups.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Groups}
-     */
-
-  }, {
-    key: 'groups',
-    value: function groups() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var finalOptions = {
-        nuxeo: this
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _groups2.default(finalOptions);
-    }
-
-    /**
-     * Creates a new {@link Directory} object.
-     * @param {string} name - The directory name.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Directory}
-     */
-
-  }, {
-    key: 'directory',
-    value: function directory(name) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var finalOptions = {
-        directoryName: name,
-        nuxeo: this
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _directory2.default(finalOptions);
-    }
-
-    /**
-     * Creates a new {@link Workflows} object.
-     * @param {string} name - The repository name. Default to the Nuxeo's repository name.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Workflows}
-     */
-
-  }, {
-    key: 'workflows',
-    value: function workflows() {
-      var repositoryName = arguments.length <= 0 || arguments[0] === undefined ? this._repositoryName : arguments[0];
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var finalOptions = {
-        repositoryName: repositoryName,
-        nuxeo: this
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return new _workflows2.default(finalOptions);
-    }
-  }, {
-    key: 'requestAuthenticationToken',
-    value: function requestAuthenticationToken(applicationName, deviceId, deviceDescription, permission) {
-      var opts = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
-
-      var finalOptions = {
-        method: 'GET',
-        url: (0, _join2.default)(this._baseURL, 'authentication', 'token'),
-        queryParams: {
-          applicationName: applicationName,
-          deviceId: deviceId,
-          deviceDescription: deviceDescription,
-          permission: permission
-        }
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, opts);
-      finalOptions = this._computeOptions(finalOptions);
-      return this._http(finalOptions).then(function (res) {
-        return res.text();
-      });
-    }
-  }]);
-
-  return Nuxeo;
-}(_base2.default);
-
-/**
- * Sets the Promise library class to use.
- */
-
-
-Nuxeo.promiseLibrary = function (promiseLibrary) {
-  Nuxeo.Promise = promiseLibrary;
-};
-
-/**
- * Registers an Authenticator for a given authentication method.
- */
-Nuxeo.registerAuthenticator = function (method, authenticator) {
-  _auth2.default.registerAuthenticator(method, authenticator);
-};
-
-/**
- * Registers an Unmarshaller for a given entity type.
- */
-Nuxeo.registerUnmarshaller = function (entityType, unmarshaller) {
-  _unmarshallers2.default.registerUnmarshaller(entityType, unmarshaller);
-};
-
-exports.default = Nuxeo;
-module.exports = exports['default'];
-
-},{"./auth/auth":15,"./base":16,"./deps/fetch":19,"./deps/form-data":20,"./deps/promise":21,"./deps/utils/join":25,"./directory/directory":26,"./group/groups":30,"./operation":33,"./repository":34,"./request":35,"./unmarshallers/unmarshallers":36,"./upload/batch":37,"./user/users":40,"./workflow/workflows":43,"extend":4,"querystring":13}],33:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('./base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('./deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-var _blob = require('./blob');
-
-var _blob2 = _interopRequireDefault(_blob);
-
-var _blob3 = require('./upload/blob');
-
-var _blob4 = _interopRequireDefault(_blob3);
-
-var _batch = require('./upload/batch');
-
-var _batch2 = _interopRequireDefault(_batch);
-
-var _formData = require('./deps/form-data');
-
-var _formData2 = _interopRequireDefault(_formData);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-/**
- * The `Operation` class allows to execute an operation on a Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator'
- *  }
- * });
- * nuxeo.operation('Document.GetChild')
- *   .input('/default-domain')
- *   .params({
- *     name: 'workspaces',
- *   })
- *   .execute()
- *   .then(function(res) {
- *     // res.uid !== null
- *     // res.title === 'Workspaces'
- *   })
- *   .catch(function(error) {
- *     throw new Error(error);
- *   });
- */
-var Operation = function (_Base) {
-  _inherits(Operation, _Base);
-
-  /**
-   * Creates an Operation.
-   * @param {string} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this `Operation` object.
-   * @param {string} opts.id - The ID of the operation.
-   * @param {string} opts.url - The automation URL.
-   */
-  function Operation(opts) {
-    _classCallCheck(this, Operation);
-
-    var options = (0, _extend2.default)(true, {}, opts);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Operation).call(this, options));
-
-    _this._nuxeo = options.nuxeo;
-    _this._id = options.id;
-    _this._url = options.url;
-    _this._automationParams = {
-      params: {},
-      context: {},
-      input: undefined
-    };
-    return _this;
-  }
-
-  /**
-   * Adds an operation param.
-   * @param {string} name - The param name.
-   * @param {string} value - The param value.
-   * @returns {Operation} The operation itself.
-   */
-
-
-  _createClass(Operation, [{
-    key: 'param',
-    value: function param(name, value) {
-      this._automationParams.params[name] = value;
-      return this;
-    }
-
-    /**
-     * Adds operation params. The given params are merged with the existing ones if any.
-     * @param {object} params - The params to be merge with the existing ones.
-     * @returns {Operation} The operation itself.
-     */
-
-  }, {
-    key: 'params',
-    value: function params(_params) {
-      this._automationParams.params = (0, _extend2.default)(true, {}, this._automationParams.params, _params);
-      return this;
-    }
-
-    /**
-     * Sets this operation context.
-     * @param {object} context - The operation context.
-     * @returns {Operation} The operation itself.
-     */
-
-  }, {
-    key: 'context',
-    value: function context(_context) {
-      this._automationParams.context = _context;
-      return this;
-    }
-
-    /**
-     * Sets this operation input.
-     * @param {string|Array|Blob|BatchBlob|BatchUpload} input - The operation input.
-     * @returns {Operation} The operation itself.
-     */
-
-  }, {
-    key: 'input',
-    value: function input(_input) {
-      this._automationParams.input = _input;
-      return this;
-    }
-
-    /**
-     * Executes this operation.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the Operation.
-     */
-
-  }, {
-    key: 'execute',
-    value: function execute() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      opts.headers = opts.headers || {};
-      opts.headers['Content-Type'] = this._computeContentTypeHeader(this._automationParams.input);
-      var options = this._computeOptions(opts);
-      var finalOptions = {
-        method: 'POST',
-        url: this._computeRequestURL(),
-        body: this._computeRequestBody()
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, options);
-      return this._nuxeo._http(finalOptions);
-    }
-  }, {
-    key: '_computeContentTypeHeader',
-    value: function _computeContentTypeHeader(input) {
-      var contentType = 'application/json+nxrequest';
-      if (this._isMultipartInput(input)) {
-        contentType = 'multipart/form-data';
-      } else if (this._isBatchInput(input)) {
-        contentType = 'application/json';
-      }
-      return contentType;
-    }
-  }, {
-    key: '_computeRequestURL',
-    value: function _computeRequestURL() {
-      var input = this._automationParams.input;
-      if (input instanceof _blob4.default) {
-        return (0, _join2.default)(this._nuxeo._restURL, 'upload', input['upload-batch'], input['upload-fileId'], 'execute', this._id);
-      } else if (input instanceof _batch2.default) {
-        return (0, _join2.default)(this._nuxeo._restURL, 'upload', input._batchId, 'execute', this._id);
-      }
-      return (0, _join2.default)(this._url, this._id);
-    }
-  }, {
-    key: '_computeRequestBody',
-    value: function _computeRequestBody() {
-      var input = this._automationParams.input;
-      if (this._isBatchInput(input)) {
-        // no input needed
-        var body = (0, _extend2.default)(true, {}, this._automationParams);
-        body.input = undefined;
-        return body;
-      }
-
-      if (input instanceof Array) {
-        if (input.length > 0) {
-          var first = input[0];
-          if (typeof first === 'string') {
-            // assume ref list
-            this._automationParams.input = 'docs:' + input.join(',');
-            return this._automationParams;
-          } else if (first instanceof _blob2.default) {
-            // blob list => multipart
-            var automationParams = {
-              params: this._automationParams.params,
-              context: this._automationParams.context
-            };
-            var form = new _formData2.default();
-            form.append('params', JSON.stringify(automationParams));
-
-            var inputIndex = 0;
-            for (var _iterator = input, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-              var _ref;
-
-              if (_isArray) {
-                if (_i >= _iterator.length) break;
-                _ref = _iterator[_i++];
-              } else {
-                _i = _iterator.next();
-                if (_i.done) break;
-                _ref = _i.value;
-              }
-
-              var blob = _ref;
-
-              form.append('input#' + inputIndex++, blob.content, blob.name);
-            }
-            return form;
-          }
-        }
-      } else if (this._automationParams.input instanceof _blob2.default) {
-        var _automationParams = {
-          params: this._automationParams.params,
-          context: this._automationParams.context
-        };
-        var _form = new _formData2.default();
-        _form.append('params', JSON.stringify(_automationParams));
-        _form.append('input', input.content, input.name);
-        return _form;
-      }
-      return this._automationParams;
-    }
-  }, {
-    key: '_isMultipartInput',
-    value: function _isMultipartInput(input) {
-      if (input instanceof Array) {
-        if (input.length > 0) {
-          var first = input[0];
-          if (first instanceof _blob2.default) {
-            return true;
-          }
-        }
-      } else if (input instanceof _blob2.default) {
-        return true;
-      }
-      return false;
-    }
-  }, {
-    key: '_isBatchInput',
-    value: function _isBatchInput(input) {
-      return input instanceof _batch2.default || input instanceof _blob4.default;
-    }
-  }]);
-
-  return Operation;
-}(_base2.default);
-
-exports.default = Operation;
-module.exports = exports['default'];
-
-},{"./base":16,"./blob":17,"./deps/form-data":20,"./deps/utils/join":25,"./upload/batch":37,"./upload/blob":38,"extend":4}],34:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _base = require('./base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('./deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function computePath(ref) {
-  return (0, _join2.default)(ref.indexOf('/') === 0 ? 'path' : 'id', ref);
-}
-
-/**
- * The `Repository` class allows to work with documents on a Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator'
- *  }
- * });
- * nuxeo.repository('default')
- *   .fetch('/default-domain')
- *   .then(function(res) {
- *     // res.uid !== null
- *     // res.type === 'Domain'
- *   })
- *   .catch(function(error) {
- *     throw new Error(error);
- *   });
- */
-
-var Repository = function (_Base) {
-  _inherits(Repository, _Base);
-
-  /**
-   * Creates a Repository.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this repository.
-   */
-  function Repository() {
-    var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, Repository);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Repository).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    return _this;
-  }
-
-  /**
-   * Fetches a document given a document ref.
-   * @param {string} ref - The document ref. A path if starting with '/', otherwise and id.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A Promise object resolved with the {@link Document}.
-   */
-
-
-  _createClass(Repository, [{
-    key: 'fetch',
-    value: function fetch(ref) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = computePath(ref);
-      options.repository = this;
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Creates a document.
-     * @param {string} parentRef - The parent document ref. A path if starting with '/', otherwise and id.
-     * @param {object} doc - The document to be created.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the created {@link Document}.
-     */
-
-  }, {
-    key: 'create',
-    value: function create(parentRef, doc) {
-      var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      opts.body = {
-        'entity-type': 'document',
-        type: doc.type,
-        name: doc.name,
-        properties: doc.properties
-      };
-      var options = this._computeOptions(opts);
-      var path = computePath(parentRef);
-      options.repository = this;
-      return this._nuxeo.request(path).post(options);
-    }
-
-    /**
-     * Updates a document. Assumes that the doc object has an uid field.
-     * @param {object} doc - The document to be updated.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the updated {@link Document}.
-     */
-
-  }, {
-    key: 'update',
-    value: function update(doc) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        'entity-type': 'document',
-        uid: doc.uid,
-        properties: doc.properties
-      };
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)('id', doc.uid);
-      options.repository = this;
-      return this._nuxeo.request(path).put(options);
-    }
-
-    /**
-     * Deletes a document given a document ref.
-     * @param {string} ref - The document ref. A path if starting with '/', otherwise and id.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
-     */
-
-  }, {
-    key: 'delete',
-    value: function _delete(ref) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = computePath(ref);
-      return this._nuxeo.request(path).delete(options);
-    }
-
-    /**
-     * Performs a query returning documents.
-     * Named parameters can be set in the `queryOpts` object, such as
-     * { query: ..., customParam1: 'foo', anotherParam: 'bar'}
-     * @param {object} queryOpts - The query options.
-     * @param {string} queryOpts.query - The query to execute. `query` or `pageProvider` must be set.
-     * @param {string} queryOpts.pageProvider - The page provider name to execute. `query` or `pageProvider` must be set.
-     * @param {array} [queryOpts.queryParams] - Ordered parameters for the query or page provider.
-     * @param {number} [queryOpts.pageSize=0] - The number of results per page.
-     * @param {number} [queryOpts.currentPageIndex=0] - The current page index.
-     * @param {number} [queryOpts.maxResults] - The expected max results.
-     * @param {string} [queryOpts.sortBy] - The sort by info.
-     * @param {string} [queryOpts.sortOrder] - The sort order info.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the response where the entries are replaced
-     *                    with Document objetcs.
-     */
-
-  }, {
-    key: 'query',
-    value: function query(queryOpts) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)('query', queryOpts.query ? 'NXQL' : queryOpts.pageProvider);
-      options.repository = this;
-      return this._nuxeo.request(path).queryParams(queryOpts).get(options);
-    }
-  }]);
-
-  return Repository;
-}(_base2.default);
-
-exports.default = Repository;
-module.exports = exports['default'];
-
-},{"./base":16,"./deps/utils/join":25}],35:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _join = require('./deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-var _base = require('./base');
-
-var _base2 = _interopRequireDefault(_base);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var defaultOptions = {
-  path: '',
-  queryParams: {}
-};
-
-/**
- * The `Request` class allows to execute REST request on a Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator'
- *  }
- * });
- * nuxeo.request('/path/default-domain')
- *   .get()
- *   .then(function(res) {
- *     // res.uid !== null
- *     // res.type === 'Domain'
- *   })
- *   .catch(function(error) {
- *     throw new Error(error);
- *   });
- */
-
-var Request = function (_Base) {
-  _inherits(Request, _Base);
-
-  /**
-   * Creates a Request.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this groups object.
-   * @param {string} opts.path - The initial path of the request.
-   * @param {string} opts.queryParams - The initial query parameters of the request.
-   * @param {string} opts.url - The REST API URL.
-   */
-  function Request() {
-    var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, Request);
-
-    var options = (0, _extend2.default)(true, {}, defaultOptions, opts);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Request).call(this, options));
-
-    _this._nuxeo = options.nuxeo;
-    _this._path = options.path;
-    _this._queryParams = options.queryParams;
-    _this._url = options.url;
-    return _this;
-  }
-
-  /**
-   * Adds path segment.
-   * @param {string} path - The path segment.
-   * @returns {Request} The request itself.
-   */
-
-
-  _createClass(Request, [{
-    key: 'path',
-    value: function path(_path) {
-      this._path = (0, _join2.default)(this._path, _path);
-      return this;
-    }
-
-    /**
-     * Adds query params. The given query params are merged with the existing ones if any.
-     * @param {object} queryParams - The query params to be merged with the existing ones.
-     * @returns {Request} The request itself.
-     */
-
-  }, {
-    key: 'queryParams',
-    value: function queryParams(_queryParams) {
-      this._queryParams = (0, _extend2.default)(true, {}, this._queryParams, _queryParams);
-      return this;
-    }
-
-    /**
-     * Performs a GET request.
-     * @param {object} opts - Options overriding the ones from the Request object.
-     * @returns {Promise} A Promise object resolved with the result of the request.
-     */
-
-  }, {
-    key: 'get',
-    value: function get() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      opts.method = 'GET';
-      return this.execute(opts);
-    }
-
-    /**
-     * Performs a POST request.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the request.
-     */
-
-  }, {
-    key: 'post',
-    value: function post() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      opts.method = 'POST';
-      return this.execute(opts);
-    }
-
-    /**
-     * Performs a PUT request.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the request.
-     */
-
-  }, {
-    key: 'put',
-    value: function put() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      opts.method = 'PUT';
-      return this.execute(opts);
-    }
-
-    /**
-     * Performs a DELETE request.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the request.
-     */
-
-  }, {
-    key: 'delete',
-    value: function _delete() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      opts.method = 'DELETE';
-      return this.execute(opts);
-    }
-
-    /**
-     * Performs a Request.
-     * @param {object} opts - Options overriding the ones from this object.
-     * @param {string} opts.method - The HTTP method.
-     * @returns {Promise} A Promise object resolved with the result of the request.
-     */
-
-  }, {
-    key: 'execute',
-    value: function execute() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      var url = this._url;
-      var repositoryName = options.repositoryName;
-      if (repositoryName !== undefined) {
-        url = (0, _join2.default)(url, 'repo', repositoryName);
-      }
-      url = (0, _join2.default)(url, this._path);
-
-      var finalOptions = {
-        url: url,
-        queryParams: this._queryParams
-      };
-      finalOptions = (0, _extend2.default)(true, finalOptions, options);
-      return this._nuxeo._http(finalOptions);
-    }
-  }]);
-
-  return Request;
-}(_base2.default);
-
-exports.default = Request;
-module.exports = exports['default'];
-
-},{"./base":16,"./deps/utils/join":25,"extend":4}],36:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.groupUnmarshaller = exports.userUnmarshaller = exports.tasksUnmarshaller = exports.taskUnmarshaller = exports.workflowsUnmarshaller = exports.workflowUnmarshaller = exports.documentsUnmarshaller = exports.documentUnmarshaller = undefined;
-
-var _document = require('../document');
-
-var _document2 = _interopRequireDefault(_document);
-
-var _workflow = require('../workflow/workflow');
-
-var _workflow2 = _interopRequireDefault(_workflow);
-
-var _task = require('../workflow/task');
-
-var _task2 = _interopRequireDefault(_task);
-
-var _user = require('../user/user');
-
-var _user2 = _interopRequireDefault(_user);
-
-var _group = require('../group/group');
-
-var _group2 = _interopRequireDefault(_group);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var unmarshallers = {};
-
-var Unmarshallers = {
-  registerUnmarshaller: function registerUnmarshaller(entityType, unmarshaller) {
-    unmarshallers[entityType] = unmarshaller;
+  "engines": {
+    "node": ">= 4.3.0"
   },
-
-  unmarshall: function unmarshall(json, options) {
-    var entityType = json['entity-type'];
-    var unmarshaller = unmarshallers[entityType];
-    return unmarshaller && unmarshaller(json, options) || json;
-  }
-};
-exports.default = Unmarshallers;
-
-// default unmarshallers
-
-var documentUnmarshaller = exports.documentUnmarshaller = function documentUnmarshaller(json, options) {
-  return new _document2.default(json, options);
-};
-
-var documentsUnmarshaller = exports.documentsUnmarshaller = function documentsUnmarshaller(json, options) {
-  var entries = json.entries;
-
-  var docs = entries.map(function (doc) {
-    return new _document2.default(doc, options);
-  });
-  json.entries = docs;
-  return json;
-};
-
-var workflowUnmarshaller = exports.workflowUnmarshaller = function workflowUnmarshaller(json, options) {
-  return new _workflow2.default(json, options);
-};
-
-var workflowsUnmarshaller = exports.workflowsUnmarshaller = function workflowsUnmarshaller(json, options) {
-  return json.entries.map(function (workflow) {
-    return new _workflow2.default(workflow, options);
-  });
-};
-
-var taskUnmarshaller = exports.taskUnmarshaller = function taskUnmarshaller(json, options) {
-  return new _task2.default(json, options);
-};
-
-var tasksUnmarshaller = exports.tasksUnmarshaller = function tasksUnmarshaller(json, options) {
-  return json.entries.map(function (task) {
-    return new _task2.default(task, options);
-  });
-};
-
-var userUnmarshaller = exports.userUnmarshaller = function userUnmarshaller(json, options) {
-  return new _user2.default(json, options);
-};
-
-var groupUnmarshaller = exports.groupUnmarshaller = function groupUnmarshaller(json, options) {
-  return new _group2.default(json, options);
-};
-
-},{"../document":28,"../group/group":29,"../user/user":39,"../workflow/task":41,"../workflow/workflow":42}],37:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('../deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-var _flatten = require('../deps/utils/flatten');
-
-var _flatten2 = _interopRequireDefault(_flatten);
-
-var _promiseQueue = require('promise-queue');
-
-var _promiseQueue2 = _interopRequireDefault(_promiseQueue);
-
-var _blob = require('./blob');
-
-var _blob2 = _interopRequireDefault(_blob);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var DEFAULT_OPTS = {
-  concurrency: 5
-};
-
-/**
- * The **BatchUpload** class allows to upload {@link Blob} objets to a Nuxeo Platform instance
- * using the batch upload API.
- *
- * It creates and maintains a batch id from the Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator'
- *  }
- * });
- * var batch = nuxeo.batchUpload();
- * var nuxeoBlob = new Nuxeo.Blob(...);
- * batch.upload(nuxeoBlob)
- *   .then(function(res) {
- *     // res.blob instanceof BatchBlob === true
- *   })
- *   .catch(function(error) {
- *     throw new Error(error);
- *   });
- */
-
-var BatchUpload = function (_Base) {
-  _inherits(BatchUpload, _Base);
-
-  /**
-   * Creates a BatchUpload.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this BatchUpload object.
-   * @param {Number} [opts.concurrency=5] - Number of concurrent uploads.
-   */
-  function BatchUpload() {
-    var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, BatchUpload);
-
-    var options = (0, _extend2.default)(true, {}, DEFAULT_OPTS, opts);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BatchUpload).call(this, options));
-
-    _this._url = (0, _join2.default)(options.url, 'upload/');
-    _this._nuxeo = options.nuxeo;
-    _this._uploadIndex = 0;
-    _promiseQueue2.default.configure(_this._nuxeo.Promise);
-    _this._queue = new _promiseQueue2.default(options.concurrency, Infinity);
-    _this._batchIdPromise = null;
-    _this._batchId = null;
-    _this._promises = [];
-    return _this;
-  }
-
-  /**
-   * Upload one or more blobs.
-   * @param {...Blob} blobs - Blobs to be uploaded.
-   * @returns {Promise} A Promise object resolved when all blobs are uploaded.
-   *
-   * @example
-   * ...
-   * nuxeoBatch.upload(blob1, blob2, blob3)
-   *   .then(function(res) {
-   *     // res.batch === nuxeoBatch
-   *     // res.blobs[0] is the BatchBlob object related to blob1
-   *     // res.blobs[1] is the BatchBlob object related to blob2
-   *     // res.blobs[2] is the BatchBlob object related to blob3
-   *   })
-   *   .catch(function(error) {
-   *     throw new Error(error);
-   *   });
-   */
-
-
-  _createClass(BatchUpload, [{
-    key: 'upload',
-    value: function upload() {
-      var _this2 = this;
-
-      for (var _len = arguments.length, blobs = Array(_len), _key = 0; _key < _len; _key++) {
-        blobs[_key] = arguments[_key];
-      }
-
-      var allBlobs = (0, _flatten2.default)(blobs);
-      var promises = allBlobs.map(function (blob) {
-        var promise = _this2._queue.add(_this2._upload.bind(_this2, blob));
-        _this2._promises.push(promise);
-        return promise;
-      });
-      if (promises.length === 1) {
-        return promises[0];
-      }
-
-      var Promise = this._nuxeo.Promise;
-      return Promise.all(promises).then(function (batchBlobs) {
-        return {
-          blobs: batchBlobs.map(function (batchBlob) {
-            return batchBlob.blob;
-          }),
-          batch: _this2
-        };
-      });
-    }
-  }, {
-    key: '_upload',
-    value: function _upload(blob) {
-      var _this3 = this;
-
-      if (!this._batchIdPromise) {
-        this._batchIdPromise = this._fetchBatchId();
-      }
-
-      var uploadIndex = this._uploadIndex++;
-      return this._batchIdPromise.then(function () {
-        var opts = {
-          json: false,
-          method: 'POST',
-          url: (0, _join2.default)(_this3._url, _this3._batchId, uploadIndex),
-          body: blob.content,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'X-File-Name': encodeURIComponent(blob.name),
-            'X-File-Size': blob.size,
-            'X-File-Type': blob.mimeType,
-            'Content-Length': blob.size
-          }
-        };
-        var options = _this3._computeOptions(opts);
-        return _this3._nuxeo._http(options);
-      }).then(function (res) {
-        res.batchId = _this3._batchId;
-        res.index = uploadIndex;
-        return {
-          blob: new _blob2.default(res),
-          batch: _this3
-        };
-      });
-    }
-  }, {
-    key: '_fetchBatchId',
-    value: function _fetchBatchId() {
-      var _this4 = this;
-
-      var opts = {
-        method: 'POST',
-        url: this._url
-      };
-
-      var Promise = this._nuxeo.Promise;
-      if (this._batchId) {
-        return Promise.resolve(this);
-      }
-      var options = this._computeOptions(opts);
-      return this._nuxeo._http(options).then(function (res) {
-        _this4._batchId = res.batchId;
-        return _this4;
-      });
-    }
-
-    /**
-     * Wait for all the current uploads to be finished. Note that it won't wait for uploads added after done() being call.
-     * If an uploaded is added, you should call again done().
-     * The {@link BatchUpload#isFinished} method can be used to know if the batch is finished.
-     * @returns {Promise} A Promise object resolved when all the current uploads are finished.
-     *
-     * @example
-     * ...
-     * nuxeoBatch.upload(blob1, blob2, blob3);
-     * nuxeoBatch.done()
-     *   .then(function(res) {
-     *     // res.batch === nuxeoBatch
-     *     // res.blobs[0] is the BatchBlob object related to blob1
-     *     // res.blobs[1] is the BatchBlob object related to blob2
-     *     // res.blobs[2] is the BatchBlob object related to blob3
-     *   })
-     *   .catch(function(error) {
-     *     throw new Error(error);
-     *   });
-     */
-
-  }, {
-    key: 'done',
-    value: function done() {
-      var _this5 = this;
-
-      var Promise = this._nuxeo.Promise;
-      return Promise.all(this._promises).then(function (batchBlobs) {
-        return {
-          blobs: batchBlobs.map(function (batchBlob) {
-            return batchBlob.blob;
-          }),
-          batch: _this5
-        };
-      });
-    }
-
-    /**
-     * Returns weither the BatchUpload is finished, ie. has uploads running, or not.
-     * @returns {Boolean} true if the BatchUpload is finished, false otherwise.
-     */
-
-  }, {
-    key: 'isFinished',
-    value: function isFinished() {
-      return this._queue.getQueueLength() === 0 && this._queue.getPendingLength() === 0;
-    }
-
-    /**
-     * Cancels a BatchUpload.
-     * @returns {Promise} A Promise object resolved with the BatchUpload itself.
-     */
-
-  }, {
-    key: 'cancel',
-    value: function cancel(opts) {
-      var _this6 = this;
-
-      var Promise = this._nuxeo.Promise;
-      if (!this._batchIdPromise) {
-        return Promise.resolve(this);
-      }
-
-      var path = (0, _join2.default)('upload', this._batchId);
-      return this._batchIdPromise.then(function () {
-        var options = _this6._computeOptions(opts);
-        return _this6._nuxeo.request(path).delete(options);
-      }).then(function () {
-        _this6._batchIdPromise = null;
-        _this6._batchId = null;
-        return _this6;
-      });
-    }
-
-    /**
-     * Fetches a blob at a given index from the batch.
-     * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlob.
-     */
-
-  }, {
-    key: 'fetchBlob',
-    value: function fetchBlob(index) {
-      var _this7 = this;
-
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var Promise = this._nuxeo.Promise;
-      if (!this._batchId) {
-        return Promise.reject(new Error('No \'batchId\' set'));
-      }
-
-      var options = {
-        method: 'GET',
-        url: (0, _join2.default)(this._url, this._batchId, index)
-      };
-      options = (0, _extend2.default)(true, options, opts);
-      options = this._computeOptions(options);
-      return this._nuxeo._http(options).then(function (res) {
-        res.batchId = _this7._batchId;
-        res.index = index;
-        return {
-          batch: _this7,
-          blob: new _blob2.default(res)
-        };
-      });
-    }
-
-    /**
-     * Fetches the blobs from the batch.
-     * @returns {Promise} A Promise object resolved with the BatchUpload itself and the BatchBlobs.
-     */
-
-  }, {
-    key: 'fetchBlobs',
-    value: function fetchBlobs(opts) {
-      var _this8 = this;
-
-      var Promise = this._nuxeo.Promise;
-      if (!this._batchId) {
-        return Promise.reject(new Error('No \'batchId\' set'));
-      }
-
-      var options = {
-        method: 'GET',
-        url: (0, _join2.default)(this._url, this._batchId)
-      };
-      options = (0, _extend2.default)(true, options, opts);
-      options = this._computeOptions(options);
-      return this._nuxeo._http(options).then(function (blobs) {
-        var batchBlobs = blobs.map(function (blob, index) {
-          blob.batchId = _this8._batchId;
-          blob.index = index;
-          return new _blob2.default(blob);
-        });
-        return {
-          batch: _this8,
-          blobs: batchBlobs
-        };
-      });
-    }
-  }]);
-
-  return BatchUpload;
-}(_base2.default);
-
-exports.default = BatchUpload;
-module.exports = exports['default'];
-
-},{"../base":16,"../deps/utils/flatten":24,"../deps/utils/join":25,"./blob":38,"extend":4,"promise-queue":8}],38:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * The `BatchBlob` class wraps a blob uploaded through a {@link BatchUpload} to be used
- * in an {@link Operation} input or as a property value on a {@link Document}.
- */
-var BatchBlob = function BatchBlob() {
-  var data = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-  _classCallCheck(this, BatchBlob);
-
-  this['upload-batch'] = data.batchId;
-  this['upload-fileId'] = '' + data.index;
-  delete data.batchId;
-  delete data.index;
-  (0, _extend2.default)(this, data);
-};
-
-exports.default = BatchBlob;
-module.exports = exports['default'];
-
-},{"extend":4}],39:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-/**
- * The `User` class wraps an user.
- *
- * **Cannot directly be instantiated**
- */
-var User = function (_Base) {
-  _inherits(User, _Base);
-
-  /**
-   * Creates a User.
-   * @param {object} user - The initial user object. This User object will be extended with user properties.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.users - The {@link Users} object linked to this user.
-   */
-  function User(user, opts) {
-    _classCallCheck(this, User);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(User).call(this, opts));
-
-    _this._users = opts.users;
-    _this.properties = {};
-    _this._dirtyProperties = {};
-    (0, _extend2.default)(true, _this, user);
-    return _this;
-  }
-
-  /**
-   * Sets user properties.
-   * @param {object} properties - The properties to set.
-   * @returns {User}
-   *
-   * @example
-   * user.set({
-   *   firstName: 'new first name',
-   *   company: 'new company',
-   * });
-   */
-
-
-  _createClass(User, [{
-    key: 'set',
-    value: function set(properties) {
-      this._dirtyProperties = (0, _extend2.default)(true, {}, this._dirtyProperties, properties);
-      return this;
-    }
-
-    /**
-     * Gets a user property.
-     * @param {string} propertyName - The property name, such as 'fistName', 'email', ...
-     * @returns {User}
-     */
-
-  }, {
-    key: 'get',
-    value: function get(propertyName) {
-      return this._dirtyProperties[propertyName] || this.properties[propertyName];
-    }
-
-    /**
-     * Saves the user. It updates only the 'dirty properties' set through the {@link User#set} method.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the updated user.
-     */
-
-  }, {
-    key: 'save',
-    value: function save() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      return this._users.update({
-        id: this.id,
-        properties: this._dirtyProperties
-      }, options);
-    }
-  }]);
-
-  return User;
-}(_base2.default);
-
-exports.default = User;
-module.exports = exports['default'];
-
-},{"../base":16,"extend":4}],40:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('../deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var USER_PATH = 'user';
-
-/**
- * The `Users` class allows to work with users on a Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator',
- *  }
- * });
- * nuxeo.users()
- *   .fetch('Administrator')
- *   .then(function(res) => {
- *     // res.id === 'Administrator'
- *     // res.properties.username === 'Administrator'
- *   })
- *   .catch(function(error) {
- *     throw new Error(error);
- *   });
- */
-
-var Users = function (_Base) {
-  _inherits(Users, _Base);
-
-  /**
-   * Creates a Users object.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Users object.
-   */
-  function Users(opts) {
-    _classCallCheck(this, Users);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Users).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    return _this;
-  }
-
-  /**
-   * Fetches an user given an username.
-   * @param {string} username - The username.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A Promise object resolved with the {@link User}.
-   */
-
-
-  _createClass(Users, [{
-    key: 'fetch',
-    value: function fetch(username) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(USER_PATH, username);
-      options.users = this;
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Creates an user.
-     * @param {object} user - The user to be created.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the created {@link User}.
-     */
-
-  }, {
-    key: 'create',
-    value: function create(user) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        'entity-type': 'user',
-        properties: user.properties
-      };
-      var options = this._computeOptions(opts);
-      options.users = this;
-      return this._nuxeo.request(USER_PATH).post(options);
-    }
-
-    /**
-     * Updates an user. Assumes that the user object has an id field.
-     * @param {object} user - The user to be updated.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the updated {@link User}.
-     */
-
-  }, {
-    key: 'update',
-    value: function update(user) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      opts.body = {
-        'entity-type': 'user',
-        id: user.id,
-        properties: user.properties
-      };
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(USER_PATH, user.id);
-      options.users = this;
-      return this._nuxeo.request(path).put(options);
-    }
-
-    /**
-     * Deletes an user given an username.
-     * @param {string} username - The username.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
-     */
-
-  }, {
-    key: 'delete',
-    value: function _delete(username) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(USER_PATH, username);
-      return this._nuxeo.request(path).delete(options);
-    }
-  }]);
-
-  return Users;
-}(_base2.default);
-
-exports.default = Users;
-module.exports = exports['default'];
-
-},{"../base":16,"../deps/utils/join":25}],41:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('../deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var TASK_PATH = 'task';
-
-/**
- * The `Task` class wraps a task.
- *
- * **Cannot directly be instantiated**
- */
-
-var Task = function (_Base) {
-  _inherits(Task, _Base);
-
-  /**
-   * Creates a `Task`.
-   * @param {object} task - The initial task object. This Task object will be extended with task properties.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this task.
-   * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
-   */
-  function Task(task, opts) {
-    _classCallCheck(this, Task);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Task).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    _this._documentId = opts.documentId;
-    (0, _extend2.default)(true, _this, task);
-    return _this;
-  }
-
-  /**
-   * Sets a task variable.
-   * @param {string} name - The name of the variable.
-   * @param {string} value - The value of the variable.
-   * @returns {Task} The task itself.
-   */
-
-
-  _createClass(Task, [{
-    key: 'variable',
-    value: function variable(name, value) {
-      this.variables[name] = value;
-      return this;
-    }
-
-    /**
-     * Completes the task.
-     * @param {string} action - The action name to complete the task.
-     * @param {object} [taskOpts] - Configuration options for the task completion.
-     * @param {string} [taskOpts.variables] - Optional variables to override the existing ones.
-     * @param {string} [taskOpts.comment] - Optional comment.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the completed task.
-     */
-
-  }, {
-    key: 'complete',
-    value: function complete(action) {
-      var taskOpts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-      var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      var variables = taskOpts.variables || this.variables;
-      opts.body = {
-        variables: variables,
-        'entity-type': 'task',
-        id: this.id,
-        comment: taskOpts.comment
-      };
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(TASK_PATH, this.id, action);
-      return this._nuxeo.request(path).put(options);
-    }
-
-    /**
-     * Reassigns the task to the given actors.
-     * @param {string} actors - Actors to reassign the task.
-     * @param {object} [taskOpts] - Configuration options for the task reassignment.
-     * @param {string} [taskOpts.comment] - Optional comment.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with nothing.
-     */
-
-  }, {
-    key: 'reassign',
-    value: function reassign(actors) {
-      var taskOpts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-      var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(TASK_PATH, this.id, 'reassign');
-      return this._nuxeo.request(path).queryParams({
-        actors: actors,
-        comment: taskOpts.comment
-      }).put(options);
-    }
-
-    /**
-     * Delegates the task to the given actors.
-     * @param {string} actors - Actors to delegate the task.
-     * @param {object} [taskOpts] - Configuration options for the task delegation.
-     * @param {string} [taskOpts.comment] - Optional comment.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with nothing.
-     */
-
-  }, {
-    key: 'delegate',
-    value: function delegate(actors) {
-      var taskOpts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-      var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(TASK_PATH, this.id, 'delegate');
-      return this._nuxeo.request(path).queryParams({
-        delegatedActors: actors,
-        comment: taskOpts.comment
-      }).put(options);
-    }
-  }]);
-
-  return Task;
-}(_base2.default);
-
-exports.default = Task;
-module.exports = exports['default'];
-
-},{"../base":16,"../deps/utils/join":25,"extend":4}],42:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _extend = require('extend');
-
-var _extend2 = _interopRequireDefault(_extend);
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('../deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var WORKFLOW_PATH = 'workflow';
-
-/**
- * The `Workflow` class wraps a workflow.
- *
- * **Cannot directly be instantiated**
- */
-
-var Workflow = function (_Base) {
-  _inherits(Workflow, _Base);
-
-  /**
-   * Creates a `Workflow`.
-   * @param {object} workflow - The initial workflow object. This User object will be extended with workflow properties.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this workflow.
-   * @param {string} [opts.documentId] - The attached document id of this workflow, if any.
-   */
-  function Workflow(workflow, opts) {
-    _classCallCheck(this, Workflow);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Workflow).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    _this._documentId = opts.documentId;
-    (0, _extend2.default)(true, _this, workflow);
-    return _this;
-  }
-
-  /**
-   * Fetches the tasks of this workflow.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A promise object resolved with the tasks.
-   */
-
-
-  _createClass(Workflow, [{
-    key: 'fetchTasks',
-    value: function fetchTasks() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      options.documentId = this.uid;
-      return this._buildTasksRequest().get(options);
-    }
-
-    /**
-     * Fetches this workflow graph.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the workflow graph.
-     */
-
-  }, {
-    key: 'fetchGraph',
-    value: function fetchGraph() {
-      var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(WORKFLOW_PATH, this.id, 'graph');
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Builds the correct `Request` object depending of wether this workflow is attached to a document or not.
-     * @returns {Request} A request object.
-     */
-
-  }, {
-    key: '_buildTasksRequest',
-    value: function _buildTasksRequest() {
-      if (this._documentId) {
-        var path = (0, _join2.default)('id', this._documentId, '@workflow', this.id, 'task');
-        return this._nuxeo.request(path);
-      }
-      return this._nuxeo.request('task').queryParams({
-        workflowInstanceId: this.id
-      });
-    }
-  }]);
-
-  return Workflow;
-}(_base2.default);
-
-exports.default = Workflow;
-module.exports = exports['default'];
-
-},{"../base":16,"../deps/utils/join":25,"extend":4}],43:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _base = require('../base');
-
-var _base2 = _interopRequireDefault(_base);
-
-var _join = require('../deps/utils/join');
-
-var _join2 = _interopRequireDefault(_join);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var WORKFLOW_PATH = 'workflow';
-var TASK_PATH = 'task';
-
-/**
- * The `Workflows` class allows to work with workflows on a Nuxeo Platform instance.
- *
- * **Cannot directly be instantiated**
- *
- * @example
- * var Nuxeo = require('nuxeo')
- * var nuxeo = new Nuxeo({
- *  baseUrl: 'http://localhost:8080/nuxeo',
- *  auth: {
- *    method: 'basic',
- *    username: 'Administrator',
- *    password: 'Administrator',
- *  }
- * });
- * nuxeo.workflows()
- *   .start('SerialDocumentReview')
- *   .then(function(res) {
- *     // res['entity-type'] === 'workflow'
- *     // res.workflowModelName === 'SerialDocumentReview'
- *   })
- *   .catch(function(error) {
- *     throw new Error(error);
- *   });
- */
-
-var Workflows = function (_Base) {
-  _inherits(Workflows, _Base);
-
-  /**
-   * Creates a Workflows object.
-   * @param {object} opts - The configuration options.
-   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this Workflows object.
-   */
-  function Workflows() {
-    var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, Workflows);
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Workflows).call(this, opts));
-
-    _this._nuxeo = opts.nuxeo;
-    return _this;
-  }
-
-  /**
-   * Starts a workflow given a workflow model name.
-   * @param {string} workflowModelName - The workflow model name.
-   * @param {object} [workflowOpts] - Configuration options for the start of the workflow.
-   * @param {Array} [workflowOpts.attachedDocumentIds] - The attached documents id for the workflow.
-   * @param {object} [workflowOpts.variables] - The initial variables of the workflow.
-   * @param {object} [opts] - Options overriding the ones from this object.
-   * @returns {Promise} A promise object resolved with the started `Workflow` object.
-   */
-
-
-  _createClass(Workflows, [{
-    key: 'start',
-    value: function start(workflowModelName) {
-      var workflowOpts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-      var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      opts.body = {
-        workflowModelName: workflowModelName,
-        'entity-type': 'workflow',
-        attachedDocumentIds: workflowOpts.attachedDocumentIds,
-        variables: workflowOpts.variables
-      };
-      var options = this._computeOptions(opts);
-      return this._nuxeo.request(WORKFLOW_PATH).post(options);
-    }
-
-    /**
-     * Fetches a workflow given a workflow instance id.
-     * @param {string} workflowInstanceId - The workflow instance id.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the `Workflow` object.
-     */
-
-  }, {
-    key: 'fetch',
-    value: function fetch(workflowInstanceId) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(WORKFLOW_PATH, workflowInstanceId);
-      return this._nuxeo.request(path).get(options);
-    }
-
-    /**
-     * Deletes a workflow instance given a workflow instance id.
-     * @param {string} workflowInstanceId - The workflow instance id.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A Promise object resolved with the result of the DELETE request.
-     */
-
-  }, {
-    key: 'delete',
-    value: function _delete(workflowInstanceId) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      var path = (0, _join2.default)(WORKFLOW_PATH, workflowInstanceId);
-      return this._nuxeo.request(path).delete(options);
-    }
-
-    /**
-     * Fetches the workflows started by the current user.
-     * @param {string} workflowModelName - The workflow model name.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the started workflows.
-     */
-
-  }, {
-    key: 'fetchStartedWorkflows',
-    value: function fetchStartedWorkflows(workflowModelName) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      return this._nuxeo.request(WORKFLOW_PATH).queryParams({ workflowModelName: workflowModelName }).get(options);
-    }
-
-    /**
-     * Fetches the tasks for a given workflow id and/or workflow model name and/or actor id.
-     * @param {object} [tasksOpts] - Configuration options for the tasks fetch.
-     * @param {object} [tasksOpts.actorId] - The actor id.
-     * @param {object} [tasksOpts.workflowInstanceId] - The workflow id.
-     * @param {object} [tasksOpts.workflowModelName] - The workflow model name.
-     * @param {object} [opts] - Options overriding the ones from this object.
-     * @returns {Promise} A promise object resolved with the tasks.
-     */
-
-  }, {
-    key: 'fetchTasks',
-    value: function fetchTasks() {
-      var tasksOpts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var options = this._computeOptions(opts);
-      return this._nuxeo.request(TASK_PATH).queryParams({
-        userId: tasksOpts.actorId,
-        workflowInstanceId: tasksOpts.workflowInstanceId,
-        workflowModelName: tasksOpts.workflowModelName
-      }).get(options);
-    }
-  }]);
-
-  return Workflows;
-}(_base2.default);
-
-exports.default = Workflows;
-module.exports = exports['default'];
-
-},{"../base":16,"../deps/utils/join":25}]},{},[31])(31)
+  "keywords": [
+    "nuxeo"
+  ],
+  "dependencies": {
+    "buffer": "^3.6.0",
+    "es6-promise": "^3.0.2",
+    "extend": "^3.0.0",
+    "form-data": "^1.0.0-rc1",
+    "md5": "^2.2.1",
+    "node-fetch": "^1.4.1",
+    "promise-queue": "^2.2.2",
+    "querystring": "^0.2.0",
+    "random-js": "^1.0.8",
+    "whatwg-fetch": "^0.11.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.4.0",
+    "babel-plugin-add-module-exports": "^0.1.2",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.4.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babelify": "^7.2.0",
+    "browserify": "^13.0.0",
+    "browserify-versionify": "^1.0.6",
+    "chai": "^3.0.0",
+    "chai-as-promised": "^5.2.0",
+    "del": "^2.2.0",
+    "dirty-chai": "^1.2.2",
+    "eslint-config-airbnb": "^3.1.0",
+    "gulp": "^3.9.1",
+    "gulp-eslint": "^1.1.1",
+    "gulp-istanbul": "^1.1.1",
+    "gulp-karma": "0.0.5",
+    "gulp-mocha": "^3.0.1",
+    "gulp-nsp": "^2.3.0",
+    "gulp-sequence": "^0.4.4",
+    "karma": "^0.13.19",
+    "karma-babel-preprocessor": "^6.0.1",
+    "karma-browserify": "^5.0.1",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-firefox-launcher": "^0.1.7",
+    "karma-junit-reporter": "^0.3.8",
+    "karma-mocha": "^0.2.1",
+    "karma-safari-launcher": "^1.0.0",
+    "karma-spec-reporter": "0.0.24",
+    "mocha-jenkins-reporter": "^0.2.1",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.7.0"
+  },
+  "scripts": {
+    "doc": "jsdoc -c jsdoc.json",
+    "release": "./bin/release.sh"
+  },
+  "browser": {
+    "./lib/deps/promise.js": "./lib/deps/promise-browser.js",
+    "./lib/deps/form-data.js": "./lib/deps/form-data-browser.js",
+    "./lib/deps/fetch.js": "./lib/deps/fetch-browser.js",
+    "./lib/deps/utils/buffer.js": "./lib/deps/utils/buffer-browser.js"
+  },
+  "react-native": {
+    "./lib/deps/fetch.js": "./lib/deps/fetch-react-native.js",
+    "./lib/deps/utils/buffer.js": "./lib/deps/utils/buffer-browser.js"
+  },
+  "files": [
+    "lib",
+    "dist"
+  ]
+}
+
+},{}]},{},[17])(17)
 });
