@@ -9,8 +9,8 @@ describe('Base', () => {
     expect(base._baseOptions.enrichers).to.be.eql({});
     expect(base._baseOptions.fetchProperties).to.be.eql({});
     expect(base._baseOptions.depth).to.be.undefined();
-    expect(base._baseOptions.timeout).to.be.equal(30000);
-    expect(base._baseOptions.httpTimeout).to.be.undefined();
+    expect(base._baseOptions.timeout).to.be.undefined();
+    expect(base._baseOptions.httpTimeout).to.be.equal(30000);
     expect(base._baseOptions.transactionTimeout).to.be.undefined();
   });
 

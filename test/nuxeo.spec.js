@@ -48,6 +48,41 @@ describe('Nuxeo', () => {
     expect(n._auth.password).to.be.equal('Administrator');
   });
 
+  it('should have neither default \'transactionTimeout\' nor \'timeout\' set', () => {
+    const n = new Nuxeo();
+    expect(n._baseOptions.transactionTimeout).to.be.undefined();
+    expect(n._baseOptions.timeout).to.be.undefined();
+    expect(n._baseOptions.httpTimeout).to.be.equal(30000);
+  });
+
+  describe('#_computeTimeouts', () => {
+    it('should use \'timeout\' for both \'httpTimeout\' and \'transactionTimeout\'', () => {
+      const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({ timeout: 25000 });
+      expect(transactionTimeout).to.be.equal(25000);
+      expect(httpTimeout).to.be.equal(25000 + 5);
+    });
+
+    it('should use \'httpTimeout\' if defined', () => {
+      const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({ timeout: 10000, httpTimeout: 20000 });
+      expect(httpTimeout).to.be.equal(20000);
+      expect(transactionTimeout).to.be.equal(10000);
+    });
+
+    it('should use \'transactionTimeout\' for both \'httpTimeout\' and \'transactionTimeout\' if defined', () => {
+      const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({ transactionTimeout: 10000 });
+      expect(transactionTimeout).to.be.equal(10000);
+      expect(httpTimeout).to.be.equal(10000 + 5);
+    });
+
+    it('should ignore \'timeout\'', () => {
+      const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({
+        timeout: 10000, httpTimeout: 50000, transactionTimeout: 30000,
+      });
+      expect(transactionTimeout).to.be.equal(30000);
+      expect(httpTimeout).to.be.equal(50000);
+    });
+  });
+
   describe('#login', () => {
     it('should login and retrieve the logged in user', () => {
       return nuxeo.login().then((user) => {
