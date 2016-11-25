@@ -68,7 +68,7 @@ Authentication.portalAuthenticator = portalAuthenticator;
 
 module.exports = Authentication;
 
-},{"../deps/utils/base64":8,"md5":39,"random-js":47}],2:[function(require,module,exports){
+},{"../deps/utils/base64":8,"md5":40,"random-js":48}],2:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -85,7 +85,7 @@ var DEFAULT_OPTS = {
   enrichers: {},
   fetchProperties: {},
   headers: {},
-  timeout: 30000
+  httpTimeout: 30000
 };
 
 /**
@@ -372,7 +372,7 @@ var Base = function () {
 
 module.exports = Base;
 
-},{"extend":35}],3:[function(require,module,exports){
+},{"extend":36}],3:[function(require,module,exports){
 'use strict';
 
 /**
@@ -444,7 +444,7 @@ module.exports = {
 require('whatwg-fetch');
 module.exports = self.fetch.bind(self);
 
-},{"whatwg-fetch":48}],6:[function(require,module,exports){
+},{"whatwg-fetch":49}],6:[function(require,module,exports){
 'use strict';
 
 module.exports = FormData;
@@ -458,7 +458,7 @@ P.polyfill();
 
 module.exports = Promise;
 
-},{"es6-promise":34}],8:[function(require,module,exports){
+},{"es6-promise":35}],8:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('./buffer');
@@ -476,7 +476,22 @@ module.exports = {
 
 module.exports = require('buffer/').Buffer;
 
-},{"buffer/":31}],10:[function(require,module,exports){
+},{"buffer/":32}],10:[function(require,module,exports){
+'use strict';
+
+function encodePath(path) {
+  var encodedPath = encodeURIComponent(path);
+  // put back '/' character
+  encodedPath = encodedPath.replace(/%2F/g, '/');
+  // put back '@' character, needed for web adapters for instance...
+  encodedPath = encodedPath.replace(/%40/g, '@');
+
+  return encodedPath;
+}
+
+module.exports = encodePath;
+
+},{}],11:[function(require,module,exports){
 'use strict';
 
 function flatten(list) {
@@ -487,7 +502,7 @@ function flatten(list) {
 
 module.exports = flatten;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 function join() {
@@ -501,7 +516,7 @@ function join() {
 
 module.exports = join;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -686,7 +701,7 @@ var Directory = function (_Base) {
 
 module.exports = Directory;
 
-},{"../base":2,"../deps/utils/join":11,"./entry":13}],13:[function(require,module,exports){
+},{"../base":2,"../deps/utils/join":12,"./entry":14}],14:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -785,7 +800,7 @@ var DirectoryEntry = function (_Base) {
 
 module.exports = DirectoryEntry;
 
-},{"../base":2,"extend":35}],14:[function(require,module,exports){
+},{"../base":2,"extend":36}],15:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1311,7 +1326,7 @@ var Document = function (_Base) {
 
 module.exports = Document;
 
-},{"./base":2,"./deps/constants":4,"./deps/utils/join":11,"extend":35,"querystring":46}],15:[function(require,module,exports){
+},{"./base":2,"./deps/constants":4,"./deps/utils/join":12,"extend":36,"querystring":47}],16:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1378,7 +1393,7 @@ var Group = function (_Base) {
 
 module.exports = Group;
 
-},{"../base":2,"extend":35}],16:[function(require,module,exports){
+},{"../base":2,"extend":36}],17:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1528,7 +1543,7 @@ var Groups = function (_Base) {
 
 module.exports = Groups;
 
-},{"../base":2,"../deps/utils/join":11}],17:[function(require,module,exports){
+},{"../base":2,"../deps/utils/join":12}],18:[function(require,module,exports){
 'use strict';
 
 var Nuxeo = require('./nuxeo');
@@ -1610,7 +1625,7 @@ Nuxeo.registerUnmarshaller('group', groupUnmarshaller);
 
 module.exports = Nuxeo;
 
-},{"../package.json":49,"./auth/auth":1,"./base":2,"./blob":3,"./deps/constants":4,"./deps/promise":7,"./directory/directory":12,"./directory/entry":13,"./document":14,"./group/group":15,"./group/groups":16,"./nuxeo":18,"./operation":19,"./repository":20,"./request":21,"./unmarshallers/unmarshallers":22,"./upload/batch":23,"./upload/blob":24,"./user/user":25,"./user/users":26,"./workflow/task":27,"./workflow/workflow":28,"./workflow/workflows":29}],18:[function(require,module,exports){
+},{"../package.json":50,"./auth/auth":1,"./base":2,"./blob":3,"./deps/constants":4,"./deps/promise":7,"./directory/directory":13,"./directory/entry":14,"./document":15,"./group/group":16,"./group/groups":17,"./nuxeo":19,"./operation":20,"./repository":21,"./request":22,"./unmarshallers/unmarshallers":23,"./upload/batch":24,"./upload/blob":25,"./user/user":26,"./user/users":27,"./workflow/task":28,"./workflow/workflow":29,"./workflow/workflows":30}],19:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1818,9 +1833,13 @@ var Nuxeo = function (_Base) {
         options.headers.depth = options.depth;
       }
 
-      var transactionTimeout = options.transactionTimeout || options.timeout;
-      var httpTimeout = options.httpTimeout || 5 + transactionTimeout;
-      options.headers['Nuxeo-Transaction-Timeout'] = transactionTimeout;
+      var _computeTimeouts2 = this._computeTimeouts(options),
+          httpTimeout = _computeTimeouts2.httpTimeout,
+          transactionTimeout = _computeTimeouts2.transactionTimeout;
+
+      if (transactionTimeout) {
+        options.headers['Nuxeo-Transaction-Timeout'] = transactionTimeout;
+      }
       options.timeout = httpTimeout;
 
       if (options.json) {
@@ -1841,6 +1860,17 @@ var Nuxeo = function (_Base) {
         options.url += qs.stringify(options.queryParams);
       }
       return options;
+    }
+  }, {
+    key: '_computeTimeouts',
+    value: function _computeTimeouts(options) {
+      var transactionTimeout = options.transactionTimeout || options.timeout;
+      var httpTimeout = options.httpTimeout;
+      if (!httpTimeout && transactionTimeout) {
+        // make the http timeout a bit longer than the transaction timeout
+        httpTimeout = 5 + transactionTimeout;
+      }
+      return { httpTimeout: httpTimeout, transactionTimeout: transactionTimeout };
     }
 
     /**
@@ -2069,7 +2099,7 @@ Nuxeo.registerUnmarshaller = function (entityType, unmarshaller) {
 
 module.exports = Nuxeo;
 
-},{"./auth/auth":1,"./base":2,"./deps/fetch":5,"./deps/form-data":6,"./deps/promise":7,"./deps/utils/join":11,"./directory/directory":12,"./group/groups":16,"./operation":19,"./repository":20,"./request":21,"./unmarshallers/unmarshallers":22,"./upload/batch":23,"./user/users":26,"./workflow/workflows":29,"extend":35,"querystring":46}],19:[function(require,module,exports){
+},{"./auth/auth":1,"./base":2,"./deps/fetch":5,"./deps/form-data":6,"./deps/promise":7,"./deps/utils/join":12,"./directory/directory":13,"./group/groups":17,"./operation":20,"./repository":21,"./request":22,"./unmarshallers/unmarshallers":23,"./upload/batch":24,"./user/users":27,"./workflow/workflows":30,"extend":36,"querystring":47}],20:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2083,6 +2113,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var extend = require('extend');
 var Base = require('./base');
 var join = require('./deps/utils/join');
+var encodePath = require('./deps/utils/encodePath');
 var Blob = require('./blob');
 var BatchBlob = require('./upload/blob');
 var BatchUpload = require('./upload/batch');
@@ -2242,7 +2273,8 @@ var Operation = function (_Base) {
       } else if (input instanceof BatchUpload) {
         return join(this._nuxeo._restURL, 'upload', input._batchId, 'execute', this._id);
       }
-      return join(this._url, this._id);
+
+      return join(this._url, encodePath(this._id));
     }
   }, {
     key: '_computeRequestBody',
@@ -2330,7 +2362,7 @@ var Operation = function (_Base) {
 
 module.exports = Operation;
 
-},{"./base":2,"./blob":3,"./deps/form-data":6,"./deps/utils/join":11,"./upload/batch":23,"./upload/blob":24,"extend":35}],20:[function(require,module,exports){
+},{"./base":2,"./blob":3,"./deps/form-data":6,"./deps/utils/encodePath":10,"./deps/utils/join":12,"./upload/batch":24,"./upload/blob":25,"extend":36}],21:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2512,7 +2544,7 @@ var Repository = function (_Base) {
 
 module.exports = Repository;
 
-},{"./base":2,"./deps/utils/join":11}],21:[function(require,module,exports){
+},{"./base":2,"./deps/utils/join":12}],22:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2525,6 +2557,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var extend = require('extend');
 var join = require('./deps/utils/join');
+var encodePath = require('./deps/utils/encodePath');
 var Base = require('./base');
 
 var defaultOptions = {
@@ -2685,13 +2718,14 @@ var Request = function (_Base) {
       var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       var options = this._computeOptions(opts);
-      var url = this._url;
+
+      var path = this._path;
       var repositoryName = options.repositoryName;
       if (repositoryName !== undefined) {
-        url = join(url, 'repo', repositoryName);
+        path = join('repo', repositoryName, path);
       }
-      url = join(url, this._path);
 
+      var url = join(this._url, encodePath(path));
       var finalOptions = {
         url: url,
         queryParams: this._queryParams
@@ -2706,7 +2740,7 @@ var Request = function (_Base) {
 
 module.exports = Request;
 
-},{"./base":2,"./deps/utils/join":11,"extend":35}],22:[function(require,module,exports){
+},{"./base":2,"./deps/utils/encodePath":10,"./deps/utils/join":12,"extend":36}],23:[function(require,module,exports){
 'use strict';
 
 var Document = require('../document');
@@ -2792,7 +2826,7 @@ Unmarshallers.groupUnmarshaller = groupUnmarshaller;
 
 module.exports = Unmarshallers;
 
-},{"../document":14,"../group/group":15,"../user/user":25,"../workflow/task":27,"../workflow/workflow":28}],23:[function(require,module,exports){
+},{"../document":15,"../group/group":16,"../user/user":26,"../workflow/task":28,"../workflow/workflow":29}],24:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3124,7 +3158,7 @@ var BatchUpload = function (_Base) {
 
 module.exports = BatchUpload;
 
-},{"../base":2,"../deps/utils/flatten":10,"../deps/utils/join":11,"./blob":24,"extend":35,"promise-queue":41}],24:[function(require,module,exports){
+},{"../base":2,"../deps/utils/flatten":11,"../deps/utils/join":12,"./blob":25,"extend":36,"promise-queue":42}],25:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -3150,7 +3184,7 @@ var BatchBlob = function BatchBlob() {
 
 module.exports = BatchBlob;
 
-},{"extend":35}],25:[function(require,module,exports){
+},{"extend":36}],26:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3247,7 +3281,7 @@ var User = function (_Base) {
 
 module.exports = User;
 
-},{"../base":2,"extend":35}],26:[function(require,module,exports){
+},{"../base":2,"extend":36}],27:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3392,7 +3426,7 @@ var Users = function (_Base) {
 
 module.exports = Users;
 
-},{"../base":2,"../deps/utils/join":11}],27:[function(require,module,exports){
+},{"../base":2,"../deps/utils/join":12}],28:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3531,7 +3565,7 @@ var Task = function (_Base) {
 
 module.exports = Task;
 
-},{"../base":2,"../deps/utils/join":11,"extend":35}],28:[function(require,module,exports){
+},{"../base":2,"../deps/utils/join":12,"extend":36}],29:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3631,7 +3665,7 @@ var Workflow = function (_Base) {
 
 module.exports = Workflow;
 
-},{"../base":2,"../deps/utils/join":11,"extend":35}],29:[function(require,module,exports){
+},{"../base":2,"../deps/utils/join":12,"extend":36}],30:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3800,7 +3834,7 @@ var Workflows = function (_Base) {
 
 module.exports = Workflows;
 
-},{"../base":2,"../deps/utils/join":11}],30:[function(require,module,exports){
+},{"../base":2,"../deps/utils/join":12}],31:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -3926,7 +3960,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -5478,7 +5512,7 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":30,"ieee754":36,"isarray":38}],32:[function(require,module,exports){
+},{"base64-js":31,"ieee754":37,"isarray":39}],33:[function(require,module,exports){
 var charenc = {
   // UTF-8 encoding
   utf8: {
@@ -5513,7 +5547,7 @@ var charenc = {
 
 module.exports = charenc;
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 (function() {
   var base64map
       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
@@ -5611,7 +5645,7 @@ module.exports = charenc;
   module.exports = crypt;
 })();
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -6768,7 +6802,7 @@ return Promise;
 })));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":40}],35:[function(require,module,exports){
+},{"_process":41}],36:[function(require,module,exports){
 'use strict';
 
 var hasOwn = Object.prototype.hasOwnProperty;
@@ -6856,7 +6890,7 @@ module.exports = function extend() {
 };
 
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -6942,7 +6976,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -6965,14 +6999,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 (function(){
   var crypt = require('crypt'),
       utf8 = require('charenc').utf8,
@@ -7134,7 +7168,7 @@ module.exports = Array.isArray || function (arr) {
 
 })();
 
-},{"charenc":32,"crypt":33,"is-buffer":37}],40:[function(require,module,exports){
+},{"charenc":33,"crypt":34,"is-buffer":38}],41:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -7316,16 +7350,16 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 (function (process){
 module.exports = process.env.PROMISE_QUEUE_COVERAGE ?
     require('./lib-cov') :
     require('./lib');
 
 }).call(this,require('_process'))
-},{"./lib":43,"./lib-cov":42,"_process":40}],42:[function(require,module,exports){
+},{"./lib":44,"./lib-cov":43,"_process":41}],43:[function(require,module,exports){
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 /* global define, Promise */
 (function (root, factory) {
     'use strict';
@@ -7505,7 +7539,7 @@ module.exports = process.env.PROMISE_QUEUE_COVERAGE ?
     return Queue;
 });
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7591,7 +7625,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7678,13 +7712,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":44,"./encode":45}],47:[function(require,module,exports){
+},{"./decode":45,"./encode":46}],48:[function(require,module,exports){
 /*jshint eqnull:true*/
 (function (root) {
   "use strict";
@@ -8401,7 +8435,7 @@ exports.encode = exports.stringify = require('./encode');
     root[GLOBAL_KEY] = Random;
   }
 }(this));
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -8796,7 +8830,7 @@ exports.encode = exports.stringify = require('./encode');
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 module.exports={
   "name": "nuxeo",
   "description": "JavaScript client library for Nuxeo API",
@@ -8887,5 +8921,5 @@ module.exports={
   ]
 }
 
-},{}]},{},[17])(17)
+},{}]},{},[18])(18)
 });
