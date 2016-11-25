@@ -179,4 +179,81 @@ describe('Repository', () => {
         });
     });
   });
+
+  describe('should handle document name with reserved characters', () => {
+    // use 'site/api/v1/' until upgrading to 9.1
+    const _nuxeo = new Nuxeo({
+      auth: { method: 'basic', username: 'Administrator', password: 'Administrator' },
+      apiPath: 'site/api/v1/',
+    });
+    const _repository = _nuxeo.repository({
+      schemas: ['dublincore'],
+    });
+
+    it('doc with [brackets]', () => {
+      const name = 'doc with [brackets]';
+      const newDoc = {
+        name,
+        type: 'Workspace',
+        properties: {
+          'dc:title': name,
+        },
+      };
+      return _repository.create(WS_ROOT_PATH, newDoc)
+        .then((doc) => {
+          return _repository.fetch(doc.path);
+        })
+        .then((doc) => {
+          expect(doc.uid).to.exist();
+          expect(doc.path.endsWith(name)).to.be.true();
+          expect(doc.type).to.be.equal('Workspace');
+          expect(doc.get('dc:title')).to.be.equal(name);
+          return _repository.delete(doc.path);
+        });
+    });
+
+    it('doc with @ and @', () => {
+      const name = 'doc with @ and @';
+      const newDoc = {
+        name,
+        type: 'Workspace',
+        properties: {
+          'dc:title': name,
+        },
+      };
+      return _repository.create(WS_ROOT_PATH, newDoc)
+        .then((doc) => {
+          return _repository.fetch(doc.path);
+        })
+        .then((doc) => {
+          expect(doc.uid).to.exist();
+          expect(doc.path.endsWith(name)).to.be.true();
+          expect(doc.type).to.be.equal('Workspace');
+          expect(doc.get('dc:title')).to.be.equal(name);
+          return _repository.delete(doc.path);
+        });
+    });
+
+    it('test ; doc with some #, $, :, ; &? and =+', () => {
+      const name = 'test ; doc with some #, $, :, ; &? and =+';
+      const newDoc = {
+        name,
+        type: 'Workspace',
+        properties: {
+          'dc:title': name,
+        },
+      };
+      return _repository.create(WS_ROOT_PATH, newDoc)
+        .then((doc) => {
+          return _repository.fetch(doc.path);
+        })
+        .then((doc) => {
+          expect(doc.uid).to.exist();
+          expect(doc.path.endsWith(name)).to.be.true();
+          expect(doc.type).to.be.equal('Workspace');
+          expect(doc.get('dc:title')).to.be.equal(name);
+          return _repository.delete(doc.path);
+        });
+    });
+  });
 });
