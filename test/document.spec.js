@@ -9,6 +9,14 @@ const WS_JS_TESTS_PATH = join(WS_ROOT_PATH, WS_JS_TEST_NAME);
 const FILE_TEST_NAME = 'bar.txt';
 const FILE_TEST_PATH = join(WS_JS_TESTS_PATH, FILE_TEST_NAME);
 
+function sleep(timeout) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      return resolve();
+    }, timeout);
+  });
+}
+
 describe('Document', () => {
   let nuxeo;
   let repository;
@@ -582,6 +590,7 @@ describe('Document', () => {
     it('should fetch the audit of the document', function f(done) {
       nuxeo.operation('Elasticsearch.WaitForIndexing')
         .execute()
+        .then(() => sleep(5000))
         .then(() => repository.fetch(WS_JS_TESTS_PATH))
         .then(doc => doc.fetchAudit())
         .then((res) => {
