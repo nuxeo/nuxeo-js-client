@@ -22,7 +22,9 @@ This is an on-going project, supported by Nuxeo.
 
 #### Node.js Applications
 
-After installing [Node.js](http://nodejs.org/#download), use `npm` to install the `nuxeo` package:
+[Node.js](http://nodejs.org) >= `6.3.0` is required.
+
+After [installing](http://nodejs.org/#download) Node.js, use `npm` to install the `nuxeo` package:
 
 * For the latest 2.x.x version:
 
