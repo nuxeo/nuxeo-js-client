@@ -131,7 +131,7 @@ var nuxeo = new Nuxeo({
     method: 'basic',
     username: 'Administrator',
     password: 'Administrator'
-  },
+  }
 });
 ```
 
@@ -144,7 +144,7 @@ var nuxeo = new Nuxeo({
     method: 'basic',
     username: 'Administrator',
     password: 'Administrator'
-  },
+  }
 });
 ```
 
@@ -188,7 +188,7 @@ nuxeo.operation('Document.Create')
   .input('/')
   .execute()
   .then(function(doc) {
-      console.log('Created ' + doc.title + ' folder');
+    console.log('Created ' + doc.title + ' folder');
   })
   .catch(function(error) {
     throw error;
@@ -266,8 +266,8 @@ var newFolder = {
   name: 'a-folder',
   type: 'Folder',
   properties: {
-    'dc:title': 'foo',
-  },
+    'dc:title': 'foo'
+  }
 };
 nuxeo.repository()
   .create('/', newFolder)
@@ -478,7 +478,7 @@ var newUser = {
     username: 'leela',
     firstName: 'Leela',
     company: 'Futurama',
-    email: 'leela@futurama.com',
+    email: 'leela@futurama.com'
   },
 };
 nuxeo.users()
@@ -520,7 +520,7 @@ __Create a new group__
 ```javascript
 var newGroup = {
   groupname: 'foo',
-  grouplabel: 'Foo',
+  grouplabel: 'Foo'
 };
 nuxeo.groups()
   .create(newGroup)
@@ -574,7 +574,7 @@ __Create a new directory entry__
 var newEntry = {
   properties: {
     id: 'foo',
-    label: 'Foo',
+    label: 'Foo'
   },
 };
 nuxeo.directory('nature')
