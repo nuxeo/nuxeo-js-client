@@ -108,7 +108,7 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
 After adding `nuxeo` through `npm` to your application, you must require `nuxeo` as follows:
 
 ```javascript
-var Nuxeo = require('nuxeo/dist/nuxeo');
+var Nuxeo = require('nuxeo');
 ```
 
 ## Documentation
