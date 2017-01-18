@@ -1,5 +1,3 @@
-'use strict';
-
 describe('Base', () => {
   it('should have default values', () => {
     const base = new Nuxeo.Base();

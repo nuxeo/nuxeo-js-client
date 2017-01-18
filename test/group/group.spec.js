@@ -1,5 +1,3 @@
-'use strict';
-
 const FOO_GROUPNAME = 'foo';
 
 describe('Group', () => {

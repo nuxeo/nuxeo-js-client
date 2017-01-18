@@ -1,5 +1,3 @@
-'use strict';
-
 const FOO_ENTRY = 'foo';
 
 describe('DirectoryEntry', () => {

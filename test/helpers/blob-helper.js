@@ -1,5 +1,3 @@
-'use strict';
-
 function createTextBlob(content, name) {
   let blob;
   if (isBrowser) {

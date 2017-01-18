@@ -1,5 +1,3 @@
-'use strict';
-
 const { createTextBlob } = require('./helpers/blob-helper');
 
 describe('Upload', () => {

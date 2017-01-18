@@ -1,13 +1,18 @@
 {
-  'extends': 'airbnb/base',
-  'rules': {
-    'no-param-reassign': [2, { 'props': false }],
-    'max-len': [2, 120, 2, {
-      'ignoreUrls': true,
-      'ignoreComments': false
-    }]
+  "extends": "airbnb-base",
+  "rules": {
+    "arrow-body-style": ["error", "as-needed", { "requireReturnForObjectLiteral": true }],
+    "arrow-parens": ["error", "always"],
+    "class-methods-use-this": "off",
+    "max-len": ["error", 120, 2, {
+      "ignoreUrls": true,
+      "ignoreComments": false
+    }],
+    "no-param-reassign": ["error", { "props": false }],
+    "no-restricted-syntax": "off",
+    "no-underscore-dangle": "off"
   },
-  'globals': {
-    'Nuxeo': false
-  },
+  "globals": {
+    "Nuxeo": false
+  }
 }

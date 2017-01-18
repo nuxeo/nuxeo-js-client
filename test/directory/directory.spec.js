@@ -1,5 +1,3 @@
-'use strict';
-
 describe('Directory', () => {
   let nuxeo;
   let dir;
