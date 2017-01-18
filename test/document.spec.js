@@ -1,5 +1,3 @@
-'use strict';
-
 const join = require('../lib/deps/utils/join');
 const { createTextBlob, getTextFromBody } = require('./helpers/blob-helper');
 

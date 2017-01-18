@@ -1,5 +1,3 @@
-'use strict';
-
 const join = require('../../lib/deps/utils/join');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';

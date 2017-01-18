@@ -1,5 +1,3 @@
-'use strict';
-
 const Nuxeo = require('../..');
 const chai = require('chai');
 

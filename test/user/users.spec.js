@@ -1,5 +1,3 @@
-'use strict';
-
 const LEELA_USERNAME = 'leela';
 
 describe('Users', () => {
