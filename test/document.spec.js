@@ -47,14 +47,15 @@ describe('Document', () => {
       },
     };
 
-    return nuxeo.repository().create(WS_ROOT_PATH, newDoc)
+    return nuxeo.login()
+      .then(() => nuxeo.repository().create(WS_ROOT_PATH, newDoc))
       .then(() => nuxeo.repository().create(WS_JS_TESTS_PATH, newDoc2))
       .then(() => nuxeo.users().create(newUser));
   });
 
   after(() => {
     return repository.delete(WS_JS_TESTS_PATH)
-    .then(() => nuxeo.users().delete('leela'));
+      .then(() => nuxeo.users().delete('leela'));
   });
 
   it('should be retrieved from a Repository', () => {
@@ -425,7 +426,11 @@ describe('Document', () => {
   });
 
   describe('#fetchRenditions', () => {
-    it('should fetch the renditions list', () => {
+    it('should fetch the renditions list', function f() {
+      if (nuxeo.nuxeoVersion < Nuxeo.VERSIONS.LTS_2016) {
+        this.skip();
+      }
+
       return repository.fetch(WS_JS_TESTS_PATH)
         .then(doc => doc.fetchRenditions())
         .then((renditions) => {
@@ -586,9 +591,7 @@ describe('Document', () => {
   // audit is async, need to wait
   describe('#fetchAudit', () => {
     it('should fetch the audit of the document', function f(done) {
-      nuxeo.operation('Elasticsearch.WaitForIndexing')
-        .execute()
-        .then(() => sleep(5000))
+      sleep(5000)
         .then(() => repository.fetch(WS_JS_TESTS_PATH))
         .then(doc => doc.fetchAudit())
         .then((res) => {

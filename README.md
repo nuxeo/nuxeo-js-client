@@ -9,14 +9,11 @@ The Nuxeo JavaScript Client is a JavaScript client library for the Nuxeo Automat
 
 This is an on-going project, supported by Nuxeo.
 
+## Nuxeo Platform Dependency
+
+The JS Client is compliant with all Nuxeo versions as of LTS 2015.
+
 ## Getting Started
-
-### Nuxeo Platform - JS Client Dependencies
-
-| Nuxeo Platform | JS Client |
-| -------------- |-----------|
-| LTS 2015       | >= 1.x.x  |
-| FT 8.x         | >= 2.x.x  |
 
 ### Installation
 
@@ -26,13 +23,7 @@ This is an on-going project, supported by Nuxeo.
 
 After [installing](http://nodejs.org/#download) Node.js, use `npm` to install the `nuxeo` package:
 
-* For the latest 2.x.x version:
-
-        $ npm install nuxeo@2 --save
-
-* For the latest 1.x.x version:
-
-        $ npm install nuxeo@1 --save
+    $ npm install nuxeo
 
 Then, use the following `require` statement to have access to the same API than the browser client:
 
@@ -45,13 +36,7 @@ var nuxeo = new Nuxeo({ ... });
 
 The `nuxeo` client can be also installed through bower:
 
-* For the latest 2.x.x version:
-
-        $ bower install nuxeo@2 --save
-
-* For the latest 1.x.x version:
-
-        $ bower install nuxeo@1 --save
+    $ bower install nuxeo --save
 
 When added to your page, `Nuxeo` is available as a global variable.
 
@@ -115,10 +100,6 @@ var Nuxeo = require('nuxeo');
 
 Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/latest/).
 
-## Requirements
-
-The Nuxeo JavaScript client works only with Nuxeo Platform >= LTS 2015.
-
 ## Quick Start
 
 This quick start guide will show how to do basics operations using the client.
@@ -146,6 +127,63 @@ var nuxeo = new Nuxeo({
     password: 'Administrator'
   }
 });
+```
+
+### Testing the Connection and Retrieve the Current User
+
+After creating a Client, you can test the connection by using the `login` method which resolve
+with the current user.
+
+```javascript
+var nuxeo = new Nuxeo({ ... });
+nuxeo.login()
+  .then(function(user){
+    // user is a full User object
+    // nuxeo.user === user
+    console.log(user);
+  })
+  .catch(function(error) {
+    // wrong credentials / auth method / ...
+    throw error;
+  });
+```
+
+Note that `login` also fills the `user` property of the client.
+
+### Checking Nuxeo Server version
+
+Since version 3.0, the JS Client gives access to the Nuxeo server version:
+it is retrieved in the `nuxeoVersion` property after call of the `login` method.
+
+```javascript
+var nuxeo = new Nuxeo({ ... });
+nuxeo.login()
+  .then(function(){
+    // nuxeo.nuxeoVersion === '8.10'
+  })
+  .catch(function(error) {
+    // wrong credentials / auth method / ...
+    throw error;
+  });
+```
+
+Some constants are available in the `Nuxeo` object for supported LTS versions:
+
+```javascript
+Nuxeo.VERSIONS.LTS_2015 === '7.10';
+Nuxeo.VERSIONS.LTS_2016 === '8.10';
+```
+
+You can use them to easily make different calls according to the target version:
+
+```javascript
+...
+if (nuxeo.nuxeoVersion < Nuxeo.VERSIONS.LTS_2016) {
+  // do something on versions before LTS 2016
+} else {
+  // do something else
+}
+...
 ```
 
 ### Promise Based Calls
