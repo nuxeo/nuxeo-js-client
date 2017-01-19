@@ -1,4 +1,4 @@
-<project name="nuxeo-js-client-tests" xmlns:nx="urn:nuxeo-build" xmlns:artifact="urn:nuxeo-artifact">
+<project name="nuxeo-js-client-tests-7.10" xmlns:nx="urn:nuxeo-build" xmlns:artifact="urn:nuxeo-artifact">
   <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
   <taskdef resource="org/nuxeo/build/artifact/antlib.xml" uri="urn:nuxeo-artifact" />
   <taskdef resource="net/sf/antcontrib/antlib.xml" />
@@ -9,12 +9,8 @@
   </unzip>
   <import file="${out.dir}/nuxeo-ftest.xml" />
 
-  <property name="mp.install" value="file:${out.dir}/nuxeo-marketplace-jsf-ui.zip" />
-  <target name="prepare-environment" depends="_init,prepare-db,prepare-tomcat">
+  <target name="prepare-environment" depends="_init,prepare-db,prepare-tomcat,prepare-jboss">
     <copy file="src/test/resources/cors-config.xml" todir="${nuxeo.nxserver}/config/" />
-    <copy tofile="${out.dir}/nuxeo-marketplace-jsf-ui.zip">
-      <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-marketplace-jsf-ui::zip" />
-    </copy>
   </target>
 
 </project>

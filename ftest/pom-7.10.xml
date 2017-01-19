@@ -3,36 +3,49 @@
   <parent>
     <groupId>org.nuxeo.ecm.distribution</groupId>
     <artifactId>nuxeo-distribution</artifactId>
-    <version>9.1-SNAPSHOT</version>
+    <version>7.10</version>
     <relativePath></relativePath>
   </parent>
 
   <artifactId>nuxeo-js-client-ftest</artifactId>
-  <name>Functional Tests for Nuxeo JS Client</name>
+  <name>Functional Tests for Nuxeo JS Client on latest Nuxeo 7.10 HF</name>
 
   <properties>
-    <nuxeo.tested.version>${nuxeo.distribution.version}</nuxeo.tested.version>
+    <nuxeo.tested.version>[7.10,8.0)</nuxeo.tested.version>
+    <ant.assembly.version>2.0.6</ant.assembly.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.nuxeo.ecm.distribution</groupId>
-      <artifactId>nuxeo-server-tomcat</artifactId>
+      <artifactId>nuxeo-distribution-tomcat</artifactId>
+      <classifier>nuxeo-cap</classifier>
       <version>${nuxeo.tested.version}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.nuxeo.ecm.distribution</groupId>
-      <artifactId>nuxeo-marketplace-jsf-ui</artifactId>
-      <version>${nuxeo.tested.version}</version>
-      <type>zip</type>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.nuxeo.build</groupId>
+          <artifactId>ant-assembly-maven-plugin</artifactId>
+          <version>${ant.assembly.version}</version>
+          <extensions>true</extensions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -44,7 +57,7 @@
         <groupId>org.nuxeo.build</groupId>
         <artifactId>ant-assembly-maven-plugin</artifactId>
         <configuration>
-          <buildFile>${basedir}/itests.xml</buildFile>
+          <buildFile>${basedir}/itests-7.10.xml</buildFile>
         </configuration>
         <executions>
           <execution>
