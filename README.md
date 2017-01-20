@@ -129,18 +129,18 @@ var nuxeo = new Nuxeo({
 });
 ```
 
-### Testing the Connection and Retrieve the Current User
+### Connecting to a Nuxeo Server
 
-After creating a Client, you can test the connection by using the `login` method which resolve
-with the current user.
+After creating a Client, you can connect to a Nuxeo Server by using the `connect` method.
+This method returns a `Promise` which is resolved with the connected client.
 
 ```javascript
 var nuxeo = new Nuxeo({ ... });
-nuxeo.login()
-  .then(function(user){
-    // user is a full User object
-    // nuxeo.user === user
-    console.log(user);
+nuxeo.connect()
+  .then(function(client){
+    // client.connected === true
+    // client === nuxeo
+    console.log('Connected OK!');
   })
   .catch(function(error) {
     // wrong credentials / auth method / ...
@@ -148,18 +148,33 @@ nuxeo.login()
   });
 ```
 
-Note that `login` also fills the `user` property of the client.
+#### Current User
 
-### Checking Nuxeo Server version
-
-Since version 3.0, the JS Client gives access to the Nuxeo server version:
-it is retrieved in the `nuxeoVersion` property after call of the `login` method.
+The `connect` method fills the `user` property of the client. `user` is a full `User` object.
 
 ```javascript
 var nuxeo = new Nuxeo({ ... });
-nuxeo.login()
-  .then(function(){
-    // nuxeo.nuxeoVersion === '8.10'
+nuxeo.connect()
+  .then(function(client){
+    // client.user.id === 'Administrator'
+    console.log(client.user);
+  })
+  .catch(function(error) {
+    // wrong credentials / auth method / ...
+    throw error;
+  });
+```
+
+#### Nuxeo Server version
+
+The `connect` method fills the `nuxeoVersion` property of the client.
+
+```javascript
+var nuxeo = new Nuxeo({ ... });
+nuxeo.connect()
+  .then(function(client){
+    // client.nuxeoVersion === '8.10'
+    console.log(client.nuxeoVersion);
   })
   .catch(function(error) {
     // wrong credentials / auth method / ...
