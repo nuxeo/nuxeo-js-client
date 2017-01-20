@@ -81,13 +81,20 @@ describe('Nuxeo', () => {
     });
   });
 
-  describe('#login', () => {
-    it('should login and retrieve the logged in user', () => {
-      return nuxeo.login().then((user) => {
+  describe('#connect', () => {
+    it('should connect to a Nuxeo Server', () => {
+      return nuxeo.connect().then((n) => {
+        expect(n.connected).to.be.true();
+        expect(nuxeo.connected).to.be.true();
+
+        const user = n.user;
         expect(user['entity-type']).to.be.equal('user');
         expect(user.id).to.be.equal('Administrator');
         expect(user.properties.username).to.be.equal('Administrator');
         expect(user.properties.groups).to.be.eql(['administrators']);
+
+        const nuxeoVersion = n.nuxeoVersion;
+        expect(nuxeoVersion).to.be.not.null();
       });
     });
   });

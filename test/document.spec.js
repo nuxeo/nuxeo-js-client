@@ -47,7 +47,7 @@ describe('Document', () => {
       },
     };
 
-    return nuxeo.login()
+    return nuxeo.connect()
       .then(() => nuxeo.repository().create(WS_ROOT_PATH, newDoc))
       .then(() => nuxeo.repository().create(WS_JS_TESTS_PATH, newDoc2))
       .then(() => nuxeo.users().create(newUser));
