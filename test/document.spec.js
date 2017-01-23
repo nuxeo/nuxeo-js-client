@@ -590,17 +590,33 @@ describe('Document', () => {
 
   // audit is async, need to wait
   describe('#fetchAudit', () => {
-    it('should fetch the audit of the document', function f(done) {
-      sleep(5000)
-        .then(() => repository.fetch(WS_JS_TESTS_PATH))
-        .then(doc => doc.fetchAudit())
+    it('should fetch the audit of the document', () => {
+      function pollAudit(doc) {
+        return new Nuxeo.Promise((resolve, reject) => {
+          function poll() {
+            sleep(1000)
+            .then(() => doc.fetchAudit())
+            .then((res) => {
+              if (res.entries.length > 0) {
+                resolve(res);
+              } else {
+                // let's try again
+                poll();
+              }
+            })
+            .catch((err) => reject(err));
+          }
+          poll();
+        });
+      }
+
+      return repository.fetch(WS_JS_TESTS_PATH)
+        .then((doc) => pollAudit(doc))
         .then((res) => {
           expect(res['entity-type']).to.be.equal('logEntries');
           expect(res.entries.length).to.be.equal(1);
           expect(res.entries[0].eventId).to.be.equal('documentCreated');
-          done();
-        })
-        .catch(e => done(e));
+        });
     });
   });
 });
