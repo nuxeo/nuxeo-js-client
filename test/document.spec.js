@@ -78,6 +78,19 @@ describe('Document', () => {
     });
   });
 
+  describe('#hasFacet', () => {
+    it('should return true for a document with SuperSpace facet', () => {
+      return repository.fetch('/default-domain').then((doc) => {
+        expect(doc.hasFacet("SuperSpace")).to.be.true();
+      });
+    });
+    it('should return false for a document without SupserSpace facet', () => {
+      return repository.fetch(FILE_TEST_PATH).then((doc) => {
+        expect(doc.hasFacet("SuperSpace")).to.be.false();
+      });
+    });
+  });
+
   describe('#set', () => {
     it('should fill only dirtyProperties field', () => {
       return repository.fetch(FILE_TEST_PATH).then((doc) => {
