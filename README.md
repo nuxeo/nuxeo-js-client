@@ -19,16 +19,21 @@ The JS Client is compliant with all Nuxeo versions as of LTS 2015.
 
 #### Node.js Applications
 
-[Node.js](http://nodejs.org) >= `6.3.0` is required.
-
-After [installing](http://nodejs.org/#download) Node.js, use `npm` to install the `nuxeo` package:
+After [installing](http://nodejs.org/#download) [Node.js](http://nodejs.org), use `npm` to install the `nuxeo` package:
 
     $ npm install nuxeo
 
-Then, use the following `require` statement to have access to the same API than the browser client:
+##### Node.js v6 LTS (Boron)
 
 ```javascript
 var Nuxeo = require('nuxeo');
+var nuxeo = new Nuxeo({ ... });
+```
+
+##### Node.js v4 LTS (Argon)
+
+```javascript
+var Nuxeo = require('nuxeo/es5');
 var nuxeo = new Nuxeo({ ... });
 ```
 
@@ -90,10 +95,19 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
 
 #### React Applications
 
-After adding `nuxeo` through `npm` to your application, you must require `nuxeo` as follows:
+After adding `nuxeo` through `npm` to your application, to make it sure that it will work on most browsers
+you must require `nuxeo` differently according to your build system.
+
+If your build transpiles external libraries from ES6 to ES5:
 
 ```javascript
 var Nuxeo = require('nuxeo');
+```
+
+If your build does not (such as [create-react-app](https://github.com/facebookincubator/create-react-app)):
+
+```javascript
+var Nuxeo = require('nuxeo/es5');
 ```
 
 ## Documentation
@@ -128,6 +142,25 @@ var nuxeo = new Nuxeo({
   }
 });
 ```
+
+### Promise Based Calls
+
+All API calls made on the server return a Promise object.
+
+```javascript
+nuxeo.operation('Document.GetChildren')
+  .input('/')
+  .execute()
+  .then(function(docs) {
+    // work with docs
+  })
+  .catch(function(error) {
+    // something went wrong
+    throw error;
+  });
+```
+
+When something went wrong, the `error` is an `Error` object with a `response` field containing the whole response.
 
 ### Connecting to a Nuxeo Server
 
@@ -200,25 +233,6 @@ if (nuxeo.nuxeoVersion < Nuxeo.VERSIONS.LTS_2016) {
 }
 ...
 ```
-
-### Promise Based Calls
-
-All API calls made on the server return a Promise object.
-
-```javascript
-nuxeo.operation('Document.GetChildren')
-  .input('/')
-  .execute()
-  .then(function(docs) {
-    // work with docs
-  })
-  .catch(function(error) {
-    // something went wrong
-    throw error;
-  });
-```
-
-When something went wrong, the `error` is an `Error` object with a `response` field containing the whole response.
 
 ### Operation
 
