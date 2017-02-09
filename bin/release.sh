@@ -2,14 +2,13 @@
 
 set -e
 
-BRANCH=$1
-VERSION=$2
-if [ -z "$BRANCH" ] || [ -z "$VERSION" ]; then
-  echo 'Usage: ./release.sh BRANCH VERSION'
+VERSION=$1
+if [ -z "$VERSION" ]; then
+  echo 'Usage: ./release.sh VERSION'
   exit 1
 fi
 
-git checkout $BRANCH
+git checkout master
 
 # Update the version in package.json
 npm version $VERSION --git-tag-version=false
@@ -29,10 +28,8 @@ npm install
 # freeze dependencies versions
 npm shrinkwrap --dev
 
-# build, test and publish
-gulp nsp
-mvn clean verify -f ftest/pom.xml -Pqa
-npm publish
+# build
+gulp release
 
 # update README links to point to the released doc
 sed -i.bak "s|nuxeo-js-client/latest|nuxeo-js-client/$VERSION|g" README.md
@@ -43,6 +40,11 @@ git add npm-shrinkwrap.json
 git add README.md
 git commit -m "Release $VERSION"
 git tag v$VERSION
+
+(cd dist && npm publish)
+
+git push origin master
+git push origin v$VERSION
 
 # generate doc for this release
 npm run doc
@@ -56,15 +58,10 @@ cp -r /tmp/nuxeo.js-doc latest
 
 git add $VERSION
 git add latest
-git add index.html
 git commit -m "Add documentation for release $VERSION"
+git push origin gh-pages
 
 # cleanup
-git checkout $BRANCH
+git checkout master
 git branch -D release
 rm -r /tmp/nuxeo.js-doc
-
-# push everything
-git push origin $BRANCH
-git push origin v$VERSION
-git push origin gh-pages

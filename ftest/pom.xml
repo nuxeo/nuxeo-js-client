@@ -31,6 +31,30 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <nodeVersion>v6.9.0</nodeVersion>
+        <npmVersion>3.10.8</npmVersion>
+        <gulpTarget>it</gulpTarget>
+        <jsReportsDir>js-reports</jsReportsDir>
+      </properties>
+    </profile>
+    <profile>
+      <id>es5</id>
+      <properties>
+        <nodeVersion>v4.6.0</nodeVersion>
+        <npmVersion>2.15.9</npmVersion>
+        <gulpTarget>it:es5</gulpTarget>
+        <jsReportsDir>js-reports-es5</jsReportsDir>
+      </properties>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
@@ -73,8 +97,8 @@
                 <target>cleanup-environment</target>
               </targets>
               <createSummary>true</createSummary>
-              <reportsDirectory>${project.build.directory}/js-reports</reportsDirectory>
-              <summaryFile>${project.build.directory}/js-reports/js-summary.xml</summaryFile>
+              <reportsDirectory>${project.build.directory}/${jsReportsDir}</reportsDirectory>
+              <summaryFile>${project.build.directory}/${jsReportsDir}/js-summary.xml</summaryFile>
             </configuration>
           </execution>
         </executions>
@@ -87,8 +111,8 @@
         <configuration>
           <workingDirectory>..</workingDirectory>
           <installDirectory>target</installDirectory>
-          <nodeVersion>v6.3.1</nodeVersion>
-          <npmVersion>3.10.3</npmVersion>
+          <nodeVersion>${nodeVersion}</nodeVersion>
+          <npmVersion>${npmVersion}</npmVersion>
         </configuration>
         <executions>
           <execution>
@@ -110,7 +134,7 @@
             </goals>
             <phase>integration-test</phase>
             <configuration>
-              <arguments>it</arguments>
+              <arguments>${gulpTarget}</arguments>
             </configuration>
           </execution>
         </executions>
