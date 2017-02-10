@@ -1,0 +1,48 @@
+/*
+ * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Contributors:
+ *     Thomas Roger <troger@nuxeo.com>
+ */
+
+node('SLAVE') {
+    try {
+        wrap([$class: 'TimestamperBuildWrapper']) {
+            stage('checkout') {
+                checkout scm
+            }
+
+            def branch = sh script: 'rev=$(git rev-parse HEAD); git name-rev $rev | awk \'{ print $2}\'', returnStdout: true
+            stage ('release') {
+                if (!(branch =~ /release\/\d+.\d+.\d+/)) {
+                  error "Branch ${branch} does not match a release branch format"
+                }
+
+                def envVars = [ 'npm_config_registry=' ]
+                withEnv(envVars) {
+                    def releaseVersion = branch.replaceAll(/release\//, '')
+                    sh "npm run release -- ${releaseVersion}"
+                    currentBuild.description = "Release ${releaseVersion}"
+                }
+            }
+
+            stage ('post build') {
+                // Clean up release branch
+                sh 'git checkout master'
+                sh 'git branch -D ${branch}'
+                sh 'git push origin --delete ${branch}'
+                archive 'dist/**'
+                emailext (recipientProviders: [[$class: 'RequesterRecipientProvider']],
+                    subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Success!",
+                    body: "Build success ${env.BUILD_URL}")
+            }
+        }
+    } catch(e) {
+        currentBuild.result = "FAILURE"
+        step([$class: 'ClaimPublisher'])
+        emailext (recipientProviders: [[$class: 'RequesterRecipientProvider']],
+            subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Failure!",
+            body: "Build failed ${env.BUILD_URL}")
+        throw e
+    }
+}
