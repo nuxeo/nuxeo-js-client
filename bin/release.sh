@@ -8,8 +8,6 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-git checkout master
-
 # Update the version in package.json
 npm version $VERSION --git-tag-version=false
 git add package.json
