@@ -49,7 +49,7 @@
       <properties>
         <nodeVersion>v4.6.0</nodeVersion>
         <npmVersion>2.15.9</npmVersion>
-        <gulpTarget>it:es5</gulpTarget>
+        <gulpTarget>it:node:es5</gulpTarget>
         <jsReportsDir>js-reports-es5</jsReportsDir>
       </properties>
     </profile>

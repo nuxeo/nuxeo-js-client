@@ -83,9 +83,13 @@ gulp.task('it:node', ['pre-test'], () => {
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
       reporter: 'mocha-jenkins-reporter',
-      reporterOptions: 'junit_report_path=./ftest/target/js-reports/test-results-node.xml,junit_report_stack=1',
+      reporterOptions: {
+        junit_report_path: './ftest/target/js-reports/test-results-node.xml',
+        junit_report_stack: 1,
+      },
       timeout: 30000,
     }))
+    .on('error', () => process.exit(0))
     .pipe(istanbul.writeReports({
       reporters: ['lcov', 'json', 'text', 'text-summary', 'cobertura'],
     }));
@@ -103,21 +107,18 @@ gulp.task('it:browser', ['build:browser'], (done) => {
   }, (exitStatus) => done(exitStatus ? 'Browser tests failed' : undefined)).start();
 });
 
-gulp.task('it:es5', () => {
-  gulpSequence('it:node:es5', () => {
-    // always return 0 status code for frontend-maven-plugin
-    return process.exit(0);
-  });
-});
-
 gulp.task('it:node:es5', ['build:es5', 'copy:files'], () => {
   return gulp.src('test/**/*.spec.js')
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node-es5.js'],
       reporter: 'mocha-jenkins-reporter',
-      reporterOptions: 'junit_report_path=./ftest/target/js-reports-es5/test-results-node.xml,junit_report_stack=1',
+      reporterOptions: {
+        junit_report_path: './ftest/target/js-reports-es5/test-results-node.xml',
+        junit_report_stack: 1,
+      },
       timeout: 30000,
-    }));
+    }))
+    .on('error', () => process.exit(0));
 });
 
 gulp.task('checkstyle', () => {
@@ -131,12 +132,7 @@ gulp.task('checkstyle', () => {
     .pipe(eslint.format('checkstyle', fs.createWriteStream(path.join(targetFolder, '/checkstyle-result.xml'))));
 });
 
-gulp.task('it', () => {
-  gulpSequence('checkstyle', 'it:node', 'it:browser', () => {
-    // always return 0 status code for frontend-maven-plugin
-    return process.exit(0);
-  });
-});
+gulp.task('it', gulpSequence('checkstyle', 'it:node', 'it:browser'));
 
 gulp.task('nsp', (done) => {
   nsp({
