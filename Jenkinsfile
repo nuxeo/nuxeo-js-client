@@ -14,6 +14,7 @@ node(env.SLAVE) {
 
             stage ('build and test') {
               step([$class: 'GitHubCommitStatusSetter',
+                reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
                 contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
                 statusResultSource: [$class: 'ConditionalStatusResultSource',
                 results: [[$class: 'AnyBuildResult', message: 'Building on Nuxeo CI', state: 'PENDING']]]])
@@ -38,6 +39,7 @@ node(env.SLAVE) {
                     body: "Build back to normal: ${env.BUILD_URL}.")
               }
               step([$class: 'GitHubCommitStatusSetter',
+                reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
                 contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
                 statusResultSource: [$class: 'ConditionalStatusResultSource',
                 results: [[$class: 'AnyBuildResult', message: 'Successfully built on Nuxeo CI', state: 'SUCCESS']]]])
@@ -49,6 +51,7 @@ node(env.SLAVE) {
         mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Failure!",
           body: "Build failed ${env.BUILD_URL}.")
         step([$class: 'GitHubCommitStatusSetter',
+          reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
           contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
           statusResultSource: [$class: 'ConditionalStatusResultSource',
           results: [[$class: 'AnyBuildResult', message: 'Failed to build on Nuxeo CI', state: 'FAILURE']]]])
