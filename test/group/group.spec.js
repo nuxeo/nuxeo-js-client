@@ -15,27 +15,25 @@ describe('Group', () => {
     });
   });
 
-  after(() => {
-    return groups.delete(FOO_GROUPNAME);
-  });
+  after(() => groups.delete(FOO_GROUPNAME));
 
-  it('should be retrieved from Groups', () => {
-    return groups.fetch('administrators').then((group) => {
+  it('should be retrieved from Groups', () => (
+    groups.fetch('administrators').then((group) => {
       expect(group).to.be.an.instanceof(Nuxeo.Group);
       expect(group.groupname).to.exist();
-    });
-  });
+    })
+  ));
 
   describe('#save', () => {
-    it('should save an updated group', () => {
-      return groups.fetch(FOO_GROUPNAME)
+    it('should save an updated group', () => (
+      groups.fetch(FOO_GROUPNAME)
         .then((group) => {
           expect(group.grouplabel).to.be.equal('Foo');
           group.grouplabel = 'Foo Fighters';
           return group.save();
         }).then((group) => {
           expect(group.grouplabel).to.be.equal('Foo Fighters');
-        });
-    });
+        })
+    ));
   });
 });

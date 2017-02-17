@@ -10,12 +10,12 @@ describe('Users', () => {
   });
 
   describe('#fetch', () => {
-    it('should fetch Administrator user', () => {
-      return users.fetch('Administrator')
+    it('should fetch Administrator user', () => (
+      users.fetch('Administrator')
         .then((user) => {
           expect(user.id).to.be.equal('Administrator');
-        });
-    });
+        })
+    ));
   });
 
   describe('#create', () => {
@@ -40,22 +40,24 @@ describe('Users', () => {
   });
 
   describe('#update', () => {
-    it('should update leela user', () => {
-      return users.fetch(LEELA_USERNAME).then((user) => {
-        expect(user.properties.firstName).to.be.equal('Leela');
-        user.properties.firstName = 'Fry?';
-        return users.update(user);
-      }).then((updatedUser) => {
-        expect(updatedUser.properties.firstName).to.be.equal('Fry?');
-      });
-    });
+    it('should update leela user', () => (
+      users.fetch(LEELA_USERNAME)
+        .then((user) => {
+          expect(user.properties.firstName).to.be.equal('Leela');
+          user.properties.firstName = 'Fry?';
+          return users.update(user);
+        })
+        .then((updatedUser) => {
+          expect(updatedUser.properties.firstName).to.be.equal('Fry?');
+        })
+    ));
   });
 
   describe('#delete', () => {
-    it('should delete leela user', () => {
-      return users.delete(LEELA_USERNAME).then((res) => {
+    it('should delete leela user', () => (
+      users.delete(LEELA_USERNAME).then((res) => {
         expect(res.status).to.be.equal(204);
-      });
-    });
+      })
+    ));
   });
 });

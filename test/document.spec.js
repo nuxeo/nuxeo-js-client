@@ -9,9 +9,7 @@ const FILE_TEST_PATH = join(WS_JS_TESTS_PATH, FILE_TEST_NAME);
 
 function sleep(timeout) {
   return new Promise((resolve) => {
-    setTimeout(() => {
-      return resolve();
-    }, timeout);
+    setTimeout(() => resolve(), timeout);
   });
 }
 
@@ -53,92 +51,102 @@ describe('Document', () => {
       .then(() => nuxeo.users().create(newUser));
   });
 
-  after(() => {
-    return repository.delete(WS_JS_TESTS_PATH)
-      .then(() => nuxeo.users().delete('leela'));
-  });
+  after(() => (
+    repository.delete(WS_JS_TESTS_PATH)
+      .then(() => nuxeo.users().delete('leela'))
+  ));
 
-  it('should be retrieved from a Repository', () => {
-    return repository.fetch('/default-domain').then((doc) => {
-      expect(doc).to.be.an.instanceof(Nuxeo.Document);
-      expect(doc.uid).to.exist();
-    });
-  });
+  it('should be retrieved from a Repository', () => (
+    repository.fetch('/default-domain')
+      .then((doc) => {
+        expect(doc).to.be.an.instanceof(Nuxeo.Document);
+        expect(doc.uid).to.exist();
+      })
+  ));
 
   describe('#isFolder', () => {
-    it('should return true for a folderish document', () => {
-      return repository.fetch('/default-domain').then((doc) => {
-        expect(doc.isFolder()).to.be.true();
-      });
-    });
-    it('should return false for a non-folderish document', () => {
-      return repository.fetch(FILE_TEST_PATH).then((doc) => {
-        expect(doc.isFolder()).to.be.false();
-      });
-    });
+    it('should return true for a folderish document', () => (
+      repository.fetch('/default-domain')
+        .then((doc) => {
+          expect(doc.isFolder()).to.be.true();
+        })
+    ));
+    it('should return false for a non-folderish document', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.isFolder()).to.be.false();
+        })
+    ));
   });
 
   describe('#hasFacet', () => {
-    it('should return true for a document with SuperSpace facet', () => {
-      return repository.fetch('/default-domain').then((doc) => {
-        expect(doc.hasFacet("SuperSpace")).to.be.true();
-      });
-    });
-    it('should return false for a document without SupserSpace facet', () => {
-      return repository.fetch(FILE_TEST_PATH).then((doc) => {
-        expect(doc.hasFacet("SuperSpace")).to.be.false();
-      });
-    });
+    it('should return true for a document with SuperSpace facet', () => (
+      repository.fetch('/default-domain')
+        .then((doc) => {
+          expect(doc.hasFacet('SuperSpace')).to.be.true();
+        })
+    ));
+    it('should return false for a document without SupserSpace facet', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.hasFacet('SuperSpace')).to.be.false();
+        })
+    ));
   });
 
   describe('#set', () => {
-    it('should fill only dirtyProperties field', () => {
-      return repository.fetch(FILE_TEST_PATH).then((doc) => {
-        doc.set({
-          'dc:description': 'foo',
-        });
-        expect(doc.properties['dc:description']).to.be.null();
-        expect(doc._dirtyProperties['dc:description']).to.be.equal('foo');
-      });
-    });
+    it('should fill only dirtyProperties field', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          doc.set({
+            'dc:description': 'foo',
+          });
+          expect(doc.properties['dc:description']).to.be.null();
+          expect(doc._dirtyProperties['dc:description']).to.be.equal('foo');
+        })
+    ));
   });
 
   describe('#get', () => {
-    it('should return a property value', () => {
-      return repository.fetch(FILE_TEST_PATH).then((doc) => {
-        expect(doc.get('dc:title')).to.be.equal('bar.txt');
-      });
-    });
+    it('should return a property value', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.get('dc:title')).to.be.equal('bar.txt');
+        })
+    ));
 
-    it('should return undefined for non existing property', () => {
-      return repository.fetch(FILE_TEST_PATH).then((doc) => {
-        expect(doc.get('dc:non-existing')).to.be.undefined();
-      });
-    });
+    it('should return undefined for non existing property', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.get('dc:non-existing')).to.be.undefined();
+        })
+    ));
 
-    it('should return the dirty property value if any', () => {
-      return repository.fetch(FILE_TEST_PATH).then((doc) => {
-        doc.set({
-          'dc:description': 'foo',
-        });
-        expect(doc.get('dc:description')).to.be.equal('foo');
-      });
-    });
+    it('should return the dirty property value if any', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          doc.set({
+            'dc:description': 'foo',
+          });
+          expect(doc.get('dc:description')).to.be.equal('foo');
+        })
+    ));
   });
 
   describe('#save', () => {
-    it('should save an updated document', () => {
-      return repository.fetch(FILE_TEST_PATH)
+    it('should save an updated document', () => (
+      repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
           expect(doc.get('dc:description')).to.be.null();
           doc.set({
             'dc:description': 'foo',
           });
           return doc.save();
-        }).then((doc) => {
+        })
+        .then((doc) => {
           expect(doc.get('dc:description')).to.be.equal('foo');
-        });
-    });
+        })
+    ));
 
     it('should save a document with a property referencing a BatchBlob', () => {
       const batch = nuxeo.batchUpload();
@@ -186,25 +194,25 @@ describe('Document', () => {
   });
 
   describe('#fetchBlob', () => {
-    it('should download the main blob', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.fetchBlob())
-        .then(res => isBrowser ? res.blob() : res.body)
-        .then(body => getTextFromBody(body))
+    it('should download the main blob', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.fetchBlob())
+        .then((res) => (isBrowser ? res.blob() : res.body))
+        .then((body) => getTextFromBody(body))
         .then((text) => {
           expect(text).to.be.equal('foo');
-        });
-    });
+        })
+    ));
 
-    it('should download a blob given a xpath', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.fetchBlob('file:content'))
-        .then((res) => isBrowser ? res.blob() : res.body)
-        .then(body => getTextFromBody(body))
+    it('should download a blob given a xpath', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.fetchBlob('file:content'))
+        .then((res) => (isBrowser ? res.blob() : res.body))
+        .then((body) => getTextFromBody(body))
         .then((text) => {
           expect(text).to.be.equal('foo');
-        });
-    });
+        })
+    ));
   });
 
   describe('#move', () => {
@@ -232,99 +240,85 @@ describe('Document', () => {
         .then(() => repository.create(WS_JS_TESTS_PATH, folder));
     });
 
-    it('should move a document keeping its name', () => {
-      return repository.fetch(FOO_PATH_BEFORE).then((doc) => {
-        return doc.move(FOLDER_PATH);
-      }).then((doc) => {
-        expect(doc.path).to.be.equal(FOO_PATH_AFTER);
-      });
-    });
+    it('should move a document keeping its name', () => (
+      repository.fetch(FOO_PATH_BEFORE)
+        .then((doc) => doc.move(FOLDER_PATH))
+        .then((doc) => {
+          expect(doc.path).to.be.equal(FOO_PATH_AFTER);
+        })
+    ));
 
-    it('should move a document changing its final name', () => {
-      return repository.fetch(FOO_PATH_AFTER).then((doc) => {
-        return doc.move(WS_JS_TESTS_PATH, 'newFoo');
-      }).then((doc) => {
-        expect(doc.path).to.be.equal(FOO_PATH_AFTER_RENAMING);
-      });
-    });
+    it('should move a document changing its final name', () => (
+      repository.fetch(FOO_PATH_AFTER)
+        .then((doc) => doc.move(WS_JS_TESTS_PATH, 'newFoo'))
+        .then((doc) => {
+          expect(doc.path).to.be.equal(FOO_PATH_AFTER_RENAMING);
+        })
+    ));
   });
 
   describe('#followTransition', () => {
-    it('should set the life cycle state to deleted', () => {
-      return repository.fetch(FILE_TEST_PATH).then((doc) => {
-        expect(doc.state).to.be.equal('project');
-        return doc.followTransition('delete');
-      }).then((doc) => {
-        expect(doc.state).to.be.equal('deleted');
-      });
-    });
+    it('should set the life cycle state to deleted', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.state).to.be.equal('project');
+          return doc.followTransition('delete');
+        })
+        .then((doc) => {
+          expect(doc.state).to.be.equal('deleted');
+        })
+    ));
   });
 
-  describe('#convert', function f() {
+  describe('#convert', () => {
     describe('should convert the main blob', () => {
-      it('using a destination format', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then((doc) => {
-            return doc.convert({ format: 'html' });
-          })
-          .then((res) => isBrowser ? res.blob() : res.body)
-          .then((body) => {
-            return getTextFromBody(body);
-          })
+      it('using a destination format', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.convert({ format: 'html' }))
+          .then((res) => (isBrowser ? res.blob() : res.body))
+          .then((body) => getTextFromBody(body))
           .then((text) => {
             expect(text.indexOf('<html>') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
-          });
-      });
+          })
+      ));
 
-      it('using a destination mime type', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then((doc) => {
-            return doc.convert({ type: 'text/html' });
-          })
-          .then((res) => isBrowser ? res.blob() : res.body)
-          .then((body) => {
-            return getTextFromBody(body);
-          })
+      it('using a destination mime type', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.convert({ type: 'text/html' }))
+          .then((res) => (isBrowser ? res.blob() : res.body))
+          .then((body) => getTextFromBody(body))
           .then((text) => {
             expect(text.indexOf('<html>') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
-          });
-      });
+          })
+      ));
 
-      it('using a given converter', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then((doc) => {
-            return doc.convert({ converter: 'office2html' });
-          })
-          .then((res) => isBrowser ? res.blob() : res.body)
-          .then((body) => {
-            return getTextFromBody(body);
-          })
+      it('using a given converter', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.convert({ converter: 'office2html' }))
+          .then((res) => (isBrowser ? res.blob() : res.body))
+          .then((body) => getTextFromBody(body))
           .then((text) => {
             expect(text.indexOf('<html>') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
-          });
-      });
+          })
+      ));
     });
 
-    it('should convert a blob given an xpath', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then((doc) => {
-          return doc.convert({ xpath: 'file:content', type: 'text/html' });
-        })
-        .then((res) => isBrowser ? res.blob() : res.body)
-        .then((body) => {
-          return getTextFromBody(body);
-        })
+    it('should convert a blob given an xpath', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.convert({ xpath: 'file:content', type: 'text/html' }))
+        .then((res) => (isBrowser ? res.blob() : res.body))
+        .then((body) => getTextFromBody(body))
         .then((text) => {
           expect(text.indexOf('<html>') >= 0).to.be.true();
           expect(text.indexOf('foo') >= 0).to.be.true();
-        });
-    });
+        })
+    ));
   });
 
-  describe('#scheduleConversion', function f() {
+  describe('#scheduleConversion', () => {
     function waitForConversion(pollingURL) {
       return new Nuxeo.Promise((resolve, reject) => {
         function isConversionDone() {
@@ -337,18 +331,16 @@ describe('Document', () => {
                 isConversionDone();
               }
             })
-            .catch(err => reject(err));
+            .catch((err) => reject(err));
         }
         isConversionDone();
       });
     }
 
     describe('should schedule a conversion of the main blob', () => {
-      it('using a destination format', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then((doc) => {
-            return doc.scheduleConversion({ format: 'html' });
-          })
+      it('using a destination format', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.scheduleConversion({ format: 'html' }))
           .then((res) => {
             expect(res['entity-type']).to.be.equal('conversionScheduled');
             expect(res.conversionId).to.exist();
@@ -357,21 +349,17 @@ describe('Document', () => {
             return waitForConversion(res.pollingURL);
           })
           .then((res) => nuxeo._http({ url: res.resultURL }))
-          .then((res) => isBrowser ? res.blob() : res.body)
-          .then((body) => {
-            return getTextFromBody(body);
-          })
+          .then((res) => (isBrowser ? res.blob() : res.body))
+          .then((body) => getTextFromBody(body))
           .then((text) => {
             expect(text.indexOf('<html>') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
-          });
-      });
+          })
+      ));
 
-      it('using a destination mime type', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then((doc) => {
-            return doc.scheduleConversion({ type: 'text/html' });
-          })
+      it('using a destination mime type', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.scheduleConversion({ type: 'text/html' }))
           .then((res) => {
             expect(res['entity-type']).to.be.equal('conversionScheduled');
             expect(res.conversionId).to.exist();
@@ -380,21 +368,17 @@ describe('Document', () => {
             return waitForConversion(res.pollingURL);
           })
           .then((res) => nuxeo._http({ url: res.resultURL }))
-          .then((res) => isBrowser ? res.blob() : res.body)
-          .then((body) => {
-            return getTextFromBody(body);
-          })
+          .then((res) => (isBrowser ? res.blob() : res.body))
+          .then((body) => getTextFromBody(body))
           .then((text) => {
             expect(text.indexOf('<html>') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
-          });
-      });
+          })
+      ));
 
-      it('using a given converter', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then((doc) => {
-            return doc.scheduleConversion({ converter: 'office2html' });
-          })
+      it('using a given converter', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.scheduleConversion({ converter: 'office2html' }))
           .then((res) => {
             expect(res['entity-type']).to.be.equal('conversionScheduled');
             expect(res.conversionId).to.exist();
@@ -403,22 +387,18 @@ describe('Document', () => {
             return waitForConversion(res.pollingURL);
           })
           .then((res) => nuxeo._http({ url: res.resultURL }))
-          .then((res) => isBrowser ? res.blob() : res.body)
-          .then((body) => {
-            return getTextFromBody(body);
-          })
+          .then((res) => (isBrowser ? res.blob() : res.body))
+          .then((body) => getTextFromBody(body))
           .then((text) => {
             expect(text.indexOf('<html>') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
-          });
-      });
+          })
+      ));
     });
 
-    it('should schedule a conversion of a blob given an xpath', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then((doc) => {
-          return doc.scheduleConversion({ xpath: 'file:content', type: 'text/html' });
-        })
+    it('should schedule a conversion of a blob given an xpath', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.scheduleConversion({ xpath: 'file:content', type: 'text/html' }))
         .then((res) => {
           expect(res['entity-type']).to.be.equal('conversionScheduled');
           expect(res.conversionId).to.exist();
@@ -427,15 +407,13 @@ describe('Document', () => {
           return waitForConversion(res.pollingURL);
         })
         .then((res) => nuxeo._http({ url: res.resultURL }))
-        .then((res) => isBrowser ? res.blob() : res.body)
-        .then((body) => {
-          return getTextFromBody(body);
-        })
+        .then((res) => (isBrowser ? res.blob() : res.body))
+        .then((body) => getTextFromBody(body))
         .then((text) => {
           expect(text.indexOf('<html>') >= 0).to.be.true();
           expect(text.indexOf('foo') >= 0).to.be.true();
-        });
-    });
+        })
+    ));
   });
 
   describe('#fetchRenditions', () => {
@@ -445,7 +423,7 @@ describe('Document', () => {
       }
 
       return repository.fetch(WS_JS_TESTS_PATH)
-        .then(doc => doc.fetchRenditions())
+        .then((doc) => doc.fetchRenditions())
         .then((renditions) => {
           expect(renditions.length).to.be.equal(3);
           expect(renditions[0].name).to.be.equal('thumbnail');
@@ -456,148 +434,146 @@ describe('Document', () => {
   });
 
   describe('#fetchRendition', () => {
-    it('should fetch a rendition given its name', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.fetchRendition('xmlExport'))
-        .then(res => isBrowser ? res.blob() : res.body)
-        .then(body => getTextFromBody(body))
+    it('should fetch a rendition given its name', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.fetchRendition('xmlExport'))
+        .then((res) => (isBrowser ? res.blob() : res.body))
+        .then((body) => getTextFromBody(body))
         .then((text) => {
           expect(text).to.contain('<?xml version="1.0" encoding="UTF-8"?>');
           expect(text).to.contain(`<path>${FILE_TEST_PATH.substring(1)}</path>`);
-        });
-    });
+        })
+    ));
   });
 
   describe('#fetchACLs', () => {
-    it('should fetch a document ACLS', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.fetchACLs())
+    it('should fetch a document ACLS', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.fetchACLs())
         .then((acls) => {
           expect(acls.length).to.be.equal(1);
           expect(acls[0].name).to.be.equal('inherited');
           expect(acls[0].aces[0].id).to.be.equal('Administrator:Everything:true:::');
           expect(acls[0].aces[1].id).to.be.equal('members:Read:true:::');
-        });
-    });
+        })
+    ));
   });
 
   describe('#addPermission', () => {
-    it('should add a new permission', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.addPermission({
+    it('should add a new permission', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.addPermission({
           username: 'members',
           permission: 'Write',
         }))
-        .then(doc => doc.fetchACLs())
+        .then((doc) => doc.fetchACLs())
         .then((acls) => {
           expect(acls[0].name).to.be.equal('local');
           expect(acls[0].aces[0].id).to.be.equal('members:Write:true:Administrator::');
-        });
-    });
+        })
+    ));
   });
 
   describe('#removePermission', () => {
-    it('should remove a permission', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.removePermission({
+    it('should remove a permission', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.removePermission({
           id: 'members:Write:true:Administrator::',
         }))
-        .then(doc => doc.fetchACLs())
+        .then((doc) => doc.fetchACLs())
         .then((acls) => {
           expect(acls[0].name).to.be.equal('inherited');
-        });
-    });
+        })
+    ));
   });
 
   describe('#hasPermission', () => {
-    it('should returns true for Write permission on a document', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.hasPermission('Write'))
-        .then(perm => expect(perm).to.be.true());
-    });
+    it('should returns true for Write permission on a document', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.hasPermission('Write'))
+        .then((perm) => expect(perm).to.be.true())
+    ));
 
-    it('should returns false for a non existing permission on a document', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.hasPermission('Foo'))
-        .then(perm => expect(perm).to.be.false());
-    });
+    it('should returns false for a non existing permission on a document', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.hasPermission('Foo'))
+        .then((perm) => expect(perm).to.be.false())
+    ));
 
-    it('should returns false if the user does not have the permission', () => {
-      return repository.fetch(FILE_TEST_PATH)
-        .then(doc => doc.addPermission({
+    it('should returns false if the user does not have the permission', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => doc.addPermission({
           username: 'leela',
           permission: 'Read',
         }))
-        .then(() => {
-          return new Nuxeo({ auth: { method: 'basic', username: 'leela', password: 'leela1' } });
-        })
-        .then(n => n.repository().fetch(FILE_TEST_PATH))
-        .then(doc => doc.hasPermission('Write'))
-        .then(perm => expect(perm).to.be.false());
-    });
+        .then(() => new Nuxeo({ auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
+        .then((n) => n.repository().fetch(FILE_TEST_PATH))
+        .then((doc) => doc.hasPermission('Write'))
+        .then((perm) => expect(perm).to.be.false())
+    ));
   });
 
   describe('Lock Status', () => {
     describe('#lock', () => {
-      it('should lock the document', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then(doc => doc.lock())
-          .then(doc => doc.fetchLockStatus())
+      it('should lock the document', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.lock())
+          .then((doc) => doc.fetchLockStatus())
           .then((status) => {
             expect(status.lockOwner).to.exist();
             expect(status.lockCreated).to.exist();
-          });
-      });
+          })
+      ));
 
       it('should throw an error when locking a document already locked', () => {
         const p = repository.fetch(FILE_TEST_PATH)
-          .then(doc => doc.lock());
+          .then((doc) => doc.lock());
         return expect(p).to.be.rejected();
       });
     });
 
     describe('#unlock', () => {
-      it('should unlock the document', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then(doc => doc.unlock())
-          .then(doc => doc.fetchLockStatus())
+      it('should unlock the document', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.unlock())
+          .then((doc) => doc.fetchLockStatus())
           .then((status) => {
             expect(status.lockOwner).to.not.exist();
             expect(status.lockCreated).to.not.exist();
-          });
-      });
+          })
+      ));
 
-      it('should do nothing if the document is not locked', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then(doc => doc.unlock())
-          .then(doc => doc.fetchLockStatus())
+      it('should do nothing if the document is not locked', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.unlock())
+          .then((doc) => doc.fetchLockStatus())
           .then((status) => {
             expect(status.lockOwner).to.not.exist();
             expect(status.lockCreated).to.not.exist();
-          });
-      });
+          })
+      ));
     });
 
     describe('#fetchLockStatus', () => {
-      it('should fetch nothing for a non locked document', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then(doc => doc.fetchLockStatus())
+      it('should fetch nothing for a non locked document', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.fetchLockStatus())
           .then((status) => {
             expect(status.lockOwner).to.not.exist();
             expect(status.lockCreated).to.not.exist();
-          });
-      });
+          })
+      ));
 
-      it('should fetch the lock status of a locked document', () => {
-        return repository.fetch(FILE_TEST_PATH)
-          .then(doc => doc.lock())
-          .then(doc => doc.fetchLockStatus())
+      it('should fetch the lock status of a locked document', () => (
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.lock())
+          .then((doc) => doc.fetchLockStatus())
           .then((status) => {
             expect(status.lockOwner).to.exist();
             expect(status.lockOwner).to.be.equal('Administrator');
             expect(status.lockCreated).to.exist();
-          });
-      });
+          })
+      ));
     });
   });
 

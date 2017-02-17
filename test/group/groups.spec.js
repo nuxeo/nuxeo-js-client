@@ -10,13 +10,13 @@ describe('Groups', () => {
   });
 
   describe('#fetch', () => {
-    it('should fetch administrators group', () => {
-      return groups.fetch('administrators')
+    it('should fetch administrators group', () => (
+      groups.fetch('administrators')
         .then((group) => {
           expect(group.groupname).to.be.equal('administrators');
           expect(group.grouplabel).to.be.equal('Administrators group');
-        });
-    });
+        })
+    ));
   });
 
   describe('#create', () => {
@@ -35,22 +35,22 @@ describe('Groups', () => {
   });
 
   describe('#update', () => {
-    it('should update foo group', () => {
-      return groups.fetch(FOO_GROUPNAME).then((group) => {
+    it('should update foo group', () => (
+      groups.fetch(FOO_GROUPNAME).then((group) => {
         expect(group.grouplabel).to.be.equal('Foo');
         group.grouplabel = 'Foo Fighters';
         return groups.update(group);
       }).then((updatedGroup) => {
         expect(updatedGroup.grouplabel).to.be.equal('Foo Fighters');
-      });
-    });
+      })
+    ));
   });
 
   describe('#delete', () => {
-    it('should delete foo group', () => {
-      return groups.delete(FOO_GROUPNAME).then((res) => {
+    it('should delete foo group', () => (
+      groups.delete(FOO_GROUPNAME).then((res) => {
         expect(res.status).to.be.equal(204);
-      });
-    });
+      })
+    ));
   });
 });

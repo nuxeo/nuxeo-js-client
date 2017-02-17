@@ -50,10 +50,10 @@ describe('Operation', () => {
       .then(() => repository.create(WS_JS_TESTS_1_PATH, newDoc3));
   });
 
-  after(() => {
-    return nuxeo.repository().delete(WS_JS_TESTS_1_PATH)
-      .then(() => nuxeo.repository().delete(WS_JS_TESTS_2_PATH));
-  });
+  after(() => (
+    nuxeo.repository().delete(WS_JS_TESTS_1_PATH)
+      .then(() => nuxeo.repository().delete(WS_JS_TESTS_2_PATH))
+  ));
 
   it('should allow configuring operation parameters', () => {
     const op = nuxeo.operation('Noop');
@@ -117,8 +117,8 @@ describe('Operation', () => {
 
   describe('#execute', () => {
     describe('should execute an operation with an input being', () => {
-      it('void', () => {
-        return nuxeo.operation('Document.FetchByProperty')
+      it('void', () => (
+        nuxeo.operation('Document.FetchByProperty')
           .params({
             property: 'dc:title',
             values: 'Workspaces',
@@ -128,36 +128,38 @@ describe('Operation', () => {
             expect(res['entity-type']).to.be.equal('documents');
             expect(res.entries.length).to.be.equal(1);
             expect(res.entries[0].properties['dc:title']).to.be.equal('Workspaces');
-          });
-      });
+          })
+      ));
 
-      it('document', () => {
-        return nuxeo.operation('Document.GetChild')
+      it('document', () => (
+        nuxeo.operation('Document.GetChild')
           .input('/default-domain')
           .params({
             name: 'workspaces',
           })
-          .execute().then((res) => {
+          .execute()
+          .then((res) => {
             expect(res['entity-type']).to.be.equal('document');
             expect(res.properties['dc:title']).to.be.equal('Workspaces');
-          });
-      });
+          })
+      ));
 
-      it('document list', () => {
-        return nuxeo.operation('Document.Update')
+      it('document list', () => (
+        nuxeo.operation('Document.Update')
           .input([WS_JS_TESTS_1_PATH, WS_JS_TESTS_2_PATH])
           .params({
             properties: 'dc:description=sample description',
           })
-          .execute().then((res) => {
+          .execute()
+          .then((res) => {
             expect(res['entity-type']).to.be.equal('documents');
             expect(res.entries.length).to.be.equal(2);
             expect(res.entries[0].path).to.be.equal(WS_JS_TESTS_1_PATH);
             expect(res.entries[0].properties['dc:description']).to.be.equal('sample description');
             expect(res.entries[1].path).to.be.equal(WS_JS_TESTS_2_PATH);
             expect(res.entries[1].properties['dc:description']).to.be.equal('sample description');
-          });
-      });
+          })
+      ));
 
       it('blob', () => {
         const blob = createTextBlob('foo', 'foo.txt');
@@ -184,21 +186,23 @@ describe('Operation', () => {
         const blob1 = createTextBlob('foo', 'foo.txt');
         const blob2 = createTextBlob('bar', 'bar.txt');
 
-        return b.upload(blob1, blob2).then(({ batch }) => {
-          return nuxeo.operation('FileManager.Import')
-            .input(batch)
-            .context({ currentDocument: WS_JS_TESTS_2_PATH })
-            .execute({ schemas: ['dublincore', 'note'] });
-        }).then((res) => {
-          expect(res['entity-type']).to.be.equal('documents');
-          expect(res.entries.length).to.be.equal(2);
-          expect(res.entries[0].title).to.be.equal('foo.txt');
-          expect(res.entries[0].type).to.be.equal('Note');
-          expect(res.entries[0].properties['note:note']).to.be.equal('foo');
-          expect(res.entries[1].title).to.be.equal('bar.txt');
-          expect(res.entries[1].type).to.be.equal('Note');
-          expect(res.entries[1].properties['note:note']).to.be.equal('bar');
-        });
+        return b.upload(blob1, blob2)
+          .then(({ batch }) => (
+            nuxeo.operation('FileManager.Import')
+              .input(batch)
+              .context({ currentDocument: WS_JS_TESTS_2_PATH })
+              .execute({ schemas: ['dublincore', 'note'] })
+          ))
+          .then((res) => {
+            expect(res['entity-type']).to.be.equal('documents');
+            expect(res.entries.length).to.be.equal(2);
+            expect(res.entries[0].title).to.be.equal('foo.txt');
+            expect(res.entries[0].type).to.be.equal('Note');
+            expect(res.entries[0].properties['note:note']).to.be.equal('foo');
+            expect(res.entries[1].title).to.be.equal('bar.txt');
+            expect(res.entries[1].type).to.be.equal('Note');
+            expect(res.entries[1].properties['note:note']).to.be.equal('bar');
+          });
       });
 
       it('BatchBlob', () => {
@@ -207,12 +211,13 @@ describe('Operation', () => {
         const blob1 = createTextBlob('foo', 'foo.txt');
         const blob2 = createTextBlob('bar', 'bar.txt');
         batch.upload(blob1);
-        return batch.upload(blob2).then(({ blob }) => {
-          return nuxeo.operation('FileManager.Import')
+        return batch.upload(blob2).then(({ blob }) => (
+          nuxeo.operation('FileManager.Import')
             .input(blob)
             .context({ currentDocument: WS_JS_TESTS_2_PATH })
-            .execute({ schemas: ['dublincore', 'note'] });
-        }).then((res) => {
+            .execute({ schemas: ['dublincore', 'note'] })
+        ))
+        .then((res) => {
           expect(res['entity-type']).to.be.equal('document');
           expect(res.title).to.be.equal('bar.txt');
           expect(res.type).to.be.equal('Note');
@@ -222,8 +227,8 @@ describe('Operation', () => {
     });
 
     describe('should execute an operation with an output being', () => {
-      it('void', () => {
-        return nuxeo.operation('Log')
+      it('void', () => (
+        nuxeo.operation('Log')
           .params({
             level: 'info',
             message: 'test message',
@@ -232,49 +237,51 @@ describe('Operation', () => {
           .then((res) => {
             expect(res.status).to.be.equal(204);
             return res.text();
-          }).then(text => expect(text).to.be.empty());
-      });
+          })
+          .then((text) => expect(text).to.be.empty())
+      ));
 
-      it('document', () => {
-        return nuxeo.operation('Document.GetChild')
+      it('document', () => (
+        nuxeo.operation('Document.GetChild')
           .input('/default-domain')
           .params({
             name: 'workspaces',
           })
-          .execute().then((res) => {
+          .execute()
+          .then((res) => {
             expect(res).to.be.instanceof(Nuxeo.Document);
             expect(res['entity-type']).to.be.equal('document');
             expect(res.properties['dc:title']).to.be.equal('Workspaces');
-          });
-      });
+          })
+      ));
 
-      it('document list', () => {
-        return nuxeo.repository().fetch('/default-domain')
-          .then((doc) => {
-            return nuxeo.operation('Repository.Query')
+      it('document list', () => (
+        nuxeo.repository().fetch('/default-domain')
+          .then((doc) => (
+            nuxeo.operation('Repository.Query')
               .param('query',
                 `SELECT * FROM Document WHERE ecm:parentId = '${doc.uid}'`
                 + ' AND ecm:mixinType != \'HiddenInNavigation\''
                 + ' AND ecm:isCheckedInVersion = 0 AND ecm:currentLifeCycleState != \'deleted\'')
-              .execute();
-          })
+              .execute()
+          ))
           .then((res) => {
             expect(res['entity-type']).to.be.equal('documents');
             expect(res.entries.length).to.be.equal(3);
             expect(res.entries[0]).to.be.instanceof(Nuxeo.Document);
-          });
-      });
+          })
+      ));
 
-      it('blob', () => {
-        return nuxeo.operation('Document.GetBlob')
+      it('blob', () => (
+        nuxeo.operation('Document.GetBlob')
           .input(FILE_TEST_PATH)
           .execute()
-          .then(res => isBrowser ? res.blob() : res.body)
-          .then(body => getTextFromBody(body))
+          .then((res) => (isBrowser ? res.blob() : res.body))
+          .then((body) => getTextFromBody(body))
           .then((text) => {
             expect(text).to.be.equal('foo');
-          });
-      });
+          })
+      ));
     });
   });
 });

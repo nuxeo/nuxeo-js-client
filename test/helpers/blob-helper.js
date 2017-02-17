@@ -1,3 +1,5 @@
+/* global Blob, FileReader */
+
 function createTextBlob(content, name) {
   let blob;
   if (isBrowser) {

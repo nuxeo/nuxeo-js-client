@@ -17,7 +17,7 @@ import del from 'del';
 import pkg from './package.json';
 
 gulp.task('lint', () => {
-  return gulp.src(['lib/**', '!node_modules/**'])
+  return gulp.src(['lib/**', 'test/**', '!node_modules/**'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());

@@ -25,16 +25,16 @@ describe('Base', () => {
       Accepts: 'application/json',
     }).headers({
       'content-type': 'plain/text',
-      'properties': 'dublincore',
+      properties: 'dublincore',
     });
     expect(base._baseOptions.headers).to.be.eql({
       'content-type': 'plain/text',
-      'properties': 'dublincore',
+      properties: 'dublincore',
     });
     base.header('Accepts', 'plain/text');
     expect(base._baseOptions.headers).to.be.eql({
       'content-type': 'plain/text',
-      'properties': 'dublincore',
+      properties: 'dublincore',
       Accepts: 'plain/text',
     });
     base.timeout(10000).httpTimeout(50000).transactionTimeout(333);
