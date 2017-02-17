@@ -16,13 +16,13 @@ describe('Upload', () => {
     });
   });
 
-  it('should cancel a batch', () => {
-    return nuxeoBatch.cancel().then((batch) => {
+  it('should cancel a batch', () => (
+    nuxeoBatch.cancel().then((batch) => {
       expect(batch).to.be.eql(nuxeoBatch);
       expect(batch._batchId).to.be.null();
       expect(batch._batchIdPromise).to.be.null();
-    });
-  });
+    })
+  ));
 
   it('should do nothing when cancelling a non-started batch', () => {
     const batch = nuxeo.batchUpload();
@@ -51,7 +51,7 @@ describe('Upload', () => {
     it('should upload multiple blobs on the same batch', () => {
       const batch = nuxeo.batchUpload({ concurrency: 1 });
       const nuxeoBlob = createTextBlob('foo', 'foo.txt');
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 5; i += 1) {
         batch.upload(nuxeoBlob);
       }
 
@@ -69,14 +69,14 @@ describe('Upload', () => {
       const blob1 = createTextBlob('foo', 'foo.txt');
       const blob2 = createTextBlob('bar', 'bar.txt');
 
-      return b.upload(blob1, blob2).then(({ batch }) => {
-        return batch.fetchBlob(1);
-      }).then(({ batch, blob }) => {
-        expect(blob).to.be.an.instanceof(Nuxeo.BatchBlob);
-        expect(blob.name).to.equal('bar.txt');
-        expect(blob.size).to.equal(3);
-        return batch.cancel();
-      });
+      return b.upload(blob1, blob2)
+        .then(({ batch }) => batch.fetchBlob(1))
+        .then(({ batch, blob }) => {
+          expect(blob).to.be.an.instanceof(Nuxeo.BatchBlob);
+          expect(blob.name).to.equal('bar.txt');
+          expect(blob.size).to.equal(3);
+          return batch.cancel();
+        });
     });
   });
 
@@ -87,21 +87,21 @@ describe('Upload', () => {
       const blob1 = createTextBlob('foo', 'foo.txt');
       const blob2 = createTextBlob('bar', 'bar.txt');
 
-      return b.upload([blob1, [blob2]]).then(({ batch }) => {
-        return batch.fetchBlobs();
-      }).then(({ batch, blobs }) => {
-        expect(blobs).to.be.an.instanceof(Array);
-        expect(blobs.length).to.equal(2);
-        expect(blobs[0]['upload-batch']).to.equal(batch._batchId);
-        expect(blobs[0]['upload-fileId']).to.equal('0');
-        expect(blobs[0].name).to.equal('foo.txt');
-        expect(blobs[1]['upload-batch']).to.equal(batch._batchId);
-        expect(blobs[1]['upload-fileId']).to.equal('1');
-        expect(blobs[0].size).to.equal(3);
-        expect(blobs[1].name).to.equal('bar.txt');
-        expect(blobs[1].size).to.equal(3);
-        return batch.cancel();
-      });
+      return b.upload([blob1, [blob2]])
+        .then(({ batch }) => batch.fetchBlobs())
+        .then(({ batch, blobs }) => {
+          expect(blobs).to.be.an.instanceof(Array);
+          expect(blobs.length).to.equal(2);
+          expect(blobs[0]['upload-batch']).to.equal(batch._batchId);
+          expect(blobs[0]['upload-fileId']).to.equal('0');
+          expect(blobs[0].name).to.equal('foo.txt');
+          expect(blobs[1]['upload-batch']).to.equal(batch._batchId);
+          expect(blobs[1]['upload-fileId']).to.equal('1');
+          expect(blobs[0].size).to.equal(3);
+          expect(blobs[1].name).to.equal('bar.txt');
+          expect(blobs[1].size).to.equal(3);
+          return batch.cancel();
+        });
     });
   });
 });

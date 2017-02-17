@@ -8,25 +8,25 @@ describe('Directory', () => {
   });
 
   describe('#fetchAll', () => {
-    it('should fetch all entries', () => {
-      return dir.fetchAll()
+    it('should fetch all entries', () => (
+      dir.fetchAll()
         .then((entries) => {
           expect(entries).to.be.an.instanceof(Array);
           expect(entries.length > 0).to.be.true();
-        });
-    });
+        })
+    ));
   });
 
   describe('#fetch', () => {
-    it('should fetch article entry', () => {
-      return dir.fetch('article')
+    it('should fetch article entry', () => (
+      dir.fetch('article')
         .then((entry) => {
           expect(entry['entity-type']).to.be.equal('directoryEntry');
           expect(entry.directoryName).to.be.equal('nature');
           expect(entry.properties.id).to.be.equal('article');
           expect(entry.properties.label).to.be.equal('label.directories.nature.article');
-        });
-    });
+        })
+    ));
   });
 
   describe('#create', () => {
@@ -47,22 +47,22 @@ describe('Directory', () => {
   });
 
   describe('#update', () => {
-    it('should update an entry', () => {
-      return dir.fetch('foo').then((entry) => {
+    it('should update an entry', () => (
+      dir.fetch('foo').then((entry) => {
         expect(entry.properties.label).to.be.equal('Foo');
         entry.properties.label = 'Foo Fighters';
         return dir.update(entry);
       }).then((updatedEntry) => {
         expect(updatedEntry.properties.label).to.be.equal('Foo Fighters');
-      });
-    });
+      })
+    ));
   });
 
   describe('#delete', () => {
-    it('should delete an entry', () => {
-      return dir.delete('foo').then((res) => {
+    it('should delete an entry', () => (
+      dir.delete('foo').then((res) => {
         expect(res.status).to.be.equal(204);
-      });
-    });
+      })
+    ));
   });
 });

@@ -52,8 +52,8 @@ describe('Request', () => {
     });
   });
 
-  it('should compute an URL with query params', () => {
-    return nuxeo.request(join('path', WS_JS_TESTS_PATH))
+  it('should compute an URL with query params', () => (
+    nuxeo.request(join('path', WS_JS_TESTS_PATH))
       .queryParams({
         foo: 'foo',
         bar: 'bar',
@@ -66,17 +66,17 @@ describe('Request', () => {
           // url is empty on FF
           expect(res.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/repo/default/path/default-domain/workspaces/ws-js-tests?foo=foo&bar=bar');
         }
-      });
-  });
+      })
+  ));
 
-  it('should do a GET request', () => {
-    return nuxeo.request(join('path', WS_JS_TESTS_PATH))
+  it('should do a GET request', () => (
+    nuxeo.request(join('path', WS_JS_TESTS_PATH))
       .get().then((res) => {
         expect(res.uid).to.exist();
         expect(res.path).to.be.equal(WS_JS_TESTS_PATH);
         expect(res.type).to.be.equal('Workspace');
-      });
-  });
+      })
+  ));
 
   it('should do a POST request', () => {
     const newDoc = {
@@ -118,10 +118,10 @@ describe('Request', () => {
       });
   });
 
-  it('should do a DELETE request', () => {
-    return nuxeo.request(join('path', WS_JS_TESTS_PATH))
+  it('should do a DELETE request', () => (
+    nuxeo.request(join('path', WS_JS_TESTS_PATH))
       .delete().then((res) => {
         expect(res.status).to.be.equal(204);
-      });
-  });
+      })
+  ));
 });

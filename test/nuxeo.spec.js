@@ -82,8 +82,8 @@ describe('Nuxeo', () => {
   });
 
   describe('#connect', () => {
-    it('should connect to a Nuxeo Server', () => {
-      return nuxeo.connect().then((n) => {
+    it('should connect to a Nuxeo Server', () => (
+      nuxeo.connect().then((n) => {
         expect(n.connected).to.be.true();
         expect(nuxeo.connected).to.be.true();
 
@@ -95,8 +95,8 @@ describe('Nuxeo', () => {
 
         const nuxeoVersion = n.nuxeoVersion;
         expect(nuxeoVersion).to.be.not.null();
-      });
-    });
+      })
+    ));
   });
 
   describe('#operation', () => {
