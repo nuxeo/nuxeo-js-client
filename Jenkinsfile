@@ -48,6 +48,7 @@ node(env.SLAVE) {
     } catch(e) {
         currentBuild.result = "FAILURE"
         step([$class: 'ClaimPublisher'])
+        archive 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
         mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Failure!",
           body: "Build failed ${env.BUILD_URL}.")
         step([$class: 'GitHubCommitStatusSetter',
