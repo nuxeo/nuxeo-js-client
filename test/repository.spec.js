@@ -1,4 +1,5 @@
 const join = require('../lib/deps/utils/join');
+const { LTS_2016 } = require('../lib/nuxeo-versions');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
 const WS_JS_TEST_NAME = 'ws-js-tests';
@@ -13,6 +14,7 @@ describe('Repository', () => {
     repository = nuxeo.repository({
       schemas: ['dublincore'],
     });
+    return nuxeo.connect();
   });
 
   describe('#fetch', () => {
@@ -77,6 +79,18 @@ describe('Repository', () => {
     it('should do a NXQL query', () => (
       repository.query({
         query: 'SELECT * FROM Document WHERE ecm:primaryType = \'Domain\'',
+      }, {
+        resolveWithFullResponse: true,
+      })
+      .then((res) => {
+        if (nuxeo.nuxeoVersion >= LTS_2016) {
+          expect(res.url).to.not.have.string('query/');
+          expect(res.url).to.have.string('search/');
+        } else {
+          expect(res.url).to.have.string('query/');
+          expect(res.url).to.not.have.string('search/');
+        }
+        return res.json();
       })
       .then((res) => {
         const { entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages } = res;
@@ -172,6 +186,20 @@ describe('Repository', () => {
           expect(currentPageSize).to.be.equal(0);
           expect(currentPageIndex).to.be.equal(3);
           expect(isNextPageAvailable).to.be.false();
+        });
+    });
+
+    it('should fallback on the \'query\' endpoint if Nuxeo version is not known', () => {
+      const _nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+      return _nuxeo.repository()
+        .query({
+          query: 'SELECT * FROM Document WHERE ecm:primaryType = \'Domain\'',
+        }, {
+          resolveWithFullResponse: true,
+        })
+        .then((res) => {
+          expect(res.url).to.have.string('query/');
+          expect(res.url).to.not.have.string('search/');
         });
     });
   });
