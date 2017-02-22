@@ -95,6 +95,42 @@ describe('Document', () => {
     ));
   });
 
+  describe('#isCollection', () => {
+    it('should return true for a document that is a Collection', () => (
+      repository.create(WS_JS_TESTS_PATH, {
+        name: 'collection',
+        type: 'Collection',
+        properties: {
+          'dc:title': 'collection',
+        },
+      })
+      .then((doc) => {
+        expect(doc.isCollection()).to.be.true();
+      })
+    ));
+    it('should return false for a document that is not a Collection', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.isCollection()).to.be.false();
+        })
+    ));
+  });
+
+  describe('#isCollectable', () => {
+    it('should return true for a document that is Collectable', () => (
+      repository.fetch(FILE_TEST_PATH)
+        .then((doc) => {
+          expect(doc.isCollectable()).to.be.true();
+        })
+    ));
+    it('should return false for a document that is not Collectable', () => (
+      repository.fetch(WS_ROOT_PATH)
+        .then((doc) => {
+          expect(doc.isCollectable()).to.be.false();
+        })
+    ));
+  });
+
   describe('#set', () => {
     it('should fill only dirtyProperties field', () => (
       repository.fetch(FILE_TEST_PATH)
