@@ -34,7 +34,7 @@ node(env.SLAVE) {
               // TODO cobertura coverage
               junit 'ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
               step([$class: 'JiraIssueUpdater', issueSelector: [$class: 'DefaultIssueSelector'], scm: scm])
-              if('SUCCESS' != currentBuild.getPreviousBuild().getResult()) {
+              if(currentBuild.getPreviousBuild() != null && 'SUCCESS' != currentBuild.getPreviousBuild().getResult()) {
                   mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Back to normal",
                     body: "Build back to normal: ${env.BUILD_URL}.")
               }
