@@ -1,3 +1,4 @@
+const { LTS_2016 } = require('../lib/nuxeo-versions');
 const { createTextBlob } = require('./helpers/blob-helper');
 
 describe('Upload', () => {
@@ -7,6 +8,7 @@ describe('Upload', () => {
   before(() => {
     nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     nuxeoBatch = nuxeo.batchUpload();
+    return nuxeo.connect();
   });
 
   it('should lazily initialize a batch', () => {
@@ -100,6 +102,38 @@ describe('Upload', () => {
           expect(blobs[0].size).to.equal(3);
           expect(blobs[1].name).to.equal('bar.txt');
           expect(blobs[1].size).to.equal(3);
+          return batch.cancel();
+        });
+    });
+  });
+
+  describe('#removeBlob', () => {
+    it('should remove a blob for a given index', function f() {
+      if (nuxeo.nuxeoVersion < LTS_2016) {
+        this.skip();
+      }
+
+      const b = nuxeo.batchUpload({ concurrency: 1 });
+
+      const blob1 = createTextBlob('foo', 'foo.txt');
+      const blob2 = createTextBlob('bar', 'bar.txt');
+
+      return b.upload(blob1, blob2)
+        .then(({ batch }) => batch.removeBlob(0))
+        .then((res) => {
+          expect(res.status).to.equal(204);
+          return b.fetchBlob(0);
+        })
+        .catch((err) => {
+          expect(err.response.status).to.equal(404);
+          return b.fetchBlobs();
+        })
+        .then(({ batch, blobs }) => {
+          expect(blobs).to.be.an.instanceof(Array);
+          expect(blobs.length).to.equal(1);
+          expect(blobs[0]['upload-batch']).to.equal(batch._batchId);
+          expect(blobs[0]['upload-fileId']).to.equal('0');
+          expect(blobs[0].name).to.equal('bar.txt');
           return batch.cancel();
         });
     });
