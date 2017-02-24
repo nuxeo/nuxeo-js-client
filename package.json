@@ -24,6 +24,7 @@
   ],
   "dependencies": {
     "buffer": "^5.0.2",
+    "content-type": "^1.0.2",
     "es6-promise": "^4.0.5",
     "extend": "^3.0.0",
     "form-data": "^2.1.2",
