@@ -104,7 +104,7 @@ gulp.task('it:browser', ['build:browser'], (done) => {
       outputDir: './ftest/target/js-reports/',
       useBrowserName: true,
     },
-  }, (exitStatus) => done(exitStatus ? 'Browser tests failed' : undefined)).start();
+  }, () => done(undefined)).start();
 });
 
 gulp.task('it:node:es5', ['build:es5', 'copy:files'], () => {
