@@ -46,6 +46,10 @@ describe('Base', () => {
     expect(base._baseOptions.enrichers).to.be.eql({
       document: ['acls', 'permissions'],
     });
+    base.enrichers({ document: ['breadcrumb'] }, false);
+    expect(base._baseOptions.enrichers).to.be.eql({
+      document: ['acls', 'permissions', 'breadcrumb'],
+    });
     base.enrichers({ user: ['groups'] });
     expect(base._baseOptions.enrichers).to.be.eql({
       user: ['groups'],
@@ -59,6 +63,10 @@ describe('Base', () => {
     base.fetchProperties({ document: ['dc:creator', 'dc:coverage'] });
     expect(base._baseOptions.fetchProperties).to.be.eql({
       document: ['dc:creator', 'dc:coverage'],
+    });
+    base.fetchProperties({ document: ['dc:nature'] }, false);
+    expect(base._baseOptions.fetchProperties).to.be.eql({
+      document: ['dc:creator', 'dc:coverage', 'dc:nature'],
     });
     base.fetchProperties({ user: ['memberGroups'] });
     expect(base._baseOptions.fetchProperties).to.be.eql({

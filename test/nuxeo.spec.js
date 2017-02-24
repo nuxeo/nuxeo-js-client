@@ -335,8 +335,7 @@ describe('Nuxeo', () => {
         user: ['groups'],
       });
       repo.enricher('group', 'members');
-      repo.fetchProperty('document', 'dc:creator');
-      repo.fetchProperty('document', 'dc:subject');
+      repo.fetchProperties({ document: ['dc:creator', 'dc:subject'] });
       repo.depth('children');
       const options = nuxeo._computeFetchOptions(repo._computeOptions());
       expect(options.headers).to.exist();
