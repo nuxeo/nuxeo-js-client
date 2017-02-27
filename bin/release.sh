@@ -13,9 +13,6 @@ npm version $VERSION --git-tag-version=false
 git add package.json
 git commit -m "Update version to $VERSION"
 
-# branch to do the actual build
-git checkout -b release
-
 # make sure dependencies are up to date
 NODE_MODULES=node_modules
 if [ -d "$NODE_MODULES" ]; then
@@ -61,5 +58,4 @@ git push origin gh-pages
 
 # cleanup
 git checkout master
-git branch -D release
 rm -r /tmp/nuxeo.js-doc
