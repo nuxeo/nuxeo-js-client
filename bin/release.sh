@@ -11,7 +11,7 @@ fi
 # Update the version in package.json
 npm version $VERSION --git-tag-version=false
 git add package.json
-git ci -m "Update version to $VERSION"
+git commit -m "Update version to $VERSION"
 
 # branch to do the actual build
 git checkout -b release
