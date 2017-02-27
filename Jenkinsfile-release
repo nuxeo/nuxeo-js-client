@@ -29,8 +29,8 @@ node('SLAVE') {
             stage ('post build') {
                 // Clean up release branch
                 sh 'git checkout master'
-                sh 'git branch -D ${branch}'
-                sh 'git push origin --delete ${branch}'
+                sh "git branch -D ${branch}"
+                sh "git push origin --delete ${branch}"
                 archive 'dist/**'
                 emailext (recipientProviders: [[$class: 'RequesterRecipientProvider']],
                     subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Success!",
