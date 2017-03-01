@@ -16,7 +16,7 @@ git add package.json
 git commit -m "Update version to $VERSION"
 
 # branch to do the actual build
- git checkout -b tmp
+git checkout -b tmp
 
 # make sure dependencies are up to date
 NODE_MODULES=node_modules
@@ -41,10 +41,10 @@ git add README.md
 git commit -m "Release $VERSION"
 git tag v$VERSION
 
-(cd dist && npm publish)
-
 git push origin master
 git push origin v$VERSION
+
+(cd dist && npm publish)
 
 # generate doc for this release
 npm run doc
