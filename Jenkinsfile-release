@@ -12,7 +12,7 @@ node('SLAVE') {
                 checkout scm
             }
 
-            def branch = sh script: 'rev=$(git rev-parse HEAD); git name-rev $rev | awk \'{ print $2}\'', returnStdout: true
+            def branch = sh script: 'git show -s --pretty=format:"%D" | sed "s,.*\\(release/[^,]*\\).*,\\1,"', returnStdout: true
             stage ('release') {
                 if (!(branch =~ /release\/\d+.\d+.\d+/)) {
                   error "Branch ${branch} does not match a release branch format"
@@ -29,7 +29,6 @@ node('SLAVE') {
             stage ('post build') {
                 // Clean up release branch
                 sh 'git checkout master'
-                sh "git branch -D ${branch}"
                 sh "git push origin --delete ${branch}"
                 archive 'dist/**'
                 emailext (recipientProviders: [[$class: 'RequesterRecipientProvider']],
