@@ -19,11 +19,11 @@
 
     <h1 class="page-title">Home</h1>
 
-    
 
 
 
-    
+
+
 
 
     <h3> </h3>
@@ -37,7 +37,7 @@
 
 
 
-    
+
 
 
 
@@ -86,7 +86,7 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
 ...</code></pre><h4>React Applications</h4><p>After adding <code>nuxeo</code> through <code>npm</code> to your application, to make it sure that it will work on most browsers<br>you must require <code>nuxeo</code> differently according to your build system.</p>
 <p>If your build transpiles external libraries from ES6 to ES5:</p>
 <pre class="prettyprint source lang-javascript"><code>var Nuxeo = require('nuxeo');</code></pre><p>If your build does not (such as <a href="https://github.com/facebookincubator/create-react-app">create-react-app</a>):</p>
-<pre class="prettyprint source lang-javascript"><code>var Nuxeo = require('nuxeo/es5');</code></pre><h2>Documentation</h2><p>Check out the <a href="https://nuxeo.github.io/nuxeo-js-client//">API documentation</a>.</p>
+<pre class="prettyprint source lang-javascript"><code>var Nuxeo = require('nuxeo/es5');</code></pre><h2>Documentation</h2><p>Check out the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/">API documentation</a>.</p>
 <h2>Quick Start</h2><p>This quick start guide will show how to do basics operations using the client.</p>
 <h3>Creating a Client</h3><pre class="prettyprint source lang-javascript"><code>var nuxeo = new Nuxeo({
   auth: {
@@ -154,7 +154,7 @@ if (nuxeo.nuxeoVersion &lt; Nuxeo.VERSIONS.LTS_2016) {
   // do something else
 }
 ...</code></pre><h3>Operation</h3><p><code>Operation</code> object allows you to execute an operation<br>(or operation chain).</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//Operation.html">Operation</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Operation.html">Operation</a> documentation.</p>
 <h4>Samples</h4><p><strong>Call an operation to create a new folder in the Root document</strong></p>
 <pre class="prettyprint source lang-javascript"><code>nuxeo.operation('Document.Create')
   .params({
@@ -170,7 +170,7 @@ if (nuxeo.nuxeoVersion &lt; Nuxeo.VERSIONS.LTS_2016) {
   .catch(function(error) {
     throw error;
   });</code></pre><h3>Request</h3><p>The <code>Request</code> object allows you to call the Nuxeo REST API.</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//Request.html">Request</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Request.html">Request</a> documentation.</p>
 <h4>Samples</h4><p><strong>Fetch the Administrator user</strong></p>
 <pre class="prettyprint source lang-javascript"><code>nuxeo.request('user/Administrator')
   .get()
@@ -188,7 +188,7 @@ if (nuxeo.nuxeoVersion &lt; Nuxeo.VERSIONS.LTS_2016) {
   .catch(function(error) {
     throw error
   });</code></pre><h3>Repository</h3><p>The <code>Repository</code> object allows you to work with document.</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//Repository.html">Repository</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Repository.html">Repository</a> documentation.</p>
 <h4>Samples</h4><p><strong>Create a <code>Repository</code> object</strong></p>
 <pre class="prettyprint source lang-javascript"><code>var defaultRepository = nuxeo.repository(); // 'default' repository
 ...
@@ -222,7 +222,7 @@ nuxeo.repository()
   .then(function(res) {
     // res.status === 204
   });</code></pre><h3>Document</h3><p><code>Repository</code> object returns and works with <code>Document</code> objects. <code>Document</code> objects exposes a simpler API<br>to work with a document.</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//Document.html">Document</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Document.html">Document</a> documentation.</p>
 <h4>Samples</h4><p><strong>Retrieve a <code>Document</code> object</strong></p>
 <pre class="prettyprint source lang-javascript"><code>nuxeo.repository()
   .fetch('/')
@@ -279,7 +279,7 @@ nuxeo.repository()
   .then(function(task) {
     // task.state === 'ended'
   })</code></pre><h3>BatchUpload</h3><p>The <code>BatchUpload</code> object allows you to upload blobs to a Nuxeo Platform instance, and use them as operation input or<br>as document property value.</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//BatchUpload.html">BatchUpload</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/BatchUpload.html">BatchUpload</a> documentation.</p>
 <h4>Samples</h4><p><strong>Create a Nuxeo.Blob to be uploaded</strong></p>
 <pre class="prettyprint source lang-javascript"><code>// on the browser, assuming you have a File object 'file'
 var blob = new Nuxeo.Blob({ content: file });
@@ -310,7 +310,7 @@ var blob = new Nuxeo.Blob({ content: file, name: 'foo.txt', mimeType: 'plain/tex
   .catch(function(error) {
     throw error;
   });</code></pre><h3>Users</h3><p>The <code>Users</code> object allows you to work with users.</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//Users.html">Users</a> and<br><a href="https://nuxeo.github.io/nuxeo-js-client//User.html">User</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Users.html">Users</a> and<br><a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/User.html">User</a> documentation.</p>
 <h4>Samples</h4><p><strong>Fetch an user</strong></p>
 <pre class="prettyprint source lang-javascript"><code>nuxeo.users()
   .fetch('Administrator')
@@ -334,7 +334,7 @@ nuxeo.users()
   .delete('leela').then(function(res) {
     // res.status === 204
   });</code></pre><h3>Groups</h3><p>The <code>Groups</code> object allows you to work with groups.</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//Groups.html">Groups</a> and<br><a href="https://nuxeo.github.io/nuxeo-js-client//Group.html">Group</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Groups.html">Groups</a> and<br><a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Group.html">Group</a> documentation.</p>
 <h4>Samples</h4><p><strong>Fetch a group</strong></p>
 <pre class="prettyprint source lang-javascript"><code>nuxeo.groups().fetch('administrators')
   .then(function(group) {
@@ -353,7 +353,7 @@ nuxeo.groups()
   .delete('foo').then(function(res) {
     // res.status === 204
   });</code></pre><h3>Directory</h3><p>The <code>Directory</code> object allows you to work with directories.</p>
-<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client//Directory.html">Directory</a> and<br><a href="https://nuxeo.github.io/nuxeo-js-client//DirectoryEntry.html">DirectoryEntry</a> documentation.</p>
+<p>See the <a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/Directory.html">Directory</a> and<br><a href="https://nuxeo.github.io/nuxeo-js-client/3.0.0/DirectoryEntry.html">DirectoryEntry</a> documentation.</p>
 <h4>Samples</h4><p><strong>Fetch all entries of a directory</strong></p>
 <pre class="prettyprint source lang-javascript"><code>nuxeo.directory('nature')
   .fetchAll()
