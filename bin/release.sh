@@ -9,6 +9,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 git checkout master
+git pull origin master --rebase
 
 # Update the version in package.json
 npm version $VERSION --git-tag-version=false
