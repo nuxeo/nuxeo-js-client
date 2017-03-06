@@ -112,7 +112,7 @@ var Nuxeo = require('nuxeo/es5');
 
 ## Documentation
 
-Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/3.0.1/).
+Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/latest/).
 
 ## Quick Start
 
@@ -239,7 +239,7 @@ if (nuxeo.nuxeoVersion < Nuxeo.VERSIONS.LTS_2016) {
 `Operation` object allows you to execute an operation
 (or operation chain).
 
-See the [Operation](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Operation.html) documentation.
+See the [Operation](https://nuxeo.github.io/nuxeo-js-client/latest/Operation.html) documentation.
 
 #### Samples
 
@@ -266,7 +266,7 @@ nuxeo.operation('Document.Create')
 
 The `Request` object allows you to call the Nuxeo REST API.
 
-See the [Request](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Request.html) documentation.
+See the [Request](https://nuxeo.github.io/nuxeo-js-client/latest/Request.html) documentation.
 
 #### Samples
 
@@ -300,7 +300,7 @@ nuxeo.request('directory/nature')
 
 The `Repository` object allows you to work with document.
 
-See the [Repository](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Repository.html) documentation.
+See the [Repository](https://nuxeo.github.io/nuxeo-js-client/latest/Repository.html) documentation.
 
 #### Samples
 
@@ -361,7 +361,7 @@ nuxeo.repository()
 `Repository` object returns and works with `Document` objects. `Document` objects exposes a simpler API
 to work with a document.
 
-See the [Document](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Document.html) documentation.
+See the [Document](https://nuxeo.github.io/nuxeo-js-client/latest/Document.html) documentation.
 
 #### Samples
 
@@ -470,7 +470,7 @@ workflow.fetchTasks()
 The `BatchUpload` object allows you to upload blobs to a Nuxeo Platform instance, and use them as operation input or
 as document property value.
 
-See the [BatchUpload](https://nuxeo.github.io/nuxeo-js-client/3.0.1/BatchUpload.html) documentation.
+See the [BatchUpload](https://nuxeo.github.io/nuxeo-js-client/latest/BatchUpload.html) documentation.
 
 #### Samples
 
@@ -522,8 +522,8 @@ nuxeo.batchUpload()
 
 The `Users` object allows you to work with users.
 
-See the [Users](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Users.html) and
-[User](https://nuxeo.github.io/nuxeo-js-client/3.0.1/User.html) documentation.
+See the [Users](https://nuxeo.github.io/nuxeo-js-client/latest/Users.html) and
+[User](https://nuxeo.github.io/nuxeo-js-client/latest/User.html) documentation.
 
 #### Samples
 
@@ -568,8 +568,8 @@ nuxeo.users()
 
 The `Groups` object allows you to work with groups.
 
-See the [Groups](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Groups.html) and
-[Group](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Group.html) documentation.
+See the [Groups](https://nuxeo.github.io/nuxeo-js-client/latest/Groups.html) and
+[Group](https://nuxeo.github.io/nuxeo-js-client/latest/Group.html) documentation.
 
 #### Samples
 
@@ -609,8 +609,8 @@ nuxeo.groups()
 
 The `Directory` object allows you to work with directories.
 
-See the [Directory](https://nuxeo.github.io/nuxeo-js-client/3.0.1/Directory.html) and
-[DirectoryEntry](https://nuxeo.github.io/nuxeo-js-client/3.0.1/DirectoryEntry.html) documentation.
+See the [Directory](https://nuxeo.github.io/nuxeo-js-client/latest/Directory.html) and
+[DirectoryEntry](https://nuxeo.github.io/nuxeo-js-client/latest/DirectoryEntry.html) documentation.
 
 #### Samples
 
