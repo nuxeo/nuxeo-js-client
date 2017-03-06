@@ -10,6 +10,8 @@ node('SLAVE') {
         wrap([$class: 'TimestamperBuildWrapper']) {
             stage('checkout') {
                 checkout scm
+                // Make sure the master branch is clean
+                sh "git update-ref refs/heads/master origin/master"
             }
 
             def branch = sh script: 'git show -s --pretty=format:"%D" | sed "s,.*\\(release/[^,]*\\).*,\\1,"', returnStdout: true
