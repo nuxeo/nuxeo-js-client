@@ -16,6 +16,7 @@ git add package.json
 git commit -m "Update version to $VERSION"
 
 # branch to do the actual build
+git branch -D tmp
 git checkout -b tmp
 
 # make sure dependencies are up to date
