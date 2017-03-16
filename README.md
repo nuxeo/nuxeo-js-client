@@ -508,10 +508,13 @@ nuxeo.batchUpload()
     return nuxeo.operation('Blob.AttachOnDocument')
       .param('document', '/a-file')
       .input(res.blob)
-      .execute({ schemas: ['dublincore', 'file']});
+      .execute();
+  })
+  .then(function() {
+    return nuxeo.repository().fetch('/a-file', { schemas: ['dublincore', 'file']});
   })
   .then(function(doc) {
-    console.log(doc.properties[file:content]);
+    console.log(doc.get('file:content'));
   })
   .catch(function(error) {
     throw error;
