@@ -1,4 +1,4 @@
-## Client Library for Nuxeo API
+## Client Library for Nuxeo API test
 
 [![Jenkins](https://img.shields.io/jenkins/s/https/qa.nuxeo.org/jenkins/job/Client/job/nuxeo-js-client-master-vs-master.svg?style=flat-square)](https://qa.nuxeo.org/jenkins/job/Client/job/nuxeo-js-client-master-vs-maste/)
 [![npm version](https://img.shields.io/npm/v/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
