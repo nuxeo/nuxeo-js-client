@@ -8,37 +8,37 @@
 node('SLAVE') {
     try {
         timestamps {
-          timeout(30) {
-            stage('checkout') {
-                checkout scm
-                // Make sure the master branch is clean
-                sh "git update-ref refs/heads/master origin/master"
-            }
-
-            def branch = sh script: 'git show -s --pretty=format:"%D" | sed "s,.*\\(release/[^,]*\\).*,\\1,"', returnStdout: true
-            stage ('release') {
-                if (!(branch =~ /release\/\d+.\d+.\d+/)) {
-                  error "Branch ${branch} does not match a release branch format"
+            timeout(30) {
+                stage('checkout') {
+                    checkout scm
+                    // Make sure the master branch is clean
+                    sh "git update-ref refs/heads/master origin/master"
                 }
 
-                def envVars = [ 'npm_config_registry=' ]
-                withEnv(envVars) {
-                    def releaseVersion = branch.replaceAll(/release\//, '')
-                    sh "npm run release -- ${releaseVersion}"
-                    currentBuild.description = "Release ${releaseVersion}"
+                def branch = sh script: 'git show -s --pretty=format:"%D" | sed "s,.*\\(release/[^,]*\\).*,\\1,"', returnStdout: true
+                stage ('release') {
+                    if (!(branch =~ /release\/\d+.\d+.\d+/)) {
+                        error "Branch ${branch} does not match a release branch format"
+                    }
+
+                    def envVars = [ 'npm_config_registry=' ]
+                    withEnv(envVars) {
+                        def releaseVersion = branch.replaceAll(/release\//, '')
+                        sh "npm run release -- ${releaseVersion}"
+                        currentBuild.description = "Release ${releaseVersion}"
+                    }
+                }
+
+                stage ('post build') {
+                    // Clean up release branch
+                    sh 'git checkout master'
+                    sh "git push origin --delete ${branch}"
+                    archive 'dist/**'
+                    emailext (recipientProviders: [[$class: 'RequesterRecipientProvider']],
+                        subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Success!",
+                        body: "Build success ${env.BUILD_URL}")
                 }
             }
-
-            stage ('post build') {
-                // Clean up release branch
-                sh 'git checkout master'
-                sh "git push origin --delete ${branch}"
-                archive 'dist/**'
-                emailext (recipientProviders: [[$class: 'RequesterRecipientProvider']],
-                    subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Success!",
-                    body: "Build success ${env.BUILD_URL}")
-            }
-          }
         }
     } catch(e) {
         currentBuild.result = "FAILURE"
