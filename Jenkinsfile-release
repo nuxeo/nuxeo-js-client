@@ -7,7 +7,8 @@
 
 node('SLAVE') {
     try {
-        wrap([$class: 'TimestamperBuildWrapper']) {
+        timestamps {
+          timeout(30) {
             stage('checkout') {
                 checkout scm
                 // Make sure the master branch is clean
@@ -37,6 +38,7 @@ node('SLAVE') {
                     subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Success!",
                     body: "Build success ${env.BUILD_URL}")
             }
+          }
         }
     } catch(e) {
         currentBuild.result = "FAILURE"

@@ -7,7 +7,8 @@
 
 node(env.SLAVE) {
     try {
-        wrap([$class: 'TimestamperBuildWrapper']) {
+        timestamps {
+          timeout(30) {
             stage('checkout') {
                 checkout scm
             }
@@ -44,6 +45,7 @@ node(env.SLAVE) {
                 statusResultSource: [$class: 'ConditionalStatusResultSource',
                 results: [[$class: 'AnyBuildResult', message: 'Successfully built on Nuxeo CI', state: 'SUCCESS']]]])
             }
+          }
         }
     } catch(e) {
         currentBuild.result = "FAILURE"
