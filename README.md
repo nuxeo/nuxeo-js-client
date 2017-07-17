@@ -118,6 +118,207 @@ Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/latest
 
 This quick start guide will show how to do basics operations using the client.
 
+### Authentication
+
+The authentication method to be used is defined when creating a client:
+
+```javascript
+var nuxeo = new Nuxeo({
+  auth: {
+    method: ...,
+    ...
+  }
+});
+```
+
+The client supports different authentication methods matching the ones available on the Nuxeo Platform.
+
+#### Basic Authentication
+
+The simplest one allowing to authenticate with a `username` and `password`.
+
+```javascript
+var nuxeo = new Nuxeo({
+  auth: {
+    method: 'basic',
+    username: 'Administrator',
+    password: 'Administrator'
+  }
+});
+```
+
+#### Portal Authenticaton
+
+If the [Portal Authentication](https://doc.nuxeo.com/nxdoc/using-sso-portals/) is configured on the Nuxeo Platform,
+you can authenticate with the `portal` method.
+
+```javascript
+var nuxeo = new Nuxeo({
+  auth: {
+    method: 'portal',
+    username: 'joe',
+    secret: 'shared-secret-from-server'
+  }
+});
+```
+
+#### Token Authentication
+
+To authenticate through a token from the Nuxeo Server:
+
+```javascript
+var nuxeo = new Nuxeo({
+  auth: {
+    method: 'token',
+    token: 'a-token'
+  }
+});
+```
+
+There is a utility method `Nuxeo#requestAuthenticationToken` to retrieve a `token` from a Nuxeo Server using the configured authentication method.
+For instance, a typical flow would be:
+
+```javascript
+var nuxeo = new Nuxeo({
+  auth: {
+    method: 'basic',
+    username: 'Administrator',
+    password: 'Administrator'
+  }
+});
+
+nuxeo.requestAuthenticationToken('My App', deviceUID, deviceName, 'rw')
+  .then(function(token) {
+    nuxeo = new Nuxeo({
+      auth: {
+        method: 'token',
+        token: token
+      }
+    });
+
+    // do something with the new `nuxeo` client using token authentication
+    // store the token, and next time you need to create a client, use it
+  })
+  .catch(function(err) {
+    throw err;
+  });
+```
+
+#### OAuth2 Authorization and Bearer Token Authentication
+
+Since Nuxeo Platform 9.2, you can use OAuth2 authorization through the JS client.
+
+For more information on OAuth2 server side, see [Using OAuth2](https://doc.nuxeo.com/nxdoc/using-oauth2/).
+
+Assuming you already have an access token, you can configure the client:
+
+```javascript
+var nuxeo = new Nuxeo({
+  auth: {
+    method: 'bearerToken',
+    token: access_token,
+    clientId: 'my-app' // optional OAuth2 client ID to refresh the access token
+  }
+});
+```
+
+The `bearertoken` method supports the `token` being a simple string (an access token) or a full token object such as:
+
+```javascript
+{
+  "access_token":"H8dXDdEW9U2jJnFDh6lJJ74AHRzCyG4D",
+  "token_type":"bearer",
+  "expires_in":3600,
+  "refresh_token":"Amz8JlyglhGWDmYHMYS5EnTTFUFAwZLiHG4aqQDfkwUNunSMpTTSFUmvprX3WdSF"
+}
+```
+
+If the `token` is a full token object (ie. with a `refresh_token` key) and a `clientId` is configured on the `auth` object, the client will try automatically to refresh the access token if it's expired.
+
+##### OAuth2 Flow
+
+A typical OAuth2 flow with the Nuxeo Platform would be:
+
+__Retrieving Authorization Code__
+
+Generate a "log in" link to be used in a browser, such as:
+
+`http://localhost:8080/nuxeo/oauth2/authorize?client_id=CLIENT_ID&response_type=code&redirect_uri=REDIRECT_URI`
+
+The user sees the login page then, after being logged in, the authorization prompt for the application.
+
+If the user grants access, the Nuxeo Platform redirects the user back to the application:
+
+`http://localhost:8000/authorize?code=AUTH_CODE`
+
+__Retrieving Access Token__
+
+The client exchanges the authorization code for an access token:
+
+```
+POST http://localhost:8080/nuxeo/oauth2/token
+  grant_type=authorization_code
+  code=AUTH_CODE
+  redirect_uri=REDIRECT_URI
+  client_id=CLIENT_ID
+```
+
+The Nuxeo Platform replies with an access token:
+
+```javascript
+{
+  "access_token":"H8dXDdEW9U2jJnFDh6lJJ74AHRzCyG4D",
+  "token_type":"bearer",
+  "expires_in":3600,
+  "refresh_token":"Amz8JlyglhGWDmYHMYS5EnTTFUFAwZLiHG4aqQDfkwUNunSMpTTSFUmvprX3WdSF"
+}
+```
+
+There are some utility methods on the client to help you with this flow:
+
+__Nuxeo.oauth2.getAuthorizationURL(baseURL, clientId[, params])__
+
+Returns the OAuth2 authorization URL for the given `baseURL` and `clientId`.
+
+```javascript
+var authorizationURL = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', 'my-app', {
+  state: 'xyz',
+  redirect_uri: 'http://localhost:8000/authorize',
+});
+console.log(authorizationURL); // http://localhost:8080/nuxeo/oauth2/authorize?client_id=my-app&response_type=code&state=xyz&redirect_uri=http://localhost:8000/authorize
+```
+
+__Nuxeo.oauth2.fetchAccessToken(baseURL, clientId, code[, params])__
+
+Fetches an OAuth2 access token for the given `baseURL`, `clientId` and `code`.
+
+```javascript
+var code = ...
+Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', 'my-app', code, {
+  redirect_uri: 'http://localhost:8000/authorize',
+}).then(function(token) {
+  // do something with the access token
+  var nuxeo = new Nuxeo({
+    auth: {
+      method: 'bearerToken',
+      token: token
+    }
+  });
+});
+```
+
+__Nuxeo.oauth2.refreshAccessToken(baseURL, clientId, refreshToken[, params])__
+
+Manually refresh an access token for the given `baseURL`, `clientId` and `refreshToken`.
+
+```javascript
+var refreshToken = ...
+Nuxeo.oauth2.refreshAccessToken('http://localhost:8080/nuxeo', 'my-app', refreshToken)
+  .then(function(token) {
+    console.log(token); // refreshed access token
+});
+```
+
 ### Creating a Client
 
 ```javascript
