@@ -21,7 +21,11 @@ node(env.SLAVE) {
         timestamps {
             timeout(30) {
                 stage('checkout') {
-                    checkout scm
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: env.BRANCH_NAME]],
+                        extensions: [[$class: 'CleanBeforeCheckout']],
+                        userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-js-client.git']]
+                    ])
                 }
 
                 stage ('build and test') {

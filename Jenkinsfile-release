@@ -10,7 +10,11 @@ node('SLAVE') {
         timestamps {
             timeout(30) {
                 stage('checkout') {
-                    checkout scm
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: env.BRANCH_NAME]],
+                        extensions: [[$class: 'CleanBeforeCheckout']],
+                        userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-js-client.git']]
+                    ])
                     // Make sure the master branch is clean
                     sh "git update-ref refs/heads/master origin/master"
                 }
