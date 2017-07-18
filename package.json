@@ -58,6 +58,7 @@
     "gulp-mocha": "^3.0.1",
     "gulp-nsp": "^2.3.0",
     "gulp-sequence": "^0.4.4",
+    "jsdoc": "^3.5.3",
     "karma": "^1.4.0",
     "karma-babel-preprocessor": "^6.0.1",
     "karma-browserify": "^5.0.1",
