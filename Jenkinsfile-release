@@ -34,6 +34,7 @@ node('SLAVE') {
                     def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
                     sh """
                         ${mvnHome}/bin/mvn deploy:deploy-file \
+                        -Dfile=dist/nuxeo.js \
                         -DgroupId=org.nuxeo.js \
                         -DartifactId=nuxeo \
                         -Dversion=${releaseVersion} \
