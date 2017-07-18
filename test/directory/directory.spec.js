@@ -10,7 +10,8 @@ describe('Directory', () => {
   describe('#fetchAll', () => {
     it('should fetch all entries', () => (
       dir.fetchAll()
-        .then((entries) => {
+        .then((res) => {
+          const { entries } = res;
           expect(entries).to.be.an.instanceof(Array);
           expect(entries.length > 0).to.be.true();
         })
