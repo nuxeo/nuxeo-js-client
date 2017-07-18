@@ -8,7 +8,7 @@ const OAUTH2_TOKENS_DIRECTORY_NAME = 'oauth2Tokens';
 
 const CLIENT_ID = 'test-client';
 
-describe('OAuth2 spec', () => {
+describe.only('OAuth2 spec', () => {
   let nuxeo;
   let oauth2Client;
 
@@ -38,7 +38,7 @@ describe('OAuth2 spec', () => {
   after(() => (
     nuxeo.directory(OAUTH2_CLIENTS_DIRECTORY_NAME).delete(oauth2Client.properties.id)
       .then(() => nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).fetchAll())
-      .then((entries) =>
+      .then(({ entries }) =>
         Promise.all(entries.map((entry) => nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).delete(entry.properties.id))))
   ));
 
@@ -183,7 +183,7 @@ describe('OAuth2 spec', () => {
           expect(doc.uid).to.exist();
           return nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).fetchAll();
         })
-        .then((entries) => {
+        .then(({ entries }) => {
           const dirEntry = entries.find((entry) => entry.properties.accessToken === firstToken.access_token);
           // expire the token
           dirEntry.set({
@@ -201,7 +201,7 @@ describe('OAuth2 spec', () => {
           expect(bearerNuxeo._auth.token.refresh_token).to.be.not.equal(firstToken.refresh_token);
           return nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).fetchAll();
         })
-        .then((entries) => {
+        .then(({ entries }) => {
           const dirEntry =
             entries.find((entry) => entry.properties.accessToken === bearerNuxeo._auth.token.access_token);
           // delete the token
