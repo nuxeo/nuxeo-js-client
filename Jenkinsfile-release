@@ -12,7 +12,7 @@ node('SLAVE') {
                 stage('checkout') {
                     checkout([$class: 'GitSCM',
                         branches: [[name: env.BRANCH_NAME]],
-                        extensions: [[$class: 'CleanBeforeCheckout']],
+                        extensions: [[$class: 'WipeWorkspace']],
                         userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-js-client.git']]
                     ])
                 }
