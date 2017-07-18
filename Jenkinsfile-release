@@ -15,8 +15,6 @@ node('SLAVE') {
                         extensions: [[$class: 'CleanBeforeCheckout']],
                         userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-js-client.git']]
                     ])
-                    // Make sure the master branch is clean
-                    sh "git update-ref refs/heads/master origin/master"
                 }
 
                 def branch = sh script: 'git show -s --pretty=format:"%D" | sed "s,.*\\(release/[^,]*\\).*,\\1,"', returnStdout: true
