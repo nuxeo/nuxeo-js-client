@@ -21,8 +21,13 @@ node(env.SLAVE) {
         timestamps {
             timeout(30) {
                 stage('checkout') {
+                    def branch = env.BRANCH_NAME
+                    if (branch =~ /PR-.*/) {
+                        branch = branch.replaceFirst(/PR-/, 'pr/')
+                    }
+
                     checkout([$class: 'GitSCM',
-                        branches: [[name: env.BRANCH_NAME]],
+                        branches: [[name: branch]],
                         extensions: [[$class: 'CleanBeforeCheckout']],
                         userRemoteConfigs: [[url: 'git@github.com:nuxeo/nuxeo-js-client.git']]
                     ])
