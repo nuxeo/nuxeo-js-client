@@ -44,6 +44,10 @@ node('SLAVE') {
                     sh "scp dist/nuxeo.js nuxeo@lethe.nuxeo.com:/opt/www/community.nuxeo.com/static/releases/nuxeo.js/nuxeo-${releaseVersion}.js"
                 }
 
+                state ('doc') {
+                    sh "./bin/doc.sh ${releaseVersion}"
+                }
+
                 stage ('post build') {
                     // Clean up release branch
                     sh 'git checkout master'

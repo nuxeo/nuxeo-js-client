@@ -46,22 +46,6 @@ git push origin v$VERSION
 
 (cd dist && npm publish)
 
-# generate doc for this release
-npm run doc
-cp -r doc /tmp/nuxeo.js-doc
-git checkout gh-pages
-# copy doc for the released version
-cp -r /tmp/nuxeo.js-doc $VERSION
-# copy doc for the latest version
-rm -rf latest
-cp -r /tmp/nuxeo.js-doc latest
-
-git add $VERSION
-git add latest
-git commit -m "Add documentation for release $VERSION"
-git push origin gh-pages
-
 # cleanup
 git checkout master
 git branch -D tmp
-rm -r /tmp/nuxeo.js-doc
