@@ -28,6 +28,16 @@ describe('Directory', () => {
           expect(entry.properties.label).to.be.equal('label.directories.nature.article');
         })
     ));
+
+    it('should fetch article entry with a translated label', () => (
+      dir.fetch('article', { translateProperties: { directoryEntry: ['label'] } })
+        .then((entry) => {
+          expect(entry['entity-type']).to.be.equal('directoryEntry');
+          expect(entry.directoryName).to.be.equal('nature');
+          expect(entry.properties.id).to.be.equal('article');
+          expect(entry.properties.label).to.be.equal('Article');
+        })
+    ));
   });
 
   describe('#create', () => {

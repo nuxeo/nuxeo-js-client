@@ -8,7 +8,7 @@ const OAUTH2_TOKENS_DIRECTORY_NAME = 'oauth2Tokens';
 
 const CLIENT_ID = 'test-client';
 
-describe.only('OAuth2 spec', () => {
+describe('OAuth2 spec', () => {
   let nuxeo;
   let oauth2Client;
 
