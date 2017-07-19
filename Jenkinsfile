@@ -22,7 +22,11 @@ node(env.SLAVE) {
             timeout(30) {
                 stage('checkout') {
                     // manually clean before checkout
-                    sh 'git clean -fdx'
+                    sh """
+                        if git rev-parse --git-dir > /dev/null 2>&1; then
+                            git clean -fdx
+                        fi
+                    """
 
                     checkout scm
                 }
