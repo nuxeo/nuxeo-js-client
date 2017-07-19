@@ -78,6 +78,24 @@ describe('Base', () => {
       document: ['dc:creator'],
     });
 
+    base.translateProperties({ directoryEntry: ['label'] });
+    expect(base._baseOptions.translateProperties).to.be.eql({
+      directoryEntry: ['label'],
+    });
+    base.translateProperties({ directoryEntry: ['label2'] }, false);
+    expect(base._baseOptions.translateProperties).to.be.eql({
+      directoryEntry: ['label', 'label2'],
+    });
+    base.translateProperties({ user: ['username'] });
+    expect(base._baseOptions.translateProperties).to.be.eql({
+      user: ['username'],
+    });
+    base.translateProperty('directoryEntry', 'label');
+    expect(base._baseOptions.translateProperties).to.be.eql({
+      user: ['username'],
+      directoryEntry: ['label'],
+    });
+
     base.depth('children');
     expect(base._baseOptions.depth).to.be.equal('children');
     base.depth('root');
