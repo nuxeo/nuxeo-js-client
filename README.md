@@ -114,6 +114,10 @@ var Nuxeo = require('nuxeo/es5');
 
 Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/latest/).
 
+## Examples
+
+Some working examples using the Nuxeo JavaScript Client can be found [here](https://github.com/nuxeo/nuxeo-js-client/tree/master/examples).
+
 ## Quick Start
 
 This quick start guide will show how to do basics operations using the client.

@@ -51,6 +51,7 @@
     "eslint": "^3.13.0",
     "eslint-config-airbnb-base": "^11.0.0",
     "eslint-plugin-import": "^2.2.0",
+    "express": "^4.15.3",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-eslint": "^3.0.0",
@@ -75,7 +76,8 @@
   },
   "scripts": {
     "doc": "jsdoc -c jsdoc.json",
-    "release": "./bin/release.sh"
+    "release": "./bin/release.sh",
+    "start": "gulp build:browser && node examples/server.js"
   },
   "browser": {
     "./lib/deps/fetch.js": "./lib/deps/fetch-browser.js",
