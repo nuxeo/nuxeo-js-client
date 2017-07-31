@@ -79,27 +79,24 @@ describe('OAuth2 spec', () => {
 
   function fetchAccessToken() {
     const url = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', CLIENT_ID);
+    const formParameters = qs.parse(url.substring(url.indexOf('?') + 1));
+    formParameters.grant_access = '1';
+    const submitURL = url.replace(/authorize.*/, 'authorize_submit');
     const base64 = btoa('Administrator:Administrator');
     const authorization = `Basic ${base64}`;
-    return fetch(url, { headers: { Authorization: authorization } })
-      .then((res) => res.text())
-      .then((text) => {
-        const match = text.match(/name="authorization_key" type="hidden" value="(.*?)"/);
-        const submitURL = url.replace(/authorize.*/, 'authorize_submit');
-        return fetch(submitURL, {
-          method: 'POST',
-          body: qs.stringify({ authorization_key: match[1], grant_access: '1' }),
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: authorization,
-          },
-        });
-      })
-      .then((res) => {
-        const queryParameters = res.url.substring(res.url.indexOf('?') + 1);
-        const parameters = qs.parse(queryParameters);
-        return Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', CLIENT_ID, parameters.code);
-      });
+    return fetch(submitURL, {
+      method: 'POST',
+      body: qs.stringify(formParameters),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: authorization,
+      },
+    })
+    .then((res) => {
+      const queryParameters = res.url.substring(res.url.indexOf('?') + 1);
+      const parameters = qs.parse(queryParameters);
+      return Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', CLIENT_ID, parameters.code);
+    });
   }
 
   describe('Access Token', () => {
