@@ -21,12 +21,8 @@ node(env.SLAVE) {
         timestamps {
             timeout(30) {
                 stage('checkout') {
-                    // manually clean before checkout
-                    sh """
-                        if git rev-parse --git-dir > /dev/null 2>&1; then
-                            git clean -fdx
-                        fi
-                    """
+                    // manually clean node_modules folder
+                    sh "rm -rf node_modules"
 
                     checkout scm
                 }
