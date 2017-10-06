@@ -359,7 +359,7 @@ describe('Document', () => {
     function waitForConversion(pollingURL) {
       return new Nuxeo.Promise((resolve, reject) => {
         function isConversionDone() {
-          nuxeo._http({ url: pollingURL })
+          nuxeo.http({ url: pollingURL })
             .then((res) => {
               if (res.status === 'completed') {
                 resolve(res);
@@ -385,7 +385,7 @@ describe('Document', () => {
             expect(res.resultURL).to.exist();
             return waitForConversion(res.pollingURL);
           })
-          .then((res) => nuxeo._http({ url: res.resultURL }))
+          .then((res) => nuxeo.http({ url: res.resultURL }))
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
@@ -404,7 +404,7 @@ describe('Document', () => {
             expect(res.resultURL).to.exist();
             return waitForConversion(res.pollingURL);
           })
-          .then((res) => nuxeo._http({ url: res.resultURL }))
+          .then((res) => nuxeo.http({ url: res.resultURL }))
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
@@ -423,7 +423,7 @@ describe('Document', () => {
             expect(res.resultURL).to.exist();
             return waitForConversion(res.pollingURL);
           })
-          .then((res) => nuxeo._http({ url: res.resultURL }))
+          .then((res) => nuxeo.http({ url: res.resultURL }))
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
@@ -443,7 +443,7 @@ describe('Document', () => {
           expect(res.resultURL).to.exist();
           return waitForConversion(res.pollingURL);
         })
-        .then((res) => nuxeo._http({ url: res.resultURL }))
+        .then((res) => nuxeo.http({ url: res.resultURL }))
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
