@@ -9,12 +9,8 @@
   </unzip>
   <import file="${out.dir}/nuxeo-ftest.xml" />
 
-  <property name="mp.install" value="file:${out.dir}/nuxeo-marketplace-jsf-ui.zip" />
   <target name="prepare-environment" depends="_init,prepare-db,prepare-tomcat">
     <copy file="src/test/resources/cors-config.xml" todir="${nuxeo.nxserver}/config/" />
-    <copy tofile="${out.dir}/nuxeo-marketplace-jsf-ui.zip">
-      <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-marketplace-jsf-ui::zip" />
-    </copy>
   </target>
 
 </project>
