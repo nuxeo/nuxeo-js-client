@@ -131,7 +131,7 @@ describe('Operation', () => {
           })
       ));
 
-      it('document', () => (
+      it('document path', () => (
         nuxeo.operation('Document.GetChild')
           .input('/default-domain')
           .params({
@@ -144,7 +144,7 @@ describe('Operation', () => {
           })
       ));
 
-      it('document list', () => (
+      it('document path list', () => (
         nuxeo.operation('Document.Update')
           .input([WS_JS_TESTS_1_PATH, WS_JS_TESTS_2_PATH])
           .params({
@@ -160,6 +160,44 @@ describe('Operation', () => {
             expect(res.entries[1].properties['dc:description']).to.be.equal('sample description');
           })
       ));
+
+      it('document', () => (
+        nuxeo.repository()
+          .fetch('/default-domain')
+          .then((doc) => (
+            nuxeo.operation('Document.GetChild')
+              .input(doc)
+              .params({
+                name: 'workspaces',
+              })
+              .execute()
+          ))
+          .then((res) => {
+            expect(res['entity-type']).to.be.equal('document');
+            expect(res.properties['dc:title']).to.be.equal('Workspaces');
+          })
+      ));
+
+      it('document list', () => {
+        const repository = nuxeo.repository();
+        return nuxeo.Promise.all([repository.fetch(WS_JS_TESTS_1_PATH), repository.fetch(WS_JS_TESTS_2_PATH)])
+          .then((docs) => (
+            nuxeo.operation('Document.Update')
+              .input(docs)
+              .params({
+                properties: 'dc:description=another description',
+              })
+              .execute()
+          ))
+          .then((res) => {
+            expect(res['entity-type']).to.be.equal('documents');
+            expect(res.entries.length).to.be.equal(2);
+            expect(res.entries[0].path).to.be.equal(WS_JS_TESTS_1_PATH);
+            expect(res.entries[0].properties['dc:description']).to.be.equal('another description');
+            expect(res.entries[1].path).to.be.equal(WS_JS_TESTS_2_PATH);
+            expect(res.entries[1].properties['dc:description']).to.be.equal('another description');
+          });
+      });
 
       it('blob', () => {
         const blob = createTextBlob('foo', 'foo.txt');
