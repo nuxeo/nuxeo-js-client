@@ -28,9 +28,12 @@ node('SLAVE') {
                         sh "npm run release -- ${releaseVersion}"
                         currentBuild.description = "Release ${releaseVersion}"
                     }
+                    stash includes: 'dist/**', name: 'dist'
+                    stash includes: 'node_modules/**', name: 'node_modules'
                 }
 
                 stage ('cdn publication') {
+                    unstash 'dist'
                     def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
                     sh """
                         ${mvnHome}/bin/mvn deploy:deploy-file \
@@ -44,7 +47,8 @@ node('SLAVE') {
                     sh "scp dist/nuxeo.js nuxeo@lethe.nuxeo.com:/opt/www/community.nuxeo.com/static/releases/nuxeo.js/nuxeo-${releaseVersion}.js"
                 }
 
-                state ('doc') {
+                stage ('doc') {
+                    unstash 'node_modules'
                     sh "./bin/doc.sh ${releaseVersion}"
                 }
 
