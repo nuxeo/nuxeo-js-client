@@ -97,7 +97,7 @@ describe('Nuxeo', () => {
         if (nuxeo.nuxeoVersion >= LTS_2016) {
           const profile = n.user.contextParameters.userprofile;
           expect(profile).to.be.not.null();
-          expect(profile).to.have.all.keys('birthdate', 'phonenumber', 'avatar');
+          expect(profile).to.have.all.keys('birthdate', 'phonenumber', 'avatar', 'gender', 'locale');
         }
 
         const nuxeoVersion = n.nuxeoVersion;
