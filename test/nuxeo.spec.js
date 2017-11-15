@@ -1,5 +1,5 @@
 const pkg = require('../package.json');
-const { LTS_2016 } = require('../lib/nuxeo-versions');
+const { LTS_2016, LTS_2017 } = require('../lib/nuxeo-versions');
 
 describe('Nuxeo', () => {
   let nuxeo;
@@ -97,7 +97,11 @@ describe('Nuxeo', () => {
         if (nuxeo.nuxeoVersion >= LTS_2016) {
           const profile = n.user.contextParameters.userprofile;
           expect(profile).to.be.not.null();
-          expect(profile).to.have.all.keys('birthdate', 'phonenumber', 'avatar', 'gender', 'locale');
+          const expectedKeys = ['birthdate', 'phonenumber', 'avatar'];
+          if (nuxeo.nuxeoVersion > LTS_2017) {
+            expectedKeys.push('gender', 'locale');
+          }
+          expect(profile).to.have.keys(expectedKeys);
         }
 
         const nuxeoVersion = n.nuxeoVersion;
