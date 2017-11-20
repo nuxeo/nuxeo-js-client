@@ -28,6 +28,8 @@ node('SLAVE') {
                         sh "npm run release -- ${releaseVersion}"
                         currentBuild.description = "Release ${releaseVersion}"
                     }
+                    // checkout the released version
+                    sh "git checkout v${releaseVersion}"
                     stash includes: 'dist/**', name: 'dist'
                     stash includes: 'node_modules/**', name: 'node_modules'
                 }
