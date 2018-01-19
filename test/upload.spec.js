@@ -1,4 +1,4 @@
-const { LTS_2016 } = require('../lib/nuxeo-versions');
+const { LTS_2016 } = require('../lib/server-version');
 const { createTextBlob } = require('./helpers/blob-helper');
 
 describe('Upload', () => {
@@ -109,7 +109,7 @@ describe('Upload', () => {
 
   describe('#removeBlob', () => {
     it('should remove a blob for a given index', function f() {
-      if (nuxeo.nuxeoVersion < LTS_2016) {
+      if (nuxeo.serverVersion.lt(LTS_2016)) {
         this.skip();
       }
 

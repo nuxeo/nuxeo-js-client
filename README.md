@@ -118,6 +118,22 @@ Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/latest
 
 Some working examples using the Nuxeo JavaScript Client can be found [here](https://github.com/nuxeo/nuxeo-js-client/tree/master/examples).
 
+## Deprecated APIs
+
+__Nuxeo#nuxeoVersion__ (since 3.5.0)
+
+The `nuxeoVersion` property of a Nuxeo client instance is deprecated in favor of the `serverVersion` property that allows correct versions comparison.
+
+The `Nuxeo.VERSIONS` object is also deprecated in favor of the `Nuxeo.SERVER_VERSIONS` object.
+
+__Nuxeo#_http__ (since 3.3.0)
+
+The "private" `_http` method is deprecated in favor of the "public" `http` method.
+
+__Nuxeo#login__ (since 3.0.0)
+
+The `login` method is deprecated in favor of the `connect` method.
+
 ## Quick Start
 
 This quick start guide will show how to do basics operations using the client.
@@ -405,14 +421,13 @@ nuxeo.connect()
 
 #### Nuxeo Server version
 
-The `connect` method fills the `nuxeoVersion` property of the client.
+The `connect` method fills the `serverVersion` property of the client.
 
 ```javascript
 var nuxeo = new Nuxeo({ ... });
 nuxeo.connect()
   .then(function(client){
-    // client.nuxeoVersion === '8.10'
-    console.log(client.nuxeoVersion);
+    console.log(client.serverVersion); // '9.10'
   })
   .catch(function(error) {
     // wrong credentials / auth method / ...
@@ -423,21 +438,26 @@ nuxeo.connect()
 Some constants are available in the `Nuxeo` object for supported LTS versions:
 
 ```javascript
-Nuxeo.VERSIONS.LTS_2015 === '7.10';
-Nuxeo.VERSIONS.LTS_2016 === '8.10';
+Nuxeo.SERVER_VERSIONS.LTS_2015; // for '7.10';
+Nuxeo.SERVER_VERSIONS.LTS_2016; // for '8.10';
+Nuxeo.SERVER_VERSIONS.LTS_2017; // for '9.10';
 ```
 
 You can use them to easily make different calls according to the target version:
 
 ```javascript
 ...
-if (nuxeo.nuxeoVersion < Nuxeo.VERSIONS.LTS_2016) {
+if (nuxeo.serverVersion.lt(Nuxeo.SERVER_VERSIONS.LTS_2016)) {
   // do something on versions before LTS 2016
 } else {
   // do something else
 }
 ...
 ```
+
+See the [ServerVersion](https://nuxeo.github.io/nuxeo-js-client/latest/ServerVersion.html) documentation.
+
+Note that the `nuxeoVersion` property is deprecated but it is still filled with the Nuxeo Server version.
 
 ### Operation
 
