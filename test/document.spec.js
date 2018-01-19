@@ -1,5 +1,5 @@
 const join = require('../lib/deps/utils/join');
-const { LTS_2016 } = require('../lib/nuxeo-versions');
+const { LTS_2016 } = require('../lib/server-version');
 const { createTextBlob, getTextFromBody } = require('./helpers/blob-helper');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
@@ -455,7 +455,7 @@ describe('Document', () => {
 
   describe('#fetchRenditions', () => {
     it('should fetch the renditions list', function f() {
-      if (nuxeo.nuxeoVersion < LTS_2016) {
+      if (nuxeo.serverVersion.lt(LTS_2016)) {
         this.skip();
       }
 

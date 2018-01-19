@@ -44,7 +44,7 @@ describe('OAuth2 spec', () => {
 
   describe('Authorization URL', () => {
     before(function f() {
-      if (nuxeo.nuxeoVersion < '9.2') {
+      if (nuxeo.serverVersion.lt('9.2')) {
         this.skip();
       }
     });
@@ -101,7 +101,7 @@ describe('OAuth2 spec', () => {
 
   describe('Access Token', () => {
     before(function f() {
-      if (nuxeo.nuxeoVersion < '9.2' || isBrowser) {
+      if (nuxeo.serverVersion.lt('9.2') || isBrowser) {
         this.skip();
       }
     });
@@ -156,7 +156,7 @@ describe('OAuth2 spec', () => {
     });
 
     it('should refresh automatically an access token', function f() {
-      if (nuxeo.nuxeoVersion < '9.3') {
+      if (nuxeo.serverVersion.lt('9.3')) {
         this.skip();
       }
 
