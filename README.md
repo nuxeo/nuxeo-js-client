@@ -93,6 +93,19 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
 ...
 ```
 
+#### Angular v2 Applications
+
+After adding `nuxeo` through `npm` to your application, you can use the Nuxeo client directly by requiring the `nuxeo` module:
+
+```javascript
+const Nuxeo = require('nuxeo');
+...
+const nuxeo = new Nuxeo({...});
+...
+```
+
+`Nuxeo` works correctly with Angular v2 `ZoneAwarePromise` Promise library, so the component tree will be re-rendered when a `Promise` from `Nuxeo` will resolve.
+
 #### React Applications
 
 After adding `nuxeo` through `npm` to your application, to make it sure that it will work on most browsers
