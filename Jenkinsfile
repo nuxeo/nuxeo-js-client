@@ -6,6 +6,9 @@
  */
 
  properties([
+    [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '1']],
+    disableConcurrentBuilds(),
+    [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
     pipelineTriggers([
         triggers: [
             [
