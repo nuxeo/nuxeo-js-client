@@ -5,6 +5,7 @@ module.exports = (config) => {
       'dist/*.js',
       'test/helpers/setup.js',
       'test/helpers/setup-browser.js',
+      'test/helpers/setup-logging.js',
       'test/**/*.spec.js',
     ],
     preprocessors: {
