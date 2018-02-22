@@ -52,7 +52,7 @@ gulp.task('pre-test', () => {
 });
 
 gulp.task('test:node', ['pre-test'], () => {
-  return gulp.src('test/**/*.spec.js')
+  return gulp.src(['test/helpers/setup-logging.js', 'test/**/*.spec.js'])
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
       timeout: 30000,
@@ -61,7 +61,7 @@ gulp.task('test:node', ['pre-test'], () => {
 });
 
 gulp.task('test:es5', ['build:es5', 'copy:files'], () => {
-  return gulp.src('test/**/*.spec.js')
+  return gulp.src(['test/helpers/setup-logging.js', 'test/**/*.spec.js'])
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node-es5.js'],
       timeout: 30000,
