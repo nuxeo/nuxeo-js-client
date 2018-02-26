@@ -37,8 +37,7 @@ gulp.task('build:es5', () => {
 
 gulp.task('build:browser', () => {
   return browserify({
-    entries: 'lib/index.js',
-    standalone: 'Nuxeo',
+    entries: 'lib/index-browserify.js',
   })
   .transform(babelify)
   .bundle()
