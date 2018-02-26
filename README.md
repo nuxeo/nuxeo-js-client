@@ -133,6 +133,12 @@ Some working examples using the Nuxeo JavaScript Client can be found [here](http
 
 ## Deprecated APIs
 
+__Base#timeout__ (since 3.6.0)
+
+The `timeout` method available on the `Base` class is deprecated in favor of using directly the `httpTimeout` or `transactionTimeout` methods depending of what needs to be configured.
+
+Note that the `httpTimeout` is in milliseconds while the `transactionTimeout` is in seconds, so guessing the `transactionTimeout` from a `timeout` is a bad idea, you better need to be explicit.
+
 __Nuxeo#nuxeoVersion__ (since 3.5.0)
 
 The `nuxeoVersion` property of a Nuxeo client instance is deprecated in favor of the `serverVersion` property that allows correct versions comparison.
