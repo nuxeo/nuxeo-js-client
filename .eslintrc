@@ -13,6 +13,7 @@
     "no-underscore-dangle": "off"
   },
   "globals": {
-    "Nuxeo": false
+    "Nuxeo": false,
+    "window": false
   }
 }
