@@ -1,7 +1,7 @@
 describe('Base', () => {
   it('should have default values', () => {
     const base = new Nuxeo.Base();
-    expect(base._baseOptions.repositoryName).to.be.equal('default');
+    expect(base._baseOptions.repositoryName).to.be.undefined();
     expect(base._baseOptions.schemas).to.be.eql([]);
     expect(base._baseOptions.headers).to.be.eql({});
     expect(base._baseOptions.enrichers).to.be.eql({});

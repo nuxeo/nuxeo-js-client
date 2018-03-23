@@ -27,10 +27,12 @@ describe('Repository', () => {
 
     it('should returns 404 for non existing document', () => (
       repository.fetch('/non-existing')
-        .catch((error) => {
-          expect(error).to.be.not.null();
-          expect(error.response.status).to.be.equal(404);
-        })
+        .then(() => expect.fail(null, null, 'doc should not exist'),
+          (error) => {
+            expect(error).to.be.not.null();
+            expect(error.response.status).to.be.equal(404);
+          },
+        )
     ));
   });
 
