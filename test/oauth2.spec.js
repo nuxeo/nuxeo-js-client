@@ -149,7 +149,7 @@ describe('OAuth2 spec', () => {
           const bearerNuxeo = new Nuxeo({ auth: { clientId: CLIENT_ID, method: 'bearerToken', token: firstToken } });
           return bearerNuxeo.repository().fetch('/default-domain')
             .catch((error) => {
-              expect(error.response.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/repo/default/path/default-domain');
+              expect(error.response.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/default-domain');
               expect(error.response.status).to.be.equal(401);
             });
         });
@@ -209,7 +209,7 @@ describe('OAuth2 spec', () => {
             .catch((error) => {
               // not authorized anymore; cannot refresh a non-existing token
               expect(error.response.status).to.be.equal(401);
-              expect(error.response.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/repo/default/path/default-domain');
+              expect(error.response.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/default-domain');
             })
         ));
     });

@@ -175,7 +175,7 @@ describe('Nuxeo', () => {
       const repository = nuxeo.repository();
       expect(repository).to.be.an.instanceof(Nuxeo.Repository);
       expect(repository).to.be.an.instanceof(Nuxeo.Base);
-      expect(repository._baseOptions.repositoryName).to.be.equal('default');
+      expect(repository._baseOptions.repositoryName).to.be.undefined();
       expect(repository._nuxeo).to.be.equal(nuxeo);
 
       const fooRepository = nuxeo.repository('foo');
@@ -311,7 +311,7 @@ describe('Nuxeo', () => {
       const workflows = nuxeo.workflows();
       expect(workflows).to.be.an.instanceof(Nuxeo.Workflows);
       expect(workflows).to.be.an.instanceof(Nuxeo.Base);
-      expect(workflows._baseOptions.repositoryName).to.be.equal('default');
+      expect(workflows._baseOptions.repositoryName).to.be.undefined();
       expect(workflows._nuxeo).to.be.equal(nuxeo);
 
       const fooWorkflows = nuxeo.workflows('foo');
