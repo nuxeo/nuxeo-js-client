@@ -20,6 +20,7 @@
  ])
 
 node(env.SLAVE) {
+    def commitSha;
     try {
         timestamps {
             timeout(30) {
@@ -30,9 +31,11 @@ node(env.SLAVE) {
                     checkout scm
                 }
 
+                commitSha = sh script: 'git rev-parse HEAD', returnStdout: true
                 stage ('build and test') {
                     step([$class: 'GitHubCommitStatusSetter',
                         reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
+                        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
                         contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
                         statusResultSource: [$class: 'ConditionalStatusResultSource',
                         results: [[$class: 'AnyBuildResult', message: 'Building on Nuxeo CI', state: 'PENDING']]]])
@@ -60,6 +63,7 @@ node(env.SLAVE) {
                     }
                     step([$class: 'GitHubCommitStatusSetter',
                         reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
+                        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
                         contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
                         statusResultSource: [$class: 'ConditionalStatusResultSource',
                         results: [[$class: 'AnyBuildResult', message: 'Successfully built on Nuxeo CI', state: 'SUCCESS']]]])
@@ -74,6 +78,7 @@ node(env.SLAVE) {
             body: "Build failed ${env.BUILD_URL}.")
         step([$class: 'GitHubCommitStatusSetter',
             reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
+            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
             contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
             statusResultSource: [$class: 'ConditionalStatusResultSource',
             results: [[$class: 'AnyBuildResult', message: 'Failed to build on Nuxeo CI', state: 'FAILURE']]]])
