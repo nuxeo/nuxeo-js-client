@@ -19,27 +19,26 @@
     ])
  ])
 
+ def REPO_URL = 'https://github.com/nuxeo/nuxeo-js-client'
+
 node(env.SLAVE) {
-    def commitSha;
     try {
         timestamps {
             timeout(30) {
-                stage('checkout') {
+                def commitSha = stage('checkout') {
                     // manually clean node_modules folder
                     sh "rm -rf node_modules"
 
                     checkout scm
+                    return sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                 }
 
-                commitSha = sh script: 'git rev-parse HEAD', returnStdout: true
-                stage ('build and test') {
-                    step([$class: 'GitHubCommitStatusSetter',
-                        reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
-                        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
-                        contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
-                        statusResultSource: [$class: 'ConditionalStatusResultSource',
-                        results: [[$class: 'AnyBuildResult', message: 'Building on Nuxeo CI', state: 'PENDING']]]])
+                stage('rebase') {
+                    setBuildStatus('Building on Nuxeo CI', 'PENDING', "${env.STATUS_CONTEXT_NAME}", REPO_URL, commitSha, "${BUILD_URL}")
+                    sh 'git rebase origin/master'
+                }
 
+                stage ('build and test') {
                     def jdk = tool name: 'java-8-oracle'
                     env.JAVA_HOME = "${jdk}"
                     def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
@@ -61,13 +60,9 @@ node(env.SLAVE) {
                         mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Back to normal",
                             body: "Build back to normal: ${env.BUILD_URL}.")
                     }
-                    step([$class: 'GitHubCommitStatusSetter',
-                        reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
-                        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
-                        contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
-                        statusResultSource: [$class: 'ConditionalStatusResultSource',
-                        results: [[$class: 'AnyBuildResult', message: 'Successfully built on Nuxeo CI', state: 'SUCCESS']]]])
+                    setBuildStatus('Successfully built on Nuxeo CI', 'SUCCESS', "${env.STATUS_CONTEXT_NAME}", REPO_URL, commitSha, "${BUILD_URL}")
                 }
+
             }
         }
     } catch(e) {
@@ -76,12 +71,7 @@ node(env.SLAVE) {
         archive 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
         mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Failure!",
             body: "Build failed ${env.BUILD_URL}.")
-        step([$class: 'GitHubCommitStatusSetter',
-            reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-js-client'],
-            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
-            contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
-            statusResultSource: [$class: 'ConditionalStatusResultSource',
-            results: [[$class: 'AnyBuildResult', message: 'Failed to build on Nuxeo CI', state: 'FAILURE']]]])
+        setBuildStatus('Failed to build on Nuxeo CI', 'FAILURE', "${env.STATUS_CONTEXT_NAME}", REPO_URL, commitSha, "${BUILD_URL}")
         throw e
     } finally {
         step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '',
