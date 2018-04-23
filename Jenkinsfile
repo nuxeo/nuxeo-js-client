@@ -19,7 +19,7 @@
     ])
  ])
 
- def REPO_URL = 'https://github.com/nuxeo/nuxeo-js-client'
+def REPO_URL = 'https://github.com/nuxeo/nuxeo-js-client'
 
 node(env.SLAVE) {
     try {
