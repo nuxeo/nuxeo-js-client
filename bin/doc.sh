@@ -11,7 +11,7 @@ fi
 git checkout v$VERSION
 
 # generate doc
-npm run doc
+yarn run doc
 cp -r doc /tmp/nuxeo.js-doc
 git checkout gh-pages
 # copy doc for the released version

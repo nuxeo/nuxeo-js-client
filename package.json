@@ -17,7 +17,7 @@
     "url": "git://github.com/nuxeo/nuxeo-js-client.git"
   },
   "engines": {
-    "node": ">= 6.3.0"
+    "node": ">= 4.9.1"
   },
   "keywords": [
     "nuxeo"
@@ -57,7 +57,6 @@
     "gulp-eslint": "^3.0.0",
     "gulp-istanbul": "^1.1.1",
     "gulp-mocha": "^3.0.1",
-    "gulp-nsp": "^2.3.0",
     "gulp-sequence": "^0.4.4",
     "jsdoc": "^3.5.3",
     "karma": "^1.4.0",
@@ -77,7 +76,9 @@
   "scripts": {
     "doc": "jsdoc -c jsdoc.json",
     "release": "./bin/release.sh",
-    "start": "gulp build:browser && node examples/server.js"
+    "start": "gulp build:browser && node examples/server.js",
+    "it": "gulp it",
+    "it:node:es5": "gulp it:node:es5"
   },
   "browser": {
     "./lib/deps/fetch.js": "./lib/deps/fetch-browser.js",

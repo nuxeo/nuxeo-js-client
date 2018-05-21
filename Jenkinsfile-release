@@ -31,7 +31,7 @@ node('SLAVE') {
                 stage ('release') {
                     def envVars = [ 'npm_config_registry=' ]
                     withEnv(envVars) {
-                        sh "npm run release -- ${releaseVersion}"
+                        sh "yarn run release -- ${releaseVersion}"
                         currentBuild.description = "Release ${releaseVersion}"
                     }
                     // checkout the released version

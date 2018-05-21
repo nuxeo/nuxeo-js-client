@@ -19,9 +19,13 @@ The JS Client is compliant with all Nuxeo versions as of LTS 2015.
 
 #### Node.js Applications
 
-After [installing](http://nodejs.org/#download) [Node.js](http://nodejs.org), use `npm` to install the `nuxeo` package:
+After [installing](http://nodejs.org/#download) [Node.js](http://nodejs.org), use `npm` or `yarn` to install the `nuxeo` package:
 
     $ npm install nuxeo
+
+or
+
+    $ yarn add nuxeo
 
 ##### Node.js v6 LTS (Boron)
 
@@ -95,7 +99,7 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
 
 #### Angular v2 Applications
 
-After adding `nuxeo` through `npm` to your application, you can use the Nuxeo client directly by requiring the `nuxeo` module:
+After adding `nuxeo` through `npm` or `yarn` to your application, you can use the Nuxeo client directly by requiring the `nuxeo` module:
 
 ```javascript
 const Nuxeo = require('nuxeo');
@@ -108,7 +112,7 @@ const nuxeo = new Nuxeo({...});
 
 #### React Applications
 
-After adding `nuxeo` through `npm` to your application, to make it sure that it will work on most browsers
+After adding `nuxeo` through `npm` or `yarn` to your application, to make it sure that it will work on most browsers
 you must require `nuxeo` differently according to your build system.
 
 If your build transpiles external libraries from ES6 to ES5:
@@ -918,16 +922,16 @@ See our [contribution documentation](https://doc.nuxeo.com/x/VIZH).
 * [Node.js](http://nodejs.org/#download)
 * [gulp](http://gulpjs.com/)
 * [Bower](http://bower.io/)
-* [npm](https://www.npmjs.com/)
+* [yarn](https://yarnpkg.com/)
 
 ### Setup
 
-Install [Node.js](http://nodejs.org/#download) and then use `npm` to install all the required
+Install [Node.js](http://nodejs.org/#download) and then use `yarn` to install all the required
 libraries:
 
     $ git clone https://github.com/nuxeo/nuxeo-js-client
     $ cd nuxeo-js-client
-    $ npm install
+    $ yarn
 
 ### Test
 
