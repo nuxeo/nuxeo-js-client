@@ -1,3 +1,5 @@
+const { LTS_2017 } = require('../../lib/server-version');
+
 describe('Directory', () => {
   let nuxeo;
   let dir;
@@ -5,6 +7,7 @@ describe('Directory', () => {
   before(() => {
     nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     dir = nuxeo.directory('nature');
+    return nuxeo.connect();
   });
 
   describe('#fetchAll', () => {
@@ -75,5 +78,27 @@ describe('Directory', () => {
         expect(res.status).to.be.equal(204);
       })
     ));
+  });
+
+  it('should update an entry with an integer id', function f() {
+    if (nuxeo.serverVersion.lt(LTS_2017)) {
+      this.skip();
+    }
+
+    const dir2 = nuxeo.directory('oauth2Tokens');
+    return dir2.create({ properties: { accessToken: 'token' } }).then((entry) => {
+      expect(entry.id).to.exist();
+      expect(entry.id).to.be.a('string');
+      expect(entry.properties.id).to.be.a('number');
+      expect(entry.properties.accessToken).to.be.equal('token');
+      return dir2.update({
+        id: entry.id,
+        properties: {
+          accessToken: 'newToken',
+        },
+      }).then((updatedEntry) => {
+        expect(updatedEntry.properties.accessToken).to.be.equal('newToken');
+      });
+    });
   });
 });
