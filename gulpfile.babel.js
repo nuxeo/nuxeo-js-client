@@ -10,7 +10,6 @@ import istanbul from 'gulp-istanbul';
 import babelify from 'babelify';
 import { Server } from 'karma';
 import gulpSequence from 'gulp-sequence';
-import nsp from 'gulp-nsp';
 import fs from 'fs';
 import path from 'path';
 import del from 'del';
@@ -133,13 +132,6 @@ gulp.task('checkstyle', () => {
 
 gulp.task('it', gulpSequence('checkstyle', 'it:node', 'it:browser'));
 
-gulp.task('nsp', (done) => {
-  nsp({
-    shrinkwrap: __dirname + '/npm-shrinkwrap.json',
-    package: __dirname + '/package.json',
-  }, done);
-});
-
 gulp.task('copy:lib', () => {
   return gulp.src('lib/**')
     .pipe(gulp.dest('dist/lib'));
@@ -153,7 +145,7 @@ gulp.task('copy:files', () => {
   fs.writeFileSync('dist/README.md', fs.readFileSync('README.md', 'utf-8'), 'utf-8');
 });
 
-gulp.task('release', gulpSequence('nsp', 'lint', 'clean:dist', 'build:es5',
+gulp.task('release', gulpSequence('lint', 'clean:dist', 'build:es5',
   'build:browser', 'copy:lib', 'copy:files'));
 
 gulp.task('default', ['test:node']);

@@ -11,7 +11,7 @@ fi
 git checkout master
 
 # Update the version in package.json
-npm version $VERSION --git-tag-version=false
+yarn version $VERSION --git-tag-version=false
 git add package.json
 git commit -m "Update version to $VERSION"
 
@@ -23,10 +23,7 @@ NODE_MODULES=node_modules
 if [ -d "$NODE_MODULES" ]; then
   rm -r $NODE_MODULES
 fi
-npm install
-
-# freeze dependencies versions
-npm shrinkwrap --dev
+yarn
 
 # build
 gulp release
@@ -36,7 +33,6 @@ sed -i.bak "s|nuxeo-js-client/latest|nuxeo-js-client/$VERSION|g" README.md
 rm README.md.bak
 
 git add -f dist lib
-git add npm-shrinkwrap.json
 git add README.md
 git commit -m "Release $VERSION"
 git tag v$VERSION
@@ -44,7 +40,7 @@ git tag v$VERSION
 git push origin master
 git push origin v$VERSION
 
-(cd dist && npm publish)
+(cd dist && yarn publish)
 
 # cleanup
 git checkout master
