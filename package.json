@@ -28,7 +28,7 @@
     "extend": "^3.0.0",
     "form-data": "^2.1.2",
     "md5": "^2.2.1",
-    "node-fetch": "^1.4.1",
+    "node-fetch-npm": "^2.0.2",
     "promise-queue": "^2.2.2",
     "querystring": "^0.2.0",
     "random-js": "^1.0.8",
