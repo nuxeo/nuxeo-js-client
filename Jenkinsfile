@@ -22,10 +22,11 @@
 def REPO_URL = 'https://github.com/nuxeo/nuxeo-js-client'
 
 node(env.SLAVE) {
+    def commitSha;
     try {
         timestamps {
             timeout(30) {
-                def commitSha = stage('checkout') {
+                commitSha = stage('checkout') {
                     // manually clean node_modules folder
                     sh "rm -rf node_modules"
 
