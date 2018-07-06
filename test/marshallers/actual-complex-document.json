@@ -1,0 +1,51 @@
+{
+  "entity-type": "document",
+  "uid": "foo",
+  "path": "/foo",
+  "isLocked": true,
+  "changeToken": "1-0",
+  "properties": {
+    "dc:title": "foo",
+    "dc:nature": {
+      "entity-type": "directoryEntry",
+      "id": "article"
+    },
+    "complex:prop": {
+      "name": "bar",
+      "user": {
+        "entity-type": "user",
+        "id": "leela",
+        "properties": {
+          "username": "leela"
+        }
+      },
+      "arr": [
+        { "entity-type": "group", "id": "group1" },
+        { "entity-type": "group", "groupname": "group2" },
+        { "entity-type": "group", "id": "group3" }
+      ],
+      "arr2": [
+        {
+          "name": "bar",
+          "user": {
+            "entity-type": "user",
+            "id": "leela",
+            "properties": {
+              "username": "leela"
+            }
+          }
+        },
+        {
+          "name": "bar",
+          "user": {
+            "entity-type": "user",
+            "id": "leela",
+            "properties": {
+              "username": "leela"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -212,7 +212,7 @@ describe('Document', () => {
         .then((values) => {
           const batchBlobs = values[0].blobs;
           const doc = values[1];
-          doc.set({ 'files:files': batchBlobs.map((blob) => { return { file: blob }; }) });
+          doc.set({ 'files:files': batchBlobs.map((blob) => ({ file: blob })) });
           return doc.save({ schemas: ['dublincore', 'files'] });
         })
         .then((doc) => {
@@ -226,6 +226,21 @@ describe('Document', () => {
           expect(barFile.name).to.be.equal('bar.txt');
           expect(barFile.length).to.be.equal('3');
           expect(barFile['mime-type']).to.be.equal('text/plain');
+        });
+    });
+
+    it('should save a document with a property referencing a directory entry', () => {
+      const dir = nuxeo.directory('nature');
+      return Promise.all([repository.fetch(FILE_TEST_PATH), dir.fetch('article')])
+        .then(([doc, directoryEntry]) => {
+          expect(doc.get('dc:nature')).to.be.null();
+          doc.set({
+            'dc:nature': directoryEntry,
+          });
+          return doc.save();
+        })
+        .then((doc) => {
+          expect(doc.get('dc:nature')).to.be.equal('article');
         });
     });
   });

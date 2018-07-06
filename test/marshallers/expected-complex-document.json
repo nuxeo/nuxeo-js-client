@@ -1,0 +1,18 @@
+{
+  "entity-type": "document",
+  "uid": "foo",
+  "changeToken": "1-0",
+  "properties": {
+    "dc:title": "foo",
+    "dc:nature": "article",
+    "complex:prop": {
+      "name": "bar",
+      "user": "leela",
+      "arr": ["group1", "group2", "group3"],
+      "arr2": [
+        { "name": "bar", "user": "leela" },
+        { "name": "bar", "user": "leela" }
+      ]
+    }
+  }
+}
