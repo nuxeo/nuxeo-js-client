@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: directory/directory.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: directory/directory.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const Base = require('../base');
+const join = require('../deps/utils/join');
+
+/**
+ * The `Directory` class allows to work with directories on a Nuxeo Platform instance.
+ *
+ * **Cannot directly be instantiated**
+ *
+ * @example
+ * var Nuxeo = require('nuxeo')
+ * var nuxeo = new Nuxeo({
+ *  baseURL: 'http://localhost:8080/nuxeo',
+ *  auth: {
+ *    method: 'basic',
+ *    username: 'Administrator',
+ *    password: 'Administrator'
+ *  }
+ * });
+ * nuxeo.directory('nature')
+ *   .fetch('article')
+ *   .then(function(res) {
+ *     // res.properties.id === 'article'
+ *     // res.properties.label === 'article label.directories.nature.article'
+ *   })
+ *   .catch(function(error) {
+ *     throw new Error(error));
+ *   });
+ */
+class Directory extends Base {
+  /**
+   * Creates a Directory.
+   * @param {object} opts - The configuration options.
+   * @param {string} opts.nuxeo - The {@link Nuxeo} object linked to this directory.
+   * @param {string} opts.directoryName - The name of this directory.
+   */
+  constructor(opts) {
+    super(opts);
+    this._nuxeo = opts.nuxeo;
+    this._directoryName = opts.directoryName;
+    this._path = join('directory', this._directoryName);
+  }
+
+  /**
+   * Fetches all directory entries.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the entries.
+   */
+  fetchAll(opts = {}) {
+    const options = this._computeOptions(opts);
+    const path = this._path;
+    options.directory = this;
+    return this._nuxeo.request(path)
+      .get(options);
+  }
+
+  /**
+   * Fetches a directory entry given its id.
+   * @param {string} id - The entry id.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the {@link DirectoryEntry}.
+   */
+  fetch(id, opts) {
+    const options = this._computeOptions(opts);
+    const path = join(this._path, id);
+    options.directory = this;
+    return this._nuxeo.request(path)
+      .get(options);
+  }
+
+  /**
+   * Creates an entry.
+   * @param {object} entry - The entry to be created.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the created {@link DirectoryEntry}.
+   */
+  create(entry, opts = {}) {
+    opts.body = {
+      'entity-type': 'directoryEntry',
+      directoryName: this._directoryName,
+      properties: entry.properties,
+    };
+    const options = this._computeOptions(opts);
+    const path = this._path;
+    options.directory = this;
+    return this._nuxeo.request(path)
+      .post(options);
+  }
+
+  /**
+   * Updates an entry. Assumes that the entry object has an `id` property.
+   * @param {object} entry - The entry to be updated.
+   * @param {object} entry.id - The string id of the entry to be updated.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the updated {@link DirectoryEntry}.
+   */
+  update(entry, opts = {}) {
+    // compatibility code for 8.10 where the `id` field is not set by the server
+    // works only if the `idField` of the directory is `id`
+    const id = entry.id || entry.properties.id;
+    opts.body = {
+      id,
+      'entity-type': 'directoryEntry',
+      directoryName: this._directoryName,
+      properties: entry.properties,
+    };
+    const options = this._computeOptions(opts);
+    const path = join(this._path, id);
+    options.directory = this;
+    return this._nuxeo.request(path)
+      .put(options);
+  }
+
+  /**
+   * Deletes an entry given its id.
+   * @param {string} id - The entry id.
+   * @param {object} [opts] - Options overriding the ones from this object.
+   * @returns {Promise} A Promise object resolved with the result of the DELETE request.
+   */
+  delete(id, opts) {
+    const options = this._computeOptions(opts);
+    const path = join(this._path, id);
+    return this._nuxeo.request(path)
+      .delete(options);
+  }
+}
+
+module.exports = Directory;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BatchBlob.html">BatchBlob</a></li><li><a href="BatchUpload.html">BatchUpload</a></li><li><a href="Blob.html">Blob</a></li><li><a href="Directory.html">Directory</a></li><li><a href="DirectoryEntry.html">DirectoryEntry</a></li><li><a href="Document.html">Document</a></li><li><a href="Group.html">Group</a></li><li><a href="Groups.html">Groups</a></li><li><a href="Nuxeo.html">Nuxeo</a></li><li><a href="Operation.html">Operation</a></li><li><a href="Repository.html">Repository</a></li><li><a href="Request.html">Request</a></li><li><a href="ServerVersion.html">ServerVersion</a></li><li><a href="Task.html">Task</a></li><li><a href="User.html">User</a></li><li><a href="Users.html">Users</a></li><li><a href="Workflow.html">Workflow</a></li><li><a href="Workflows.html">Workflows</a></li></ul><h3>Mixins</h3><ul><li><a href="Base.html">Base</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 11 2018 17:40:59 GMT+0200 (CEST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
