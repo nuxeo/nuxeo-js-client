@@ -11,7 +11,7 @@ fi
 git checkout master
 
 # Update the version in package.json
-yarn version $VERSION --git-tag-version=false
+yarn version --new-version $VERSION --no-git-tag-version
 git add package.json
 git commit -m "Update version to $VERSION"
 
