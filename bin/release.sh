@@ -40,7 +40,7 @@ git tag v$VERSION
 git push origin master
 git push origin v$VERSION
 
-(cd dist && yarn publish)
+(cd dist && yarn publish --non-interactive)
 
 # cleanup
 git checkout master
