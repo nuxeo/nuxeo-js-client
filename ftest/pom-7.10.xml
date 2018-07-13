@@ -27,24 +27,45 @@
   </dependencies>
 
   <profiles>
+    <!-- default on current Node.js LTS -->
     <profile>
-      <id>default</id>
+      <id>node-8.x</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <nodeVersion>v8.11.2</nodeVersion>
-        <yarnVersion>v1.6.0</yarnVersion>
-        <yarnTarget>it</yarnTarget>
-        <jsReportsDir>js-reports</jsReportsDir>
+        <nodeVersion>v8.11.3</nodeVersion>
+        <yarnVersion>v1.7.0</yarnVersion>
+        <yarnTarget>it:node</yarnTarget>
+        <jsReportsDir>js-reports-8.x</jsReportsDir>
       </properties>
     </profile>
     <profile>
-      <id>es5</id>
+      <!-- next Node.js LTS -->
+      <id>node-10.x</id>
+      <properties>
+        <nodeVersion>v10.6.0</nodeVersion>
+        <yarnVersion>v1.7.0</yarnVersion>
+        <yarnTarget>it</yarnTarget>
+        <jsReportsDir>js-reports-10.x</jsReportsDir>
+      </properties>
+    </profile>
+    <profile>
+      <id>node-6.x</id>
+      <properties>
+        <nodeVersion>v6.14.3</nodeVersion>
+        <yarnVersion>v1.7.0</yarnVersion>
+        <yarnTarget>it:node</yarnTarget>
+        <jsReportsDir>js-reports-6.x</jsReportsDir>
+      </properties>
+    </profile>
+    <profile>
+      <!-- used to validate es5 build -->
+      <id>node-4.x</id>
       <properties>
         <nodeVersion>v4.9.1</nodeVersion>
-        <yarnVersion>1.6.0</yarnVersion>
-        <yarnTarget>it:node:es5</yarnTarget>
+        <yarnVersion>1.7.0</yarnVersion>
+        <yarnTarget>it:es5</yarnTarget>
         <jsReportsDir>js-reports-es5</jsReportsDir>
       </properties>
     </profile>
