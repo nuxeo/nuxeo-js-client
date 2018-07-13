@@ -44,16 +44,18 @@ node(env.SLAVE) {
                     env.JAVA_HOME = "${jdk}"
                     def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
                     sh "${mvnHome}/bin/mvn clean verify -f ${env.POM_PATH}"
-                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pes5"
+                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-10.x"
+                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-6.x"
+                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-4.x"
                 }
 
                 stage ('post build') {
                     step([$class: 'WarningsPublisher', canComputeNew: false, canResolveRelativePaths: false,
                         consoleParsers: [[parserName: 'Maven']], defaultEncoding: '', excludePattern: '',
                         healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''])
-                    archive 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
+                    archive 'ftest/target/tomcat/log/*.log, ftest/target/js-reports*/*.xml'
                     // TODO cobertura coverage
-                    junit 'ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
+                    junit 'ftest/target/js-reports*/*.xml'
                     if (env.BRANCH_NAME == 'master') {
                         step([$class: 'JiraIssueUpdater', issueSelector: [$class: 'DefaultIssueSelector'], scm: scm])
                     }
@@ -69,7 +71,7 @@ node(env.SLAVE) {
     } catch(e) {
         currentBuild.result = "FAILURE"
         step([$class: 'ClaimPublisher'])
-        archive 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
+        archive 'ftest/target/tomcat/log/*.log, ftest/target/js-reports*/*.xml'
         mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Failure!",
             body: "Build failed ${env.BUILD_URL}.")
         setBuildStatus('Failed to build on Nuxeo CI', 'FAILURE', "${env.STATUS_CONTEXT_NAME}", REPO_URL, commitSha, "${BUILD_URL}")

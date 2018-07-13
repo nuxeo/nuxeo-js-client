@@ -15,6 +15,8 @@ import path from 'path';
 import del from 'del';
 import pkg from './package.json';
 
+const JS_REPORTS_DIR = process.env.JS_REPORTS_DIR || 'js-reports';
+
 gulp.task('lint', () => {
   return gulp.src(['lib/**', 'test/**', '!node_modules/**'])
     .pipe(eslint())
@@ -82,7 +84,7 @@ gulp.task('it:node', ['pre-test'], () => {
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
       reporter: 'mocha-jenkins-reporter',
       reporterOptions: {
-        junit_report_path: './ftest/target/js-reports/test-results-node.xml',
+        junit_report_path: './ftest/target/' + JS_REPORTS_DIR + '/test-results-node.xml',
         junit_report_stack: 1,
       },
       timeout: 30000,
@@ -99,19 +101,21 @@ gulp.task('it:browser', ['build:browser'], (done) => {
     singleRun: true,
     reporters: ['junit', 'spec'],
     junitReporter: {
-      outputDir: './ftest/target/js-reports/',
+      outputDir: './ftest/target/' + JS_REPORTS_DIR + '/',
       useBrowserName: true,
     },
   }, () => done(undefined)).start();
 });
 
-gulp.task('it:node:es5', ['build:es5', 'copy:files'], () => {
+gulp.task('it:es5', gulpSequence('build:es5', 'copy:files', 'it:node:es5'));
+
+gulp.task('it:node:es5', () => {
   return gulp.src('test/**/*.spec.js')
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node-es5.js'],
       reporter: 'mocha-jenkins-reporter',
       reporterOptions: {
-        junit_report_path: './ftest/target/js-reports-es5/test-results-node.xml',
+        junit_report_path: './ftest/target/' + JS_REPORTS_DIR + '/test-results-node.xml',
         junit_report_stack: 1,
       },
       timeout: 30000,
