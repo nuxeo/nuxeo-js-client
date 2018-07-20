@@ -26,7 +26,7 @@ fi
 yarn
 
 # build
-gulp release
+yarn build
 
 # update README links to point to the released doc
 sed -i.bak "s|nuxeo-js-client/latest|nuxeo-js-client/$VERSION|g" README.md

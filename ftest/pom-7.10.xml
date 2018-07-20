@@ -36,9 +36,44 @@
       <properties>
         <nodeVersion>v8.11.3</nodeVersion>
         <yarnVersion>v1.7.0</yarnVersion>
-        <yarnTarget>it:node</yarnTarget>
+        <yarnTarget>it</yarnTarget>
         <jsReportsDir>js-reports-8.x</jsReportsDir>
       </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>install node and yarn</id>
+                <goals>
+                  <goal>install-node-and-yarn</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>yarn install</id>
+                <goals>
+                  <goal>yarn</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>yarn run</id>
+                <goals>
+                  <goal>yarn</goal>
+                </goals>
+                <phase>integration-test</phase>
+                <configuration>
+                  <environmentVariables>
+                    <JS_REPORTS_DIR>${jsReportsDir}</JS_REPORTS_DIR>
+                  </environmentVariables>
+                  <arguments>run ${yarnTarget}</arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <!-- next Node.js LTS -->
@@ -46,7 +81,7 @@
       <properties>
         <nodeVersion>v10.6.0</nodeVersion>
         <yarnVersion>v1.7.0</yarnVersion>
-        <yarnTarget>it</yarnTarget>
+        <yarnTarget>it:node</yarnTarget>
         <jsReportsDir>js-reports-10.x</jsReportsDir>
       </properties>
     </profile>
@@ -153,12 +188,6 @@
             <id>install node and yarn</id>
             <goals>
               <goal>install-node-and-yarn</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>yarn install</id>
-            <goals>
-              <goal>yarn</goal>
             </goals>
           </execution>
           <execution>

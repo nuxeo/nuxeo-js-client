@@ -57,12 +57,12 @@ describe('Multi Repository', () => {
         })
         .then((doc) => (
           repositoryDefault.fetch(doc.uid)
-            .then(() => expect.fail(null, null, 'doc should not exist in `default` repository'),
+            .then(
+              () => expect.fail(null, null, 'doc should not exist in `default` repository'),
               (error) => {
                 expect(error).to.be.not.null();
                 expect(error.response.status).to.be.equal(404);
-              },
-            )
+              })
         ));
     });
 
@@ -86,12 +86,12 @@ describe('Multi Repository', () => {
           expect(res.status).to.be.equal(204);
           return repositoryOther.fetch(OTHER_DOC_PATH);
         })
-        .then(() => expect.fail(null, null, 'doc should not exist in `other` repository'),
+        .then(
+          () => expect.fail(null, null, 'doc should not exist in `other` repository'),
           (error) => {
             expect(error).to.be.not.null();
             expect(error.response.status).to.be.equal(404);
-          },
-        )
+          })
     ));
   });
 
