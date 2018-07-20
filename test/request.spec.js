@@ -98,8 +98,8 @@ describe('Request', () => {
       });
   });
 
-  it('should do a PUT request', () => {
-    const newDoc = {
+  it('should do a PUT request with a simple JSON as body', () => {
+    const updatedDoc = {
       'entity-type': 'document',
       properties: {
         'dc:description': 'bar',
@@ -107,7 +107,7 @@ describe('Request', () => {
     };
     return nuxeo.request(join('path', WS_JS_TESTS_PATH))
       .put({
-        body: newDoc,
+        body: updatedDoc,
         schemas: ['dublincore'],
       })
       .then((res) => {
@@ -117,6 +117,24 @@ describe('Request', () => {
         expect(res.properties['dc:description']).to.be.equal('bar');
       });
   });
+
+  it(' should do a PUT requestwith a Document object as body', () => (
+    nuxeo.repository().fetch(WS_JS_TESTS_PATH)
+      .then((doc) => {
+        doc.properties['dc:source'] = 'foo';
+        return nuxeo.request(join('path', WS_JS_TESTS_PATH))
+          .put({
+            body: doc,
+            schemas: ['dublincore'],
+          });
+      })
+      .then((res) => {
+        expect(res.uid).to.exist();
+        expect(res.path).to.be.equal(WS_JS_TESTS_PATH);
+        expect(res.type).to.be.equal('Workspace');
+        expect(res.properties['dc:source']).to.be.equal('foo');
+      })
+  ));
 
   it('should do a DELETE request', () => (
     nuxeo.request(join('path', WS_JS_TESTS_PATH))

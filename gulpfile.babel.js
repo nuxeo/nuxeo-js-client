@@ -18,7 +18,7 @@ import pkg from './package.json';
 const JS_REPORTS_DIR = process.env.JS_REPORTS_DIR || 'js-reports';
 
 gulp.task('lint', () => {
-  return gulp.src(['lib/**', 'test/**', '!node_modules/**'])
+  return gulp.src(['lib/**', 'test/**/*.js', '!node_modules/**'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
@@ -46,19 +46,21 @@ gulp.task('build:browser', () => {
   .pipe(gulp.dest('dist'));
 });
 
-gulp.task('pre-test', () => {
-  return gulp.src(['lib/**/*.js'])
-    .pipe(istanbul())
-    .pipe(istanbul.hookRequire());
-});
+// coverage removed, waiting for https://jira.nuxeo.com/browse/NXJS-145
+// gulp.task('pre-test', () => {
+//   return gulp.src(['lib/**/*.js'])
+//     .pipe(istanbul())
+//     .pipe(istanbul.hookRequire());
+// });
 
-gulp.task('test:node', ['pre-test'], () => {
+gulp.task('test:node', /*['pre-test'],*/ () => {
   return gulp.src(['test/helpers/setup-logging.js', 'test/**/*.spec.js'])
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
       timeout: 30000,
     }))
-    .pipe(istanbul.writeReports());
+    // coverage removed, waiting for https://jira.nuxeo.com/browse/NXJS-145
+    // .pipe(istanbul.writeReports());
 });
 
 gulp.task('test:es5', ['build:es5', 'copy:files'], () => {
@@ -78,7 +80,7 @@ gulp.task('test:browser', ['build:browser'], (done) => {
 
 gulp.task('test', gulpSequence('test:node', 'test:es5', 'test:browser'));
 
-gulp.task('it:node', ['pre-test'], () => {
+gulp.task('it:node', /*['pre-test'],*/ () => {
   return gulp.src('test/**/*.spec.js')
     .pipe(mocha({
       require: ['./test/helpers/setup.js', './test/helpers/setup-node.js'],
@@ -90,9 +92,10 @@ gulp.task('it:node', ['pre-test'], () => {
       timeout: 30000,
     }))
     .on('error', () => process.exit(0))
-    .pipe(istanbul.writeReports({
-      reporters: ['lcov', 'json', 'text', 'text-summary', 'cobertura'],
-    }));
+    // coverage removed, waiting for https://jira.nuxeo.com/browse/NXJS-145
+    // .pipe(istanbul.writeReports({
+    //   reporters: ['lcov', 'json', 'text', 'text-summary', 'cobertura'],
+    // }));
 });
 
 gulp.task('it:browser', ['build:browser'], (done) => {

@@ -1,0 +1,8 @@
+{
+  "entity-type": "document",
+  "uid": "foo",
+  "path": "/foo",
+  "type": "File",
+  "isLocked": true,
+  "properties": {}
+}
