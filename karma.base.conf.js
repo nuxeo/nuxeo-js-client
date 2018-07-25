@@ -13,10 +13,7 @@ module.exports = {
   },
   browserify: {
     debug: true,
-    transform: [['babelify', {
-      presets: ['es2015'],
-      plugins: ['add-module-exports', 'transform-es2015-modules-commonjs'],
-    }]],
+    transform: ['babelify'],
   },
   client: {
     mocha: {
