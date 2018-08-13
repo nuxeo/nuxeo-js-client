@@ -36,10 +36,10 @@ describe('OAuth2 spec', () => {
   });
 
   after(() => {
-    const oaurth2TokensDir = nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME);
+    const oauth2TokensDir = nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME);
     return nuxeo.directory(OAUTH2_CLIENTS_DIRECTORY_NAME).delete(oauth2Client.properties.id)
-      .then(() => oaurth2TokensDir.fetchAll())
-      .then(({ entries }) => Promise.all(entries.map((entry) => oaurth2TokensDir.delete(entry.properties.id))));
+      .then(() => oauth2TokensDir.fetchAll())
+      .then(({ entries }) => Promise.all(entries.map((entry) => oauth2TokensDir.delete(entry.properties.id))));
   });
 
   describe('Authorization URL', () => {
