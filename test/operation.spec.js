@@ -254,8 +254,7 @@ describe('Operation', () => {
             .input(blob)
             .context({ currentDocument: WS_JS_TESTS_2_PATH })
             .execute({ schemas: ['dublincore', 'note'] })
-        ))
-        .then((res) => {
+        )).then((res) => {
           expect(res['entity-type']).to.be.equal('document');
           expect(res.title).to.be.equal('bar.txt');
           expect(res.type).to.be.equal('Note');

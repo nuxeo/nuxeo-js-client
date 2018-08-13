@@ -35,12 +35,12 @@ describe('OAuth2 spec', () => {
       .then((entry) => { oauth2Client = entry; });
   });
 
-  after(() => (
-    nuxeo.directory(OAUTH2_CLIENTS_DIRECTORY_NAME).delete(oauth2Client.properties.id)
-      .then(() => nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).fetchAll())
-      .then(({ entries }) =>
-        Promise.all(entries.map((entry) => nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).delete(entry.properties.id))))
-  ));
+  after(() => {
+    const oaurth2TokensDir = nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME);
+    return nuxeo.directory(OAUTH2_CLIENTS_DIRECTORY_NAME).delete(oauth2Client.properties.id)
+      .then(() => oaurth2TokensDir.fetchAll())
+      .then(({ entries }) => Promise.all(entries.map((entry) => oaurth2TokensDir.delete(entry.properties.id))));
+  });
 
   describe('Authorization URL', () => {
     before(function f() {
@@ -91,8 +91,7 @@ describe('OAuth2 spec', () => {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: authorization,
       },
-    })
-    .then((res) => {
+    }).then((res) => {
       const queryParameters = res.url.substring(res.url.indexOf('?') + 1);
       const parameters = qs.parse(queryParameters);
       return Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', CLIENT_ID, parameters.code);
@@ -139,8 +138,9 @@ describe('OAuth2 spec', () => {
           return Nuxeo.oauth2.refreshAccessToken('http://localhost:8080/nuxeo', CLIENT_ID, firstToken.refresh_token);
         })
         .then((token) => {
-          const bearerNuxeo =
-            new Nuxeo({ auth: { clientId: CLIENT_ID, method: 'bearerToken', token: token.access_token } });
+          const bearerNuxeo = new Nuxeo({
+            auth: { clientId: CLIENT_ID, method: 'bearerToken', token: token.access_token },
+          });
           return bearerNuxeo.repository().fetch('/');
         })
         .then((doc) => {
@@ -199,8 +199,8 @@ describe('OAuth2 spec', () => {
           return nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).fetchAll();
         })
         .then(({ entries }) => {
-          const dirEntry =
-            entries.find((entry) => entry.properties.accessToken === bearerNuxeo._auth.token.access_token);
+          const cb = (entry) => entry.properties.accessToken === bearerNuxeo._auth.token.access_token;
+          const dirEntry = entries.find(cb);
           // delete the token
           return nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).delete(dirEntry.properties.id);
         })

@@ -103,8 +103,7 @@ describe('Document', () => {
         properties: {
           'dc:title': 'collection',
         },
-      })
-      .then((doc) => {
+      }).then((doc) => {
         expect(doc.isCollection()).to.be.true();
       })
     ));
@@ -621,16 +620,16 @@ describe('Document', () => {
         return new Nuxeo.Promise((resolve, reject) => {
           function poll() {
             sleep(1000)
-            .then(() => doc.fetchAudit())
-            .then((res) => {
-              if (res.entries.length > 0) {
-                resolve(res);
-              } else {
-                // let's try again
-                poll();
-              }
-            })
-            .catch((err) => reject(err));
+              .then(() => doc.fetchAudit())
+              .then((res) => {
+                if (res.entries.length > 0) {
+                  resolve(res);
+                } else {
+                  // let's try again
+                  poll();
+                }
+              })
+              .catch((err) => reject(err));
           }
           poll();
         });

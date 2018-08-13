@@ -1,3 +1,4 @@
+/* eslint function-paren-newline: 0 */
 const join = require('../lib/deps/utils/join');
 const { LTS_2016 } = require('../lib/server-version');
 
@@ -83,8 +84,7 @@ describe('Repository', () => {
         query: 'SELECT * FROM Document WHERE ecm:primaryType = \'Domain\'',
       }, {
         resolveWithFullResponse: true,
-      })
-      .then((res) => {
+      }).then((res) => {
         if (nuxeo.serverVersion.gte(LTS_2016)) {
           expect(res.url).to.not.have.string('query/');
           expect(res.url).to.have.string('search/');
@@ -93,9 +93,10 @@ describe('Repository', () => {
           expect(res.url).to.not.have.string('search/');
         }
         return res.json();
-      })
-      .then((res) => {
-        const { entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages } = res;
+      }).then((res) => {
+        const {
+          entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages,
+        } = res;
         expect(entries.length).to.be.equal(1);
         expect(resultsCount).to.be.equal(1);
         expect(currentPageSize).to.be.equal(1);
@@ -111,7 +112,9 @@ describe('Repository', () => {
           queryParams: [doc.uid],
         }))
         .then((res) => {
-          const { entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages } = res;
+          const {
+            entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages,
+          } = res;
           expect(entries.length).to.be.equal(3);
           expect(resultsCount).to.be.equal(3);
           expect(currentPageSize).to.be.equal(3);
@@ -135,7 +138,9 @@ describe('Repository', () => {
           });
         })
         .then((res) => {
-          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          const {
+            entries, currentPageSize, currentPageIndex, isNextPageAvailable,
+          } = res;
           expect(entries.length).to.be.equal(1);
           expect(currentPageSize).to.be.equal(1);
           expect(currentPageIndex).to.be.equal(0);
@@ -151,7 +156,9 @@ describe('Repository', () => {
           sortOrder: 'asc',
         }))
         .then((res) => {
-          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          const {
+            entries, currentPageSize, currentPageIndex, isNextPageAvailable,
+          } = res;
           expect(entries.length).to.be.equal(1);
           expect(currentPageSize).to.be.equal(1);
           expect(currentPageIndex).to.be.equal(1);
@@ -167,7 +174,9 @@ describe('Repository', () => {
           sortOrder: 'asc',
         }))
         .then((res) => {
-          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          const {
+            entries, currentPageSize, currentPageIndex, isNextPageAvailable,
+          } = res;
           expect(entries.length).to.be.equal(1);
           expect(currentPageSize).to.be.equal(1);
           expect(currentPageIndex).to.be.equal(2);
@@ -183,7 +192,9 @@ describe('Repository', () => {
           sortOrder: 'asc',
         }))
         .then((res) => {
-          const { entries, currentPageSize, currentPageIndex, isNextPageAvailable } = res;
+          const {
+            entries, currentPageSize, currentPageIndex, isNextPageAvailable,
+          } = res;
           expect(entries.length).to.be.equal(0);
           expect(currentPageSize).to.be.equal(0);
           expect(currentPageIndex).to.be.equal(3);

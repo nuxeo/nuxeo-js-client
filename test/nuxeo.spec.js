@@ -88,7 +88,7 @@ describe('Nuxeo', () => {
         expect(n.connected).to.be.true();
         expect(nuxeo.connected).to.be.true();
 
-        const user = n.user;
+        const { user } = n;
         expect(user['entity-type']).to.be.equal('user');
         expect(user.id).to.be.equal('Administrator');
         expect(user.properties.username).to.be.equal('Administrator');
