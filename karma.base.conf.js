@@ -25,7 +25,7 @@ module.exports = {
   port: 9876,
   colors: true,
   autoWatch: true,
-  browsers: ['Firefox', 'Chrome'],
+  browsers: ['Chrome'],
   singleRun: true,
   concurrency: 1,
 };
