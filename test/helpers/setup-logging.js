@@ -1,12 +1,12 @@
 (() => {
   const getParentTitles = (currentTest) => {
     const titles = [];
-    let parent = currentTest.parent;
+    let { parent } = currentTest;
     while (parent) {
       if (typeof parent.title === 'string' && parent.title.trim().length > 0) {
         titles.push(parent.title.trim());
       }
-      parent = parent.parent;
+      ({ parent } = parent);
     }
     return titles.reverse();
   };

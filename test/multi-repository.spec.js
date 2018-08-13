@@ -1,3 +1,4 @@
+/* eslint function-paren-newline: 0 */
 const OTHER_DOC_NAME = 'foo';
 const OTHER_DOC_PATH = '/foo';
 
