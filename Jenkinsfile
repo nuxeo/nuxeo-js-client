@@ -46,7 +46,6 @@ node(env.SLAVE) {
                     sh "${mvnHome}/bin/mvn clean verify -f ${env.POM_PATH}"
                     sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-10.x"
                     sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-6.x"
-                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-4.x"
                 }
 
                 stage ('post build') {

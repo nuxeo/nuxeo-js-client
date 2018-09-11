@@ -27,14 +27,16 @@ or
 
     $ yarn add nuxeo
 
-##### Node.js v6 LTS (Boron)
+##### Node.js
 
 ```javascript
 var Nuxeo = require('nuxeo');
 var nuxeo = new Nuxeo({ ... });
 ```
 
-##### Node.js v4 LTS (Argon)
+##### Node.js v4 (Argon)
+
+As Node.js v4 is EOL, tests are not launched anymore on it and it's not a supported target. However, the ES5 build should work so if you really need to run on Node.js v4, use the following:
 
 ```javascript
 var Nuxeo = require('nuxeo/es5');
