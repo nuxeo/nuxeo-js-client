@@ -94,16 +94,6 @@
         <jsReportsDir>js-reports-6.x</jsReportsDir>
       </properties>
     </profile>
-    <profile>
-      <!-- used to validate es5 build -->
-      <id>node-4.x</id>
-      <properties>
-        <nodeVersion>v4.9.1</nodeVersion>
-        <yarnVersion>1.7.0</yarnVersion>
-        <yarnTarget>it:es5</yarnTarget>
-        <jsReportsDir>js-reports-es5</jsReportsDir>
-      </properties>
-    </profile>
   </profiles>
 
   <build>
