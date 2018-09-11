@@ -29,7 +29,10 @@ node('SLAVE') {
                 }
                 def releaseVersion = branch.replaceAll(/release\//, '')
                 stage ('release') {
-                    def envVars = [ 'npm_config_registry=' ]
+                    def envVars = [
+                        'PATH+NODE=/opt/build/tools/node-v8.11.3-linux-x64/bin',
+                        'npm_config_registry='
+                    ]
                     withEnv(envVars) {
                         sh "yarn run release ${releaseVersion}"
                         currentBuild.description = "Release ${releaseVersion}"
