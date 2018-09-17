@@ -958,6 +958,10 @@ You can follow the developments in the Nuxeo JS Client project of our JIRA bug t
 
 You can report issues on [answers.nuxeo.com](http://answers.nuxeo.com).
 
+## Big Thanks
+
+Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs](https://saucelabs.com)
+
 ## License
 
 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt) Copyright (c) Nuxeo SA
