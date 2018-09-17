@@ -1,5 +1,5 @@
 module.exports = {
-  frameworks: ['browserify', 'mocha', 'chai'],
+  frameworks: ['mocha', 'chai', 'browserify'],
   files: [
     'dist/*.js',
     'test/helpers/setup.js',
@@ -21,11 +21,10 @@ module.exports = {
     },
   },
   reporters: ['dots'],
-  browserNoActivityTimeout: 30 * 1000,
+  browserNoActivityTimeout: 60 * 1000,
   port: 9876,
   colors: true,
   autoWatch: true,
-  browsers: ['Chrome'],
   singleRun: true,
   concurrency: 1,
 };

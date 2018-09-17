@@ -25,7 +25,7 @@ node(env.SLAVE) {
     def commitSha;
     try {
         timestamps {
-            timeout(30) {
+            timeout(60) {
                 commitSha = stage('checkout') {
                     // manually clean node_modules folder
                     sh "rm -rf node_modules"
@@ -40,12 +40,18 @@ node(env.SLAVE) {
                 }
 
                 stage ('build and test') {
-                    def jdk = tool name: 'java-8-oracle'
-                    env.JAVA_HOME = "${jdk}"
-                    def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
-                    sh "${mvnHome}/bin/mvn clean verify -f ${env.POM_PATH}"
-                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-10.x"
-                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-6.x"
+                    def credentials = [
+                        usernamePassword(credentialsId: 'SAUCE_JS_CLIENT_ACCESS_KEY',
+                            usernameVariable: 'SAUCE_USERNAME', passwordVariable: 'SAUCE_ACCESS_KEY')
+                    ]
+                    withCredentials(credentials) {
+                        def jdk = tool name: 'java-8-oracle'
+                        env.JAVA_HOME = "${jdk}"
+                        def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
+                        sh "${mvnHome}/bin/mvn clean verify -f ${env.POM_PATH}"
+                        sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-10.x"
+                        sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pnode-6.x"
+                    }
                 }
 
                 stage ('post build') {
