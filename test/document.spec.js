@@ -561,10 +561,11 @@ describe('Document', () => {
           })
       ));
 
-      it('should throw an error when locking a document already locked', () => {
-        const p = repository.fetch(FILE_TEST_PATH)
-          .then((doc) => doc.lock());
-        return expect(p).to.be.rejected();
+      /* eslint prefer-arrow-callback: 0 */
+      it('should throw an error when locking a document already locked', function f(done) {
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.lock())
+          .then(() => done('Must not resolved when locking a document already locked'), () => done());
       });
     });
 
