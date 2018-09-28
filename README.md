@@ -5,6 +5,8 @@
 [![npm downloads](https://img.shields.io/npm/dm/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
 [![Dependency Status](https://img.shields.io/david/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client) [![devDependency Status](https://img.shields.io/david/dev/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client#info=devDependencies)
 
+<img alt="Browser Support thanks to SauceLabs" src="https://saucelabs.com/browser-matrix/nuxeo-js-client.svg" width="200" />
+
 The Nuxeo JavaScript Client is a JavaScript client library for the Nuxeo Automation and REST API. The library can work in a browser, or in Node.js, using the same API.
 
 This is an on-going project, supported by Nuxeo.
