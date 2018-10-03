@@ -1,5 +1,4 @@
 const join = require('../lib/deps/utils/join');
-const { LTS_2016 } = require('../lib/server-version');
 const { createTextBlob, getTextFromBody } = require('./helpers/blob-helper');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
@@ -453,20 +452,16 @@ describe('Document', () => {
   });
 
   describe('#fetchRenditions', () => {
-    it('should fetch the renditions list', function f() {
-      if (nuxeo.serverVersion.lt(LTS_2016)) {
-        this.skip();
-      }
-
-      return repository.fetch(WS_JS_TESTS_PATH)
+    it('should fetch the renditions list', () => (
+      repository.fetch(WS_JS_TESTS_PATH)
         .then((doc) => doc.fetchRenditions())
         .then((renditions) => {
           expect(renditions.length).to.be.equal(3);
           expect(renditions[0].name).to.be.equal('thumbnail');
           expect(renditions[1].name).to.be.equal('xmlExport');
           expect(renditions[2].name).to.be.equal('zipTreeExport');
-        });
-    });
+        })
+    ));
   });
 
   describe('#fetchRendition', () => {

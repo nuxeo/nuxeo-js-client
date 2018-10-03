@@ -1,7 +1,6 @@
 const contentDisposition = require('content-disposition');
 
 const join = require('../lib/deps/utils/join');
-const { LTS_2016 } = require('../lib/server-version');
 const { createTextBlob } = require('./helpers/blob-helper');
 
 const WS_ROOT_PATH = '/default-domain/workspaces';
@@ -98,19 +97,15 @@ describe('UTF-8 filenames spec', () => {
         .execute();
     });
 
-    it('with automation', function f() {
-      if (nuxeo.serverVersion.lt(LTS_2016)) {
-        this.skip();
-      }
-
-      return nuxeo.operation('Document.GetBlob')
+    it('with automation', () => (
+      nuxeo.operation('Document.GetBlob')
         .input(FILE_TEST_PATH)
         .execute()
         .then((res) => {
           const disposition = contentDisposition.parse(res.headers.get('content-disposition'));
           expect(disposition.parameters.filename).to.be.equal('café.txt');
-        });
-    });
+        })
+    ));
 
     it('in document properties', () => (
       nuxeo.repository().fetch(FILE_TEST_PATH)
@@ -119,17 +114,13 @@ describe('UTF-8 filenames spec', () => {
         })
     ));
 
-    it('with @blob adapter', function f() {
-      if (nuxeo.serverVersion.lt(LTS_2016)) {
-        this.skip();
-      }
-
-      return nuxeo.request(`path/${FILE_TEST_PATH}/@blob/file:content`)
+    it('with @blob adapter', () => (
+      nuxeo.request(`path/${FILE_TEST_PATH}/@blob/file:content`)
         .get()
         .then((res) => {
           const disposition = contentDisposition.parse(res.headers.get('content-disposition'));
           expect(disposition.parameters.filename).to.be.equal('café.txt');
-        });
-    });
+        })
+    ));
   });
 });
