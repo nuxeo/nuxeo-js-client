@@ -34,7 +34,7 @@ node('SLAVE') {
                         'npm_config_registry='
                     ]
                     withEnv(envVars) {
-                        sh "yarn run release ${releaseVersion}"
+                        sh "yarn run release ${branch} ${releaseVersion}"
                         currentBuild.description = "Release ${releaseVersion}"
                     }
                     // checkout the released version

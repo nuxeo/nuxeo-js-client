@@ -2,13 +2,14 @@
 
 set -e
 
-VERSION=$1
+BRANCH=$1
+VERSION=$2
 if [ -z "$VERSION" ]; then
-  echo 'Usage: ./release.sh VERSION'
+  echo 'Usage: ./release.sh BRANCH VERSION'
   exit 1
 fi
 
-git checkout master
+git checkout $BRANCH
 
 # Update the version in package.json
 yarn version --new-version $VERSION --no-git-tag-version
@@ -37,7 +38,7 @@ git add README.md
 git commit -m "Release $VERSION"
 git tag v$VERSION
 
-git push origin master
+git push origin $BRANCH
 git push origin v$VERSION
 
 (cd dist && yarn publish --non-interactive)
