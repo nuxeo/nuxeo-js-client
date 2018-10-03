@@ -1,4 +1,3 @@
-const { LTS_2016 } = require('../lib/server-version');
 const { createTextBlob } = require('./helpers/blob-helper');
 
 describe('Upload', () => {
@@ -108,11 +107,7 @@ describe('Upload', () => {
   });
 
   describe('#removeBlob', () => {
-    it('should remove a blob for a given index', function f() {
-      if (nuxeo.serverVersion.lt(LTS_2016)) {
-        this.skip();
-      }
-
+    it('should remove a blob for a given index', () => {
       const b = nuxeo.batchUpload({ concurrency: 1 });
 
       const blob1 = createTextBlob('foo', 'foo.txt');

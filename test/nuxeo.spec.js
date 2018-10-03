@@ -1,5 +1,5 @@
 const pkg = require('../package.json');
-const { LTS_2016, LTS_2017 } = require('../lib/server-version');
+const { LTS_2017 } = require('../lib/server-version');
 
 describe('Nuxeo', () => {
   let nuxeo;
@@ -94,15 +94,13 @@ describe('Nuxeo', () => {
         expect(user.properties.username).to.be.equal('Administrator');
         expect(user.properties.groups).to.be.eql(['administrators']);
 
-        if (nuxeo.serverVersion.gte(LTS_2016)) {
-          const profile = n.user.contextParameters.userprofile;
-          expect(profile).to.be.not.null();
-          const expectedKeys = ['birthdate', 'phonenumber', 'avatar'];
-          if (nuxeo.serverVersion.gt(LTS_2017)) {
-            expectedKeys.push('gender', 'locale');
-          }
-          expect(profile).to.have.keys(expectedKeys);
+        const profile = n.user.contextParameters.userprofile;
+        expect(profile).to.be.not.null();
+        const expectedKeys = ['birthdate', 'phonenumber', 'avatar'];
+        if (nuxeo.serverVersion.gt(LTS_2017)) {
+          expectedKeys.push('gender', 'locale');
         }
+        expect(profile).to.have.keys(expectedKeys);
 
         expect(n.nuxeoVersion).to.be.not.null();
         expect(n.serverVersion).to.be.not.null();
