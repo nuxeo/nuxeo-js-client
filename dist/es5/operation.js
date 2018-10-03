@@ -161,13 +161,7 @@ var Operation = function (_Base) {
   }, {
     key: '_computeContentTypeHeader',
     value: function _computeContentTypeHeader(input) {
-      var contentType = 'application/json+nxrequest';
-      if (this._isMultipartInput(input)) {
-        contentType = 'multipart/form-data';
-      } else if (this._isBatchInput(input)) {
-        contentType = 'application/json';
-      }
-      return contentType;
+      return this._isMultipartInput(input) ? 'multipart/form-data' : 'application/json';
     }
   }, {
     key: '_computeRequestURL',
