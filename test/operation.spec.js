@@ -199,6 +199,22 @@ describe('Operation', () => {
           });
       });
 
+      it('non-existing document', () => (
+        // fill a SimpleDocumentModel server side
+        nuxeo.operation('Scripting.ReturnDocumentTitle')
+          .input({
+            'entity-type': 'document',
+            name: 'foo',
+            type: 'File',
+            properties: { 'dc:title': 'Foo' },
+          })
+          .execute()
+          .then((res) => {
+            expect(res['entity-type']).to.be.equal('string');
+            expect(res.value).to.be.equal('Foo');
+          })
+      ));
+
       it('blob', () => {
         const blob = createTextBlob('foo', 'foo.txt');
         return nuxeo.operation('Blob.AttachOnDocument')

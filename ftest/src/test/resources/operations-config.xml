@@ -1,0 +1,18 @@
+<component name="org.nuxeo.test.operations">
+
+  <extension target="org.nuxeo.automation.scripting.internals.AutomationScriptingComponent" point="operation">
+
+    <scriptedOperation id="Scripting.ReturnDocumentTitle">
+      <inputType>document</inputType>
+      <outputType>string</outputType>
+      <category>Scripting</category>
+      <script>
+         function run(input, params) {
+           return input.getPropertyValue('dc:title');
+         }
+      </script>
+    </scriptedOperation>
+
+  </extension>
+
+</component>
