@@ -2790,13 +2790,7 @@ var Operation = function (_Base) {
   }, {
     key: '_computeContentTypeHeader',
     value: function _computeContentTypeHeader(input) {
-      var contentType = 'application/json+nxrequest';
-      if (this._isMultipartInput(input)) {
-        contentType = 'multipart/form-data';
-      } else if (this._isBatchInput(input)) {
-        contentType = 'application/json';
-      }
-      return contentType;
+      return this._isMultipartInput(input) ? 'multipart/form-data' : 'application/json';
     }
   }, {
     key: '_computeRequestURL',
@@ -2883,7 +2877,7 @@ var Operation = function (_Base) {
           }
         }
       } else if (isDocument(input)) {
-        this._automationParams.input = input.uid;
+        this._automationParams.input = input.uid || input;
         return this._automationParams;
       } else if (input instanceof Blob) {
         var _automationParams = {
@@ -9969,7 +9963,7 @@ exports.encode = exports.stringify = require('./encode');
 module.exports={
   "name": "nuxeo",
   "description": "JavaScript client library for Nuxeo API",
-  "version": "3.8.0",
+  "version": "3.10.0",
   "main": "./lib/index.js",
   "author": "Nuxeo (http://www.nuxeo.com/)",
   "contributors": [
