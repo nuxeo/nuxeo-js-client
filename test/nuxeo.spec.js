@@ -350,6 +350,7 @@ describe('Nuxeo', () => {
       repo.depth('children');
       const options = nuxeo._computeFetchOptions(repo._computeOptions());
       expect(options.headers).to.exist();
+      expect(options.headers['Nuxeo-Transaction-Timeout']).to.not.exist();
       expect(options.headers['enrichers-document']).to.be.equal('acls,permissions');
       expect(options.headers['enrichers-user']).to.be.equal('groups');
       expect(options.headers['enrichers-group']).to.be.equal('members');
