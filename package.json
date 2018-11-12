@@ -72,7 +72,7 @@
     "build:browser": "mkdirp dist && browserify --entry lib/index-browserify.js --transform babelify --outfile dist/nuxeo.js",
     "lint": "eslint 'lib' 'test'",
     "pretest": "rimraf coverage && yarn lint",
-    "test": "yarn test:cover && yarn test:es5 && yarn test:browser",
+    "test": "yarn test:cover && yarn test:browser",
     "test:cover": "nyc --include lib --all --reporter text --reporter lcov yarn test:node",
     "test:node": "mocha --timeout 30000 --require test/helpers/setup.js --require test/helpers/setup-node.js 'test/helpers/setup-logging.js' 'test/**/*.spec.js'",
     "test:browser": "karma start karma.conf.local.js",
