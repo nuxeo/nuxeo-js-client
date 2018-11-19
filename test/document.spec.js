@@ -294,14 +294,14 @@ describe('Document', () => {
   });
 
   describe('#followTransition', () => {
-    it('should set the life cycle state to deleted', () => (
+    it('should set the life cycle state to approved', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
           expect(doc.state).to.be.equal('project');
-          return doc.followTransition('delete');
+          return doc.followTransition('approve');
         })
         .then((doc) => {
-          expect(doc.state).to.be.equal('deleted');
+          expect(doc.state).to.be.equal('approved');
         })
     ));
   });
