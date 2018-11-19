@@ -235,7 +235,6 @@ var Nuxeo = function (_Base) {
         method: 'GET',
         headers: {},
         json: true,
-        timeout: 30000,
         cache: false,
         resolveWithFullResponse: false
       };
