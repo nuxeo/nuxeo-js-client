@@ -313,7 +313,7 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
           })
       ));
@@ -324,7 +324,7 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
           })
       ));
@@ -335,7 +335,7 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
           })
       ));
@@ -347,7 +347,7 @@ describe('Document', () => {
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
-          expect(text.indexOf('<html>') >= 0).to.be.true();
+          expect(text.indexOf('<html') >= 0).to.be.true();
           expect(text.indexOf('foo') >= 0).to.be.true();
         })
     ));
@@ -387,7 +387,7 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
           })
       ));
@@ -406,7 +406,7 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
           })
       ));
@@ -425,7 +425,7 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html>') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).to.be.true();
             expect(text.indexOf('foo') >= 0).to.be.true();
           })
       ));
@@ -445,7 +445,7 @@ describe('Document', () => {
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
-          expect(text.indexOf('<html>') >= 0).to.be.true();
+          expect(text.indexOf('<html') >= 0).to.be.true();
           expect(text.indexOf('foo') >= 0).to.be.true();
         })
     ));
