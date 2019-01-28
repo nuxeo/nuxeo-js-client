@@ -1,11 +1,11 @@
 const baseConfiguration = require('./karma.base.conf.js');
 
 const browsers = {
-  sl_latest_chrome: {
+  sl_70_chrome: {
     base: 'SauceLabs',
     browserName: 'chrome',
     platform: 'Windows',
-    version: 'latest',
+    version: '70',
   },
   sl_latest_firefox: {
     base: 'SauceLabs',
