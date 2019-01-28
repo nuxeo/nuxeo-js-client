@@ -12,6 +12,7 @@
   <target name="prepare-environment" depends="_init,prepare-db,prepare-tomcat">
     <copy file="src/test/resources/cors-config.xml" todir="${nuxeo.nxserver}/config/" />
     <copy file="src/test/resources/other-repository-config.xml" todir="${nuxeo.nxserver}/config/" />
+    <copy file="src/test/resources/elasticsearch-config.xml" todir="${nuxeo.nxserver}/config/" />
     <copy file="src/test/resources/operations-config.xml" todir="${nuxeo.nxserver}/config/" />
     <copy file="src/test/resources/listeners-config.xml" todir="${nuxeo.nxserver}/config/" />
     <copy file="src/test/resources/log4j2.xml" todir="${nuxeo.home}/lib/" />
