@@ -34,12 +34,9 @@ node(env.SLAVE) {
                     return sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                 }
 
-                stage('rebase') {
-                    setBuildStatus('Building on Nuxeo CI', 'PENDING', "${env.STATUS_CONTEXT_NAME}", REPO_URL, commitSha, "${BUILD_URL}")
-                    sh 'git rebase origin/master'
-                }
-
                 stage ('build and test') {
+                    setBuildStatus('Building on Nuxeo CI', 'PENDING', "${env.STATUS_CONTEXT_NAME}", REPO_URL, commitSha, "${BUILD_URL}")
+
                     def credentials = [
                         usernamePassword(credentialsId: 'SAUCE_JS_CLIENT_ACCESS_KEY',
                             usernameVariable: 'SAUCE_USERNAME', passwordVariable: 'SAUCE_ACCESS_KEY')
