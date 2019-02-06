@@ -11,7 +11,7 @@ const browsers = {
     base: 'SauceLabs',
     browserName: 'firefox',
     platform: 'Windows',
-    version: 'latest',
+    version: '64',
   },
   sl_latest_esr_firefox: {
     base: 'SauceLabs',
