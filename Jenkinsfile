@@ -42,7 +42,7 @@ node(env.SLAVE) {
                             usernameVariable: 'SAUCE_USERNAME', passwordVariable: 'SAUCE_ACCESS_KEY')
                     ]
                     withCredentials(credentials) {
-                        def jdk = tool name: 'java-8-oracle'
+                        def jdk = tool name: env.JDK
                         env.JAVA_HOME = "${jdk}"
                         def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
                         sh "${mvnHome}/bin/mvn clean verify -f ${env.POM_PATH}"
