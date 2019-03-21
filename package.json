@@ -86,6 +86,7 @@
     "start": "yarn build:browser && node examples/server.js"
   },
   "browser": {
+    "promise-queue": "promise-queue/lib/index.js",
     "./lib/deps/fetch.js": "./lib/deps/fetch-browser.js",
     "./lib/deps/promise.js": "./lib/deps/promise-browser.js",
     "./lib/deps/form-data.js": "./lib/deps/form-data-browser.js",
