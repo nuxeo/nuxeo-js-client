@@ -546,7 +546,7 @@ describe('Document', () => {
 
   describe('Lock Status', () => {
     describe('#lock', () => {
-      it('should lock the document', () => (
+      const lockDocument = () => (
         repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.lock())
           .then((doc) => doc.fetchLockStatus())
@@ -554,13 +554,47 @@ describe('Document', () => {
             expect(status.lockOwner).to.exist();
             expect(status.lockCreated).to.exist();
           })
-      ));
+      );
 
-      /* eslint prefer-arrow-callback: 0 */
+      it('should lock the document', lockDocument);
+
       it('should throw an error when locking a document already locked', function f(done) {
+        // Hardcoded (11.1) here until the new relase of nuxeo.
+        if (nuxeo.serverVersion.gte('11.1')) {
+          this.skip();
+        }
+
         repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.lock())
           .then(() => done('Must not resolved when locking a document already locked'), () => done());
+      });
+
+      it('should not fail on a locked document if the user is the lock owner', function f(done) {
+        if (nuxeo.serverVersion.lt('11.1')) {
+          this.skip();
+        }
+
+        lockDocument().then(() => done(),
+          () => done('should not fail on a document already locked by the same user'));
+      });
+
+      it('should throw an error when locking a document already locked by an other user', function f(done) {
+        /* Not testing with a different user since in 10.10 or lower relocking fails with any user,
+         which is already tested above */
+        if (nuxeo.serverVersion.lt('11.1')) {
+          this.skip();
+        }
+
+        repository.fetch(FILE_TEST_PATH)
+          .then((doc) => doc.addPermission({
+            username: 'leela',
+            permission: 'ReadWrite',
+          }))
+          .then(() => new Nuxeo({ auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
+          .then((n) => n.repository().fetch(FILE_TEST_PATH))
+          .then((doc) => doc.lock())
+          .then(() => done('Must not resolved when locking a document already locked by an other user'),
+            () => done());
       });
     });
 
