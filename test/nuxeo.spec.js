@@ -368,5 +368,27 @@ describe('Nuxeo', () => {
       const options = nuxeo._computeFetchOptions(defaultOptions);
       expect(options.url).to.be.equal('http://localhost:8080/nuxeo?param=1&param=2&param=3');
     });
+
+    it('should keep the abort signal property if it is provided', () => {
+      const defaultOptions = {
+        url: 'http://localhost:8080/nuxeo',
+        signal: {
+          message: 'Abort this request',
+        },
+      };
+      const options = nuxeo._computeFetchOptions(defaultOptions);
+      expect(options.url).to.be.equal('http://localhost:8080/nuxeo');
+      expect(options.signal).to.exist();
+      expect(options.signal).to.eql(defaultOptions.signal);
+    });
+
+    it('should not add the abort signal property if it is not provided', () => {
+      const defaultOptions = {
+        url: 'http://localhost:8080/nuxeo',
+      };
+      const options = nuxeo._computeFetchOptions(defaultOptions);
+      expect(options.url).to.be.equal('http://localhost:8080/nuxeo');
+      expect(options.signal).to.not.exist();
+    });
   });
 });
