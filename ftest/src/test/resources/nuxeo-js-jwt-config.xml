@@ -1,0 +1,10 @@
+<component name="org.nuxeo.test.jwt">
+
+  <extension target="org.nuxeo.ecm.jwt.JWTService" point="configuration">
+    <configuration>
+      <defaultTTL>60</defaultTTL>
+      <secret>abracadabra</secret>
+    </configuration>
+  </extension>
+
+</component>

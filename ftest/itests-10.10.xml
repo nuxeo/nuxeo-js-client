@@ -14,6 +14,7 @@
     <copy file="src/test/resources/nuxeo-js-other-repository-config.xml" todir="${nuxeo.nxserver}/config/" />
     <copy file="src/test/resources/nuxeo-js-elasticsearch-config.xml" todir="${nuxeo.nxserver}/config/" />
     <copy file="src/test/resources/nuxeo-js-operations-config.xml" todir="${nuxeo.nxserver}/config/" />
+    <copy file="src/test/resources/nuxeo-js-jwt-config.xml" todir="${nuxeo.nxserver}/config/" />
     <copy file="src/test/resources/log4j2.xml" todir="${nuxeo.home}/lib/" />
   </target>
 

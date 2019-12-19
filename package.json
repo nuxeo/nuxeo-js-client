@@ -49,6 +49,7 @@
     "express": "^4.15.3",
     "fs-extra": "^7.0.0",
     "jsdoc": "3.5.5",
+    "jsonwebtoken": "^8.5.1",
     "karma": "^3.0.0",
     "karma-babel-preprocessor": "^8.0.0-beta.0",
     "karma-browserify": "^5.0.1",
