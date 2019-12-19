@@ -11,7 +11,7 @@
   <name>Functional Tests for Nuxeo JS Client</name>
 
   <properties>
-    <nuxeo.tested.version>${nuxeo.distribution.version}</nuxeo.tested.version>
+    <nuxeo.tested.version>${nuxeo.platform.version}</nuxeo.tested.version>
   </properties>
 
   <dependencies>
