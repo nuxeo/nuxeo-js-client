@@ -1,10 +1,12 @@
 const qs = require('querystring');
+const jwt = require('jsonwebtoken');
 
 const fetch = require('../lib/deps/fetch');
 const { btoa } = require('../lib/deps/utils/base64');
 
 const OAUTH2_CLIENTS_DIRECTORY_NAME = 'oauth2Clients';
 const OAUTH2_TOKENS_DIRECTORY_NAME = 'oauth2Tokens';
+const JWT_SHARED_SECRET = 'abracadabra';
 
 const CLIENT_ID = 'test-client';
 
@@ -94,7 +96,8 @@ describe('OAuth2 spec', () => {
     }).then((res) => {
       const queryParameters = res.url.substring(res.url.indexOf('?') + 1);
       const parameters = qs.parse(queryParameters);
-      return Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', CLIENT_ID, parameters.code);
+      return Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode('http://localhost:8080/nuxeo',
+        CLIENT_ID, parameters.code);
     });
   }
 
@@ -105,7 +108,7 @@ describe('OAuth2 spec', () => {
       }
     });
 
-    it('should fetch an access token', () => (
+    it('should fetch an access token from an authorization code', () => (
       fetchAccessToken()
         .then((token) => {
           expect(token).to.have.all.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
@@ -212,6 +215,18 @@ describe('OAuth2 spec', () => {
               expect(error.response.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/default-domain');
             })
         ));
+    });
+
+    it('should fetch an access token from a JWT token', function f() {
+      if (nuxeo.serverVersion.lt('10.10-HF02')) {
+        this.skip();
+      }
+
+      const jwtToken = jwt.sign({ iss: 'nuxeo', sub: 'Administrator' }, JWT_SHARED_SECRET, { algorithm: 'HS512' });
+      return Nuxeo.oauth2.fetchAccessTokenFromJWTToken('http://localhost:8080/nuxeo', CLIENT_ID, jwtToken)
+        .then((token) => {
+          expect(token).to.have.all.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
+        });
     });
   });
 });
