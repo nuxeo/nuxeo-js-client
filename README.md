@@ -331,13 +331,32 @@ var authorizationURL = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/n
 console.log(authorizationURL); // http://localhost:8080/nuxeo/oauth2/authorize?client_id=my-app&response_type=code&state=xyz&redirect_uri=http://localhost:8000/authorize
 ```
 
-__Nuxeo.oauth2.fetchAccessToken(baseURL, clientId, code[, params])__
+__Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(baseURL, clientId, code[, params])__
 
 Fetches an OAuth2 access token for the given `baseURL`, `clientId` and `code`.
 
 ```javascript
 var code = ...
 Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', 'my-app', code, {
+  redirect_uri: 'http://localhost:8000/authorize',
+}).then(function(token) {
+  // do something with the access token
+  var nuxeo = new Nuxeo({
+    auth: {
+      method: 'bearerToken',
+      token: token
+    }
+  });
+});
+```
+
+__Nuxeo.oauth2.fetchAccessTokenFromJWTToken(baseURL, clientId, jwtToken[, params])__
+
+Fetches an OAuth2 access token for the given `baseURL`, `clientId` and `jwtToken`.
+
+```javascript
+var code = ...
+Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', 'my-app', jwtToken, {
   redirect_uri: 'http://localhost:8000/authorize',
 }).then(function(token) {
   // do something with the access token
