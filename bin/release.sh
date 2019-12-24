@@ -24,7 +24,7 @@ NODE_MODULES=node_modules
 if [ -d "$NODE_MODULES" ]; then
   rm -r $NODE_MODULES
 fi
-yarn
+yarn --frozen-lockfile
 
 # build
 yarn build
