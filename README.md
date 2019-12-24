@@ -359,8 +359,8 @@ __Nuxeo.oauth2.fetchAccessTokenFromJWTToken(baseURL, clientId, jwtToken[, params
 Fetches an OAuth2 access token for the given `baseURL`, `clientId` and `jwtToken`.
 
 ```javascript
-var code = ...
-Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', 'my-app', jwtToken, {
+var jwtToken = ...
+Nuxeo.oauth2.fetchAccessTokenFromJWTToken('http://localhost:8080/nuxeo', 'my-app', jwtToken, {
   redirect_uri: 'http://localhost:8000/authorize',
 }).then(function(token) {
   // do something with the access token
