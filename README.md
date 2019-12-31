@@ -942,7 +942,6 @@ See our [contribution documentation](https://doc.nuxeo.com/x/VIZH).
 ### Requirements
 
 * [Node.js](http://nodejs.org/#download)
-* [gulp](http://gulpjs.com/)
 * [Bower](http://bower.io/)
 * [yarn](https://yarnpkg.com/)
 
@@ -961,15 +960,15 @@ A Nuxeo Platform instance needs to be running on `http://localhost:8080/nuxeo` f
 
 Tests can be launched on Node.js with:
 
-    $ gulp test:node
+    $ yarn test:node
 
-For testing the browser client (tests are run on Firefox and Chrome by default):
+For testing the browser client (tests are run on Chrome by default):
 
-    $ gulp test:browser
+    $ yarn test:browser
 
 To run both Node.js and browser tests:
 
-    $ gulp test
+    $ yarn test
 
 
 ### Reporting Issues
