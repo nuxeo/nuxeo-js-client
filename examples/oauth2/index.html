@@ -24,7 +24,7 @@
 
       <div id="unauthenticated" style="display:none;">
         <p>This example takes the user through Nuxeo's API OAuth2 flow using <code>Nuxeo.oauth2.getAuthorizationURL()</code>
-          method, then uses <code>Nuxeo.oauth2.fetchAccessToken()</code> to exchange the authorization code for an access token
+          method, then uses <code>Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode()</code> to exchange the authorization code for an access token
           and finally, list the content of their user workspace using the access token.
         </p>
         <p>The Nuxeo Server URL is <code>http://localhost:8080/nuxeo</code>.</p>
@@ -106,7 +106,7 @@
       history.replaceState(null, null, window.location.href.substring(0, index));
       unauthenticated = false;
       show('authenticating');
-      Nuxeo.oauth2.fetchAccessToken(NUXEO_URL, CLIENT_ID, code)
+      Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(NUXEO_URL, CLIENT_ID, code)
         .then(function(token) {
           nuxeo = new Nuxeo({ baseURL: NUXEO_URL, auth: { method: 'bearerToken', token : token }});
           return nuxeo.operation('User.GetUserWorkspace')

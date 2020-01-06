@@ -341,7 +341,7 @@ Fetches an OAuth2 access token for the given `baseURL`, `clientId` and `code`.
 
 ```javascript
 var code = ...
-Nuxeo.oauth2.fetchAccessToken('http://localhost:8080/nuxeo', 'my-app', code, {
+Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode('http://localhost:8080/nuxeo', 'my-app', code, {
   redirect_uri: 'http://localhost:8000/authorize',
 }).then(function(token) {
   // do something with the access token
