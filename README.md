@@ -484,8 +484,8 @@ nuxeo.connect()
 Some constants are available in the `Nuxeo` object for supported LTS versions:
 
 ```javascript
-Nuxeo.SERVER_VERSIONS.LTS_2016; // for '8.10';
 Nuxeo.SERVER_VERSIONS.LTS_2017; // for '9.10';
+Nuxeo.SERVER_VERSIONS.LTS_2019; // for '10.10';
 ```
 
 You can use them to easily make different calls according to the target version:
