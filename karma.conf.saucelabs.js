@@ -19,6 +19,11 @@ const browsers = {
     platform: 'Windows',
     version: '60',
   },
+  sl_latest_safari: {
+    base: 'SauceLabs',
+    browserName: 'safari',
+    version: '12',
+  },
 };
 
 module.exports = (config) => {
