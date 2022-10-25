@@ -10,7 +10,7 @@ describe('Repository', () => {
   let repository;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     repository = nuxeo.repository({
       schemas: ['dublincore'],
     });
@@ -200,6 +200,7 @@ describe('Repository', () => {
   describe('should handle document name with reserved characters', () => {
     // TODO use 'site/api/v1/' until upgrading to 9.1
     const _nuxeo = new Nuxeo({
+      baseURL,
       auth: { method: 'basic', username: 'Administrator', password: 'Administrator' },
       apiPath: 'site/api/v1/',
     });

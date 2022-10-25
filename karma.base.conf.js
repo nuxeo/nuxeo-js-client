@@ -1,7 +1,7 @@
 module.exports = {
   frameworks: ['mocha', 'chai', 'browserify'],
   files: [
-    'dist/*.js',
+    `${process.env.JS_DIST_DIR || 'dist'}/*.js`,
     'test/helpers/setup.js',
     'test/helpers/setup-browser.js',
     'test/helpers/setup-logging.js',

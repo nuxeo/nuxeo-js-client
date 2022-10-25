@@ -16,6 +16,7 @@ describe('OAuth2 spec', () => {
 
   before(() => {
     nuxeo = new Nuxeo({
+      baseURL,
       auth: {
         method: 'basic',
         username: 'Administrator',
@@ -30,7 +31,7 @@ describe('OAuth2 spec', () => {
           properties: {
             name: 'Test Client',
             clientId: CLIENT_ID,
-            redirectURIs: 'http://localhost:8080/nuxeo/home.html',
+            redirectURIs: `${baseURL}/home.html`,
           },
         })
       ))
@@ -80,7 +81,7 @@ describe('OAuth2 spec', () => {
   });
 
   function fetchAccessToken() {
-    const url = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', CLIENT_ID);
+    const url = Nuxeo.oauth2.getAuthorizationURL(baseURL, CLIENT_ID);
     const formParameters = qs.parse(url.substring(url.indexOf('?') + 1));
     formParameters.grant_access = '1';
     const submitURL = url.replace(/authorize.*/, 'authorize_submit');
@@ -96,8 +97,7 @@ describe('OAuth2 spec', () => {
     }).then((res) => {
       const queryParameters = res.url.substring(res.url.indexOf('?') + 1);
       const parameters = qs.parse(queryParameters);
-      return Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode('http://localhost:8080/nuxeo',
-        CLIENT_ID, parameters.code);
+      return Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(baseURL, CLIENT_ID, parameters.code);
     });
   }
 
@@ -118,7 +118,10 @@ describe('OAuth2 spec', () => {
     it('should authenticate using bearer token authentication method', () => (
       fetchAccessToken()
         .then((token) => {
-          const bearerNuxeo = new Nuxeo({ auth: { CLIENT_ID, method: 'bearerToken', token: token.access_token } });
+          const bearerNuxeo = new Nuxeo({
+            baseURL,
+            auth: { CLIENT_ID, method: 'bearerToken', token: token.access_token },
+          });
           return bearerNuxeo.repository().fetch('/')
             .then((doc) => {
               expect(doc).to.be.an.instanceof(Nuxeo.Document);
@@ -132,16 +135,17 @@ describe('OAuth2 spec', () => {
       return fetchAccessToken()
         .then((token) => {
           firstToken = token;
-          const bearerNuxeo = new Nuxeo({ auth: { clientId: CLIENT_ID, method: 'bearerToken', token } });
+          const bearerNuxeo = new Nuxeo({ baseURL, auth: { clientId: CLIENT_ID, method: 'bearerToken', token } });
           return bearerNuxeo.repository().fetch('/');
         })
         .then((doc) => {
           expect(doc).to.be.an.instanceof(Nuxeo.Document);
           expect(doc.uid).to.exist();
-          return Nuxeo.oauth2.refreshAccessToken('http://localhost:8080/nuxeo', CLIENT_ID, firstToken.refresh_token);
+          return Nuxeo.oauth2.refreshAccessToken(baseURL, CLIENT_ID, firstToken.refresh_token);
         })
         .then((token) => {
           const bearerNuxeo = new Nuxeo({
+            baseURL,
             auth: { clientId: CLIENT_ID, method: 'bearerToken', token: token.access_token },
           });
           return bearerNuxeo.repository().fetch('/');
@@ -149,10 +153,13 @@ describe('OAuth2 spec', () => {
         .then((doc) => {
           expect(doc).to.be.an.instanceof(Nuxeo.Document);
           expect(doc.uid).to.exist();
-          const bearerNuxeo = new Nuxeo({ auth: { clientId: CLIENT_ID, method: 'bearerToken', token: firstToken } });
+          const bearerNuxeo = new Nuxeo({
+            baseURL,
+            auth: { clientId: CLIENT_ID, method: 'bearerToken', token: firstToken },
+          });
           return bearerNuxeo.repository().fetch('/default-domain')
             .catch((error) => {
-              expect(error.response.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/default-domain');
+              expect(error.response.url).to.be.equal(`${baseURL}/api/v1/path/default-domain`);
               expect(error.response.status).to.be.equal(401);
             });
         });
@@ -170,7 +177,7 @@ describe('OAuth2 spec', () => {
       return fetchAccessToken()
         .then((token) => {
           firstToken = token;
-          bearerNuxeo = new Nuxeo({ auth: { clientId: CLIENT_ID, method: 'bearerToken', token } });
+          bearerNuxeo = new Nuxeo({ baseURL, auth: { clientId: CLIENT_ID, method: 'bearerToken', token } });
           bearerNuxeo.onAuthenticationRefreshed((refreshedAuth) => {
             expect(refreshedAuth.token.access_token).to.be.not.null();
             expect(refreshedAuth.token.access_token).to.be.not.equal(token.access_token);
@@ -212,7 +219,7 @@ describe('OAuth2 spec', () => {
             .catch((error) => {
               // not authorized anymore; cannot refresh a non-existing token
               expect(error.response.status).to.be.equal(401);
-              expect(error.response.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/default-domain');
+              expect(error.response.url).to.be.equal(`${baseURL}/api/v1/path/default-domain`);
             })
         ));
     });
@@ -223,7 +230,7 @@ describe('OAuth2 spec', () => {
       }
 
       const jwtToken = jwt.sign({ iss: 'nuxeo', sub: 'Administrator' }, JWT_SHARED_SECRET, { algorithm: 'HS512' });
-      return Nuxeo.oauth2.fetchAccessTokenFromJWTToken('http://localhost:8080/nuxeo', CLIENT_ID, jwtToken)
+      return Nuxeo.oauth2.fetchAccessTokenFromJWTToken(baseURL, CLIENT_ID, jwtToken)
         .then((token) => {
           expect(token).to.have.all.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
         });

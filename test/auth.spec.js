@@ -14,7 +14,7 @@ describe('Authenticators', () => {
       const base64 = btoa('test:1234');
       const authorizationHeader = `Basic ${base64}`;
 
-      const nuxeo = new Nuxeo({ auth });
+      const nuxeo = new Nuxeo({ baseURL, auth });
       const headersToCheck = [
         authenticator.computeAuthenticationHeaders(auth),
         nuxeo.computeAuthenticationHeaders(),
@@ -26,8 +26,8 @@ describe('Authenticators', () => {
     });
 
     it('should authenticate an URL', () => {
-      const url = 'http://localhost:8080/nuxeo/api/v1/path/';
-      const nuxeo = new Nuxeo({ auth });
+      const url = `${baseURL}/api/v1/path/`;
+      const nuxeo = new Nuxeo({ baseURL, auth });
 
       const authenticatedURLsToCheck = [
         authenticator.authenticateURL(url, auth),
@@ -35,7 +35,9 @@ describe('Authenticators', () => {
       ];
 
       authenticatedURLsToCheck.forEach((authenticatedURL) => {
-        expect(authenticatedURL).to.be.equal('http://test:1234@localhost:8080/nuxeo/api/v1/path/');
+        const regex = /(https?:\/\/)(.+)/;
+        const baseURLWithAuth = baseURL.replace(regex, '$1test:1234@$2');
+        expect(authenticatedURL).to.be.equal(`${baseURLWithAuth}/api/v1/path/`);
       });
     });
   });
@@ -45,7 +47,7 @@ describe('Authenticators', () => {
       method: 'token',
       token: 'secret_token',
     };
-    const nuxeo = new Nuxeo({ auth });
+    const nuxeo = new Nuxeo({ baseURL, auth });
     const authenticator = Authentication.tokenAuthenticator;
 
     it('should compute authentication headers', () => {
@@ -60,7 +62,7 @@ describe('Authenticators', () => {
     });
 
     it('should authenticate an URL', () => {
-      const url = 'http://localhost:8080/nuxeo/api/v1/path/';
+      const url = `${baseURL}/api/v1/path/`;
 
       const authenticatedURLsToCheck = [
         authenticator.authenticateURL(url, auth),
@@ -68,7 +70,7 @@ describe('Authenticators', () => {
       ];
 
       authenticatedURLsToCheck.forEach((authenticatedURL) => {
-        expect(authenticatedURL).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/?token=secret_token');
+        expect(authenticatedURL).to.be.equal(`${baseURL}/api/v1/path/?token=secret_token`);
       });
     });
   });
@@ -83,8 +85,8 @@ describe('Authenticators', () => {
       token: { access_token: 'secret_token', refresh_token: 'refresh' },
     };
     const authenticator = Authentication.bearerTokenAuthenticator;
-    const nuxeo = new Nuxeo({ auth });
-    const nuxeo2 = new Nuxeo({ auth: auth2 });
+    const nuxeo = new Nuxeo({ baseURL, auth });
+    const nuxeo2 = new Nuxeo({ baseURL, auth: auth2 });
 
     it('should compute authentication headers', () => {
       const headersToCheck = [
@@ -99,7 +101,7 @@ describe('Authenticators', () => {
     });
 
     it('should authenticate an URL', () => {
-      const url = 'http://localhost:8080/nuxeo/api/v1/path/';
+      const url = `${baseURL}/api/v1/path/`;
 
       const authenticatedURLsToCheck = [
         authenticator.authenticateURL(url, auth),
@@ -108,7 +110,7 @@ describe('Authenticators', () => {
       ];
 
       authenticatedURLsToCheck.forEach((authenticatedURL) => {
-        expect(authenticatedURL).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/?access_token=secret_token');
+        expect(authenticatedURL).to.be.equal(`${baseURL}/api/v1/path/?access_token=secret_token`);
       });
     });
   });
@@ -119,7 +121,7 @@ describe('Authenticators', () => {
       secret: 'secret',
       username: 'test',
     };
-    const nuxeo = new Nuxeo({ auth });
+    const nuxeo = new Nuxeo({ baseURL, auth });
     const authenticator = Authentication.portalAuthenticator;
 
     it('should compute authentication headers', () => {
@@ -136,7 +138,7 @@ describe('Authenticators', () => {
     it('should not authenticate an URL', () => {
       expect(authenticator).to.not.have.property('authenticateURL');
 
-      const url = 'http://localhost:8080/nuxeo/api/v1/path/';
+      const url = `${baseURL}/api/v1/path/`;
       const authenticatedURL = nuxeo.authenticateURL(url);
       expect(authenticatedURL).to.be.equal(url);
     });

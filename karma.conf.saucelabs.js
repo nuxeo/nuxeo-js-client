@@ -22,6 +22,7 @@ const browsers = {
 };
 
 module.exports = (config) => {
+  baseConfiguration.client.baseURL = `${process.env.NUXEO_BASE_URL}`;
   baseConfiguration.reporters.push('saucelabs');
   baseConfiguration.reporters.push('junit');
   baseConfiguration.junitReporter = {

@@ -14,6 +14,7 @@ describe('Operation', () => {
 
   before(() => {
     nuxeo = new Nuxeo({
+      baseURL,
       auth: {
         method: 'basic',
         username: 'Administrator',

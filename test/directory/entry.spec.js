@@ -7,7 +7,7 @@ describe('DirectoryEntry', () => {
   let dir;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     dir = nuxeo.directory('nature');
 
     return nuxeo.connect()

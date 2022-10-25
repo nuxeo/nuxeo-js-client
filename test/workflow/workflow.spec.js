@@ -11,7 +11,7 @@ describe('Workflow spec', () => {
   let repository;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     repository = nuxeo.repository({
       schemas: ['dublincore'],
     });

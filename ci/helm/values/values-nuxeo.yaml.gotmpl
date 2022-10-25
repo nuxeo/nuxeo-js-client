@@ -1,0 +1,53 @@
+image:
+  {{/* this condition is used to differentiate execution in the CI and locally */}}
+  {{- if (env "BRANCH_NAME") }}
+  repository: {{ printf "%s/nuxeo/nuxeo-js-client-ftests" (requiredEnv "DOCKER_REGISTRY") }}
+  pullSecrets:
+  - name: kubernetes-docker-cfg
+  {{- else }}
+  repository: nuxeo/nuxeo-js-client-ftests
+  {{- end }}
+  tag: "{{ .Values.nuxeo.image.tag }}"
+podLabels:
+  {{- if (env "BRANCH_NAME") }}
+  branch: {{ env "BRANCH_NAME" | quote }}
+  {{- end }}
+  resource: pod
+  team: platform
+  usage: ftests
+service:
+  labels:
+    {{- if (env "BRANCH_NAME") }}
+    branch: {{ env "BRANCH_NAME" | quote }}
+    {{- end }}
+    resource: service
+    team: platform
+    usage: ftests
+mongodb:
+  enabled: true
+  host: mongodb.{{ .Namespace }}.svc.cluster.local
+elasticsearch:
+  enabled: true
+  host: elasticsearch-master.{{ .Namespace }}.svc.cluster.local
+{{/* in the CI we need to have HTTPS for oauth2 tests */}}
+{{/* locally there's no issue as we bind the 8080 port and leverages localhost check */}}
+{{- if (env "BRANCH_NAME") }}
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/server-snippet: ignore_invalid_headers off;
+  hostname: {{ requiredEnv "NUXEO_DOMAIN" }}
+  tls:
+  - hosts:
+    - {{ requiredEnv "NUXEO_DOMAIN" }}
+    secretName: platform-cluster-tls
+{{- end }}
+{{- if hasPrefix "10.10" .Values.nuxeo.image.tag }}
+{{/* this value is lost for 10.10 */}}
+customProperties:
+  elasticsearch: |
+    elasticsearch.client=RestClient
+{{- end }}
