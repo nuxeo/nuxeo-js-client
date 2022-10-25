@@ -1,0 +1,56 @@
+repositories:
+  - name: bitnami
+    url: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+  - name: elastic
+    url: https://helm.elastic.co/
+  - name: nuxeo
+    url: https://chartmuseum.platform.dev.nuxeo.com/
+
+helmDefaults:
+  timeout: 300
+  wait: true
+
+releases:
+  - name: nuxeo
+    chart: nuxeo/nuxeo
+    version: 3.0.11
+    needs:
+      - elasticsearch
+      - mongodb
+    values:
+      - values/values-nuxeo.yaml.gotmpl
+      - values/values-tolerations.yaml.gotmpl
+  - name: elasticsearch
+    chart: elastic/elasticsearch
+    version: 7.9.2
+    values:
+      - values/values-elasticsearch.yaml.gotmpl
+      - values/values-tolerations.yaml.gotmpl
+  - name: mongodb
+    chart: bitnami/mongodb
+    version: 7.14.2
+    values:
+      - values/values-mongodb.yaml.gotmpl
+      - values/values-tolerations.yaml.gotmpl
+
+environments:
+  functional-tests-10.10:
+    values:
+      - nuxeo:
+          image:
+            tag: {{ env "NUXEO_VERSION" | default "10.10" }}
+        elasticsearch:
+          imageTag: "6.8.23"
+        mongodb:
+          image:
+            tag: "4.2"
+  functional-tests-2021:
+    values:
+      - nuxeo:
+          image:
+            tag: {{ env "NUXEO_VERSION" | default "2021" }}
+        elasticsearch:
+          imageTag: "7.9.2"
+        mongodb:
+          image:
+            tag: "4.4"

@@ -11,7 +11,7 @@
     return titles.reverse();
   };
 
-  const nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+  const nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
 
   // Log on the server the running test
   beforeEach(function f(done) {

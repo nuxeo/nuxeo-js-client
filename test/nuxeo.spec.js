@@ -6,6 +6,7 @@ describe('Nuxeo', () => {
 
   before(() => {
     nuxeo = new Nuxeo({
+      baseURL,
       auth: {
         method: 'basic',
         username: 'Administrator',
@@ -121,7 +122,7 @@ describe('Nuxeo', () => {
       const op = nuxeo.operation('Document.Update');
       expect(op._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
       expect(op._baseOptions.headers).to.be.eql({ foo: 'bar' });
-      expect(op._url).to.be.equal('http://localhost:8080/nuxeo/api/v1/automation/');
+      expect(op._url).to.be.equal(`${baseURL}/api/v1/automation/`);
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -151,7 +152,7 @@ describe('Nuxeo', () => {
       const request = nuxeo.request('/path/default-domain');
       expect(request._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
       expect(request._baseOptions.headers).to.be.eql({ foo: 'bar' });
-      expect(request._url).to.be.equal('http://localhost:8080/nuxeo/api/v1/');
+      expect(request._url).to.be.equal(`${baseURL}/api/v1/`);
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -213,7 +214,7 @@ describe('Nuxeo', () => {
     it('should inherit configuration from Nuxeo', () => {
       const batch = nuxeo.batchUpload();
       expect(batch._baseOptions.headers).to.be.eql({ foo: 'bar' });
-      expect(batch._url).to.be.equal('http://localhost:8080/nuxeo/api/v1/upload/');
+      expect(batch._url).to.be.equal(`${baseURL}/api/v1/upload/`);
     });
 
     it('should allow overriding configuration from Nuxeo', () => {

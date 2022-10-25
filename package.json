@@ -66,11 +66,11 @@
     "watchify": "^3.7.0"
   },
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf ${JS_DIST_DIR:-dist}",
     "build": "yarn clean && yarn build:dist && yarn build:browser && yarn build:es5",
     "build:dist": "node bin/build-dist.js",
-    "build:es5": "babel lib --out-dir dist/es5",
-    "build:browser": "mkdirp dist && browserify --entry lib/index-browserify.js --transform babelify --outfile dist/nuxeo.js",
+    "build:es5": "babel lib --out-dir ${JS_DIST_DIR:-dist}/es5",
+    "build:browser": "mkdirp ${JS_DIST_DIR:-dist} && browserify --entry lib/index-browserify.js --transform babelify --outfile ${JS_DIST_DIR:-dist}/nuxeo.js",
     "lint": "eslint 'lib' 'test'",
     "pretest": "rimraf coverage && yarn lint",
     "test": "yarn test:cover && yarn test:browser",

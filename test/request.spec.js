@@ -8,7 +8,7 @@ describe('Request', () => {
   let nuxeo;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
 
     const newDoc = {
       name: WS_JS_TEST_NAME,
@@ -64,7 +64,7 @@ describe('Request', () => {
       .then((res) => {
         if (res.url.length > 0) {
           // url is empty on FF
-          expect(res.url).to.be.equal('http://localhost:8080/nuxeo/api/v1/path/default-domain/workspaces/ws-js-tests?foo=foo&bar=bar');
+          expect(res.url).to.be.equal(`${baseURL}/api/v1/path/default-domain/workspaces/ws-js-tests?foo=foo&bar=bar`);
         }
       })
   ));

@@ -14,6 +14,7 @@ describe('UTF-8 filenames spec', () => {
 
   before(() => {
     nuxeo = new Nuxeo({
+      baseURL,
       auth: {
         method: 'basic',
         username: 'Administrator',

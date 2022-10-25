@@ -12,11 +12,15 @@ describe('Multi Repository', () => {
   let repositoryOther;
 
   before(() => {
-    nuxeoDefault = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+    nuxeoDefault = new Nuxeo({
+      baseURL,
+      auth: { method: 'basic', username: 'Administrator', password: 'Administrator' },
+    });
     repositoryDefault = nuxeoDefault.repository({
       schemas: ['dublincore'],
     });
     nuxeoOther = new Nuxeo({
+      baseURL,
       auth: { method: 'basic', username: 'Administrator', password: 'Administrator' },
       repositoryName: REPOSITORY_OTHER,
     });

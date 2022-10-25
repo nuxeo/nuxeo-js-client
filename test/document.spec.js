@@ -18,7 +18,7 @@ describe('Document', () => {
   let repository;
 
   before(() => {
-    nuxeo = new Nuxeo({ auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
+    nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     repository = nuxeo.repository({
       schemas: ['dublincore'],
     });
@@ -537,7 +537,7 @@ describe('Document', () => {
           username: 'leela',
           permission: 'Read',
         }))
-        .then(() => new Nuxeo({ auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
+        .then(() => new Nuxeo({ baseURL, auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
         .then((n) => n.repository().fetch(FILE_TEST_PATH))
         .then((doc) => doc.hasPermission('Write'))
         .then((perm) => expect(perm).to.be.false())
@@ -590,7 +590,7 @@ describe('Document', () => {
             username: 'leela',
             permission: 'ReadWrite',
           }))
-          .then(() => new Nuxeo({ auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
+          .then(() => new Nuxeo({ baseURL, auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
           .then((n) => n.repository().fetch(FILE_TEST_PATH))
           .then((doc) => doc.lock())
           .then(() => done('Must not resolved when locking a document already locked by an other user'),
