@@ -1,5 +1,3 @@
-/* global window */
-
 const chai = require('chai');
 
 window.baseURL = __karma__.config.baseURL;
