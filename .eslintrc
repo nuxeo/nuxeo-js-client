@@ -4,6 +4,8 @@
     "arrow-body-style": ["error", "as-needed", { "requireReturnForObjectLiteral": true }],
     "arrow-parens": ["error", "always"],
     "class-methods-use-this": "off",
+    "function-paren-newline": "off",
+    "function-call-argument-newline": "off",
     "max-len": ["error", 120, 2, {
       "ignoreUrls": true,
       "ignoreComments": false
