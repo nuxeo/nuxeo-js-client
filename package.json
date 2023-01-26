@@ -67,9 +67,8 @@
   },
   "scripts": {
     "clean": "rimraf ${JS_DIST_DIR:-dist}",
-    "build": "yarn clean && yarn build:dist && yarn build:browser && yarn build:es5",
+    "build": "yarn clean && yarn build:dist && yarn build:browser",
     "build:dist": "node bin/build-dist.js",
-    "build:es5": "babel lib --out-dir ${JS_DIST_DIR:-dist}/es5",
     "build:browser": "mkdirp ${JS_DIST_DIR:-dist} && browserify --entry lib/index-browserify.js --transform babelify --outfile ${JS_DIST_DIR:-dist}/nuxeo.js",
     "lint": "eslint 'lib' 'test'",
     "pretest": "rimraf coverage && yarn lint",
@@ -91,11 +90,7 @@
     "./lib/deps/fetch.js": "./lib/deps/fetch-browser.js",
     "./lib/deps/promise.js": "./lib/deps/promise-browser.js",
     "./lib/deps/form-data.js": "./lib/deps/form-data-browser.js",
-    "./lib/deps/utils/buffer.js": "./lib/deps/utils/buffer-browser.js",
-    "./es5/deps/fetch.js": "./es5/deps/fetch-browser.js",
-    "./es5/deps/promise.js": "./es5/deps/promise-browser.js",
-    "./es5/deps/form-data.js": "./es5/deps/form-data-browser.js",
-    "./es5/deps/utils/buffer.js": "./es5/deps/utils/buffer-browser.js"
+    "./lib/deps/utils/buffer.js": "./lib/deps/utils/buffer-browser.js"
   },
   "react-native": {
     "./lib/deps/fetch.js": "./lib/deps/fetch-react-native.js",
