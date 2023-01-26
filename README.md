@@ -36,15 +36,6 @@ var Nuxeo = require('nuxeo');
 var nuxeo = new Nuxeo({ ... });
 ```
 
-##### Node.js v4 (Argon)
-
-As Node.js v4 is EOL, tests are not launched anymore on it and it's not a supported target. However, the ES5 build should work so if you really need to run on Node.js v4, use the following:
-
-```javascript
-var Nuxeo = require('nuxeo/es5');
-var nuxeo = new Nuxeo({ ... });
-```
-
 #### Bower Powered Applications
 
 The `nuxeo` client can be also installed through bower:
@@ -116,19 +107,10 @@ const nuxeo = new Nuxeo({...});
 
 #### React Applications
 
-After adding `nuxeo` through `npm` or `yarn` to your application, to make it sure that it will work on most browsers
-you must require `nuxeo` differently according to your build system.
-
-If your build transpiles external libraries from ES6 to ES5:
+After adding `nuxeo` through `npm` or `yarn` to your application:
 
 ```javascript
 var Nuxeo = require('nuxeo');
-```
-
-If your build does not (such as [create-react-app](https://github.com/facebookincubator/create-react-app)):
-
-```javascript
-var Nuxeo = require('nuxeo/es5');
 ```
 
 ## Documentation
