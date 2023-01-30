@@ -248,8 +248,28 @@ describe('Repository', () => {
         });
     });
 
-    it('test ; doc with some #, $, :, ; &? and =+', () => {
-      const name = 'test ; doc with some #, $, :, ; &? and =+';
+    it('test ; doc #, $, :, ;', () => {
+      const name = 'test ; doc #, $, :, ;';
+      const newDoc = {
+        name,
+        type: 'Workspace',
+        properties: {
+          'dc:title': name,
+        },
+      };
+      return _repository.create(WS_ROOT_PATH, newDoc)
+        .then((doc) => _repository.fetch(doc.path))
+        .then((doc) => {
+          expect(doc.uid).to.exist();
+          expect(doc.path.endsWith(name)).to.be.true();
+          expect(doc.type).to.be.equal('Workspace');
+          expect(doc.get('dc:title')).to.be.equal(name);
+          return _repository.delete(doc.path);
+        });
+    });
+
+    it('test ; &? and =+', () => {
+      const name = 'test ; &? and =+';
       const newDoc = {
         name,
         type: 'Workspace',
