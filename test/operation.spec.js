@@ -337,5 +337,20 @@ describe('Operation', () => {
           })
       ));
     });
+
+    // NXJS-200
+    it('should not ignore headers set on the operation', () => {
+      const op = nuxeo.operation('Repository.GetDocument').param('value', FILE_TEST_PATH);
+      return op.execute()
+        .then((res) => {
+          // no thumbnail enricher header
+          expect(res.contextParameters).to.not.exist();
+        })
+        .then(() => op.header('enrichers-document', 'thumbnail').execute())
+        .then((res) => {
+          // with thumbnail enricher header
+          expect(res.contextParameters.thumbnail.url).to.exist();
+        });
+    });
   });
 });
