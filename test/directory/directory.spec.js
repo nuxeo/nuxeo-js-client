@@ -101,4 +101,24 @@ describe('Directory', () => {
       });
     });
   });
+
+  // NXJS-206
+  it('should delete an entry with an id containing //', () => {
+    const newEntry = {
+      properties: {
+        id: 'http://address.com/',
+        label: 'label',
+      },
+    };
+    return dir.create(newEntry).then((entry) => {
+      expect(entry['entity-type']).to.be.equal('directoryEntry');
+      expect(entry.directoryName).to.be.equal('nature');
+      expect(entry.properties.id).to.be.equal('http://address.com/');
+      expect(entry.properties.label).to.be.equal('label');
+
+      return dir.delete('http://address.com/').then((res) => {
+        expect(res.status).to.be.equal(204);
+      });
+    });
+  });
 });
