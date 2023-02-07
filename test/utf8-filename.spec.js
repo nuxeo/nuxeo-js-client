@@ -116,7 +116,7 @@ describe('UTF-8 filenames spec', () => {
     ));
 
     it('with @blob adapter', () => (
-      nuxeo.request(`path/${FILE_TEST_PATH}/@blob/file:content`)
+      nuxeo.request(`path${FILE_TEST_PATH}/@blob/file:content`)
         .get()
         .then((res) => {
           const disposition = contentDisposition.parse(res.headers.get('content-disposition'));
