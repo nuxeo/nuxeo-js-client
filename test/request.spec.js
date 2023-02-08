@@ -124,4 +124,17 @@ describe('Request', () => {
         expect(res.status).to.be.equal(204);
       })
   ));
+
+  // NXJS-198
+  it('should get a list of directory entries', () => (
+    nuxeo.request(join('directory', 'nature'))
+      .get()
+      .then((res) => {
+        const { entries } = res;
+        expect(entries).to.be.an.instanceof(Array);
+        expect(entries.length > 0).to.be.true();
+        expect(entries[0].directoryName).to.be.equal('nature');
+        expect(entries[0]._directory).to.exist();
+      })
+  ));
 });
