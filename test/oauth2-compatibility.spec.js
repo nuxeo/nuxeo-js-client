@@ -14,11 +14,8 @@ const CLIENT_SECRET = 'secret';
 
 // test functions to mutualize tests with or without client secret
 function fetchAccessToken(clientId, clientSecret) {
-  const opts = { baseURL, clientId };
-  if (clientSecret) {
-    opts.clientSecret = clientSecret;
-  }
-  const url = Nuxeo.oauth2.getAuthorizationURL(opts);
+  const params = typeof clientSecret === 'undefined' ? {} : { client_secret: clientSecret };
+  const url = Nuxeo.oauth2.getAuthorizationURL(baseURL, clientId, params);
   const formParameters = qs.parse(url.substring(url.indexOf('?') + 1));
   formParameters.grant_access = '1';
   const submitURL = url.replace(/authorize.*/, 'authorize_submit');
@@ -34,21 +31,13 @@ function fetchAccessToken(clientId, clientSecret) {
   }).then((res) => {
     const queryParameters = res.url.substring(res.url.indexOf('?') + 1);
     const parameters = qs.parse(queryParameters);
-    const cloneOpts = { ...opts };
-    cloneOpts.code = parameters.code;
-    return Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(cloneOpts);
+    return Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(baseURL, clientId, parameters.code, params);
   });
 }
 
 function testAuthorizationURLWithoutParams(clientId, clientSecret) {
-  const opts = {
-    baseURL: 'http://localhost:8080/nuxeo',
-    clientId,
-  };
-  if (clientSecret) {
-    opts.clientSecret = clientSecret;
-  }
-  const url = Nuxeo.oauth2.getAuthorizationURL(opts);
+  const params = { client_secret: clientSecret };
+  const url = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', clientId, params);
   expect(url.startsWith('http://localhost:8080/nuxeo/oauth2/authorize?')).to.be.true();
   expect(url).to.include(`client_id=${clientId}`);
   expect(url).to.include('response_type=code');
@@ -58,19 +47,14 @@ function testAuthorizationURLWithoutParams(clientId, clientSecret) {
 }
 
 function testAuthorizationURLWithAdditionalParams(clientId, clientSecret) {
-  const opts = {
-    baseURL: 'http://localhost:8080/nuxeo',
-    clientId,
-    params: {
-      redirect_uri: 'http://localhost:8000/authorize',
-      state: 'xyz',
-      response_type: 'token',
-    },
+  const params = {
+    client_secret: clientSecret,
+    redirect_uri: 'http://localhost:8000/authorize',
+    state: 'xyz',
+    response_type: 'token',
   };
-  if (clientSecret) {
-    opts.clientSecret = clientSecret;
-  }
-  const url = Nuxeo.oauth2.getAuthorizationURL(opts);
+
+  const url = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo/', clientId, params);
   expect(url.startsWith('http://localhost:8080/nuxeo/oauth2/authorize?')).to.be.true();
   expect(url).to.include(`client_id=${clientId}`);
   if (clientSecret) {
@@ -82,9 +66,9 @@ function testAuthorizationURLWithAdditionalParams(clientId, clientSecret) {
 }
 
 function testAuthorizationURLMissingArguments(clientId) {
-  expect(() => { Nuxeo.oauth2.getAuthorizationURL({ baseURL: 'http://localhost:8080/nuxeo' }); })
+  expect(() => { Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', null); })
     .to.throw(Error, 'Missing `clientId` argument');
-  expect(() => { Nuxeo.oauth2.getAuthorizationURL({ clientId }); })
+  expect(() => { Nuxeo.oauth2.getAuthorizationURL(null, clientId); })
     .to.throw(Error, 'Missing `baseURL` argument');
 }
 
@@ -129,12 +113,8 @@ function testAccessTokenManualRefresh(clientId, clientSecret) {
     .then((doc) => {
       expect(doc).to.be.an.instanceof(Nuxeo.Document);
       expect(doc.uid).to.exist();
-      return Nuxeo.oauth2.refreshAccessToken({
-        baseURL,
-        clientId,
-        clientSecret,
-        refreshToken: firstToken.refresh_token,
-      });
+      return Nuxeo.oauth2.refreshAccessToken(
+        baseURL, clientId, firstToken.refresh_token, { client_secret: clientSecret });
     })
     .then((token) => {
       const bearerNuxeo = new Nuxeo({
@@ -233,14 +213,14 @@ function testAccessTokenAutomaticRefresh(adminNuxeo, clientId, clientSecret) {
 
 function testAccessTokenFromJWTToken(clientId, clientSecret) {
   const jwtToken = jwt.sign({ iss: 'nuxeo', sub: 'Administrator' }, JWT_SHARED_SECRET, { algorithm: 'HS512' });
-  return Nuxeo.oauth2.fetchAccessTokenFromJWTToken({
-    baseURL, clientId, clientSecret, jwtToken,
-  }).then((token) => {
-    expect(token).to.have.all.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
-  });
+  const params = { client_secret: clientSecret };
+  return Nuxeo.oauth2.fetchAccessTokenFromJWTToken(baseURL, clientId, jwtToken, params)
+    .then((token) => {
+      expect(token).to.have.all.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
+    });
 }
 
-describe('OAuth2 spec', () => {
+describe('OAuth2 Compatibility spec', () => {
   let nuxeo;
   let oauth2Client;
   let oauth2ClientWithSecret;

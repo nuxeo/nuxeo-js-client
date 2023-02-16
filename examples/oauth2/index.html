@@ -106,34 +106,37 @@
       history.replaceState(null, null, window.location.href.substring(0, index));
       unauthenticated = false;
       show('authenticating');
-      Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(NUXEO_URL, CLIENT_ID, code)
-        .then(function(token) {
-          nuxeo = new Nuxeo({ baseURL: NUXEO_URL, auth: { method: 'bearerToken', token : token }});
-          return nuxeo.operation('User.GetUserWorkspace')
-            .execute();
-        })
-        .then(function(doc) {
-          return nuxeo.repository().query({
-            pageProvider: 'document_content',
-            queryParams: [doc.uid]
-          });
-        })
-        .then(function(res) {
-          renderDocuments(res.entries);
-          hide('authenticating');
-          show('authenticated')
-        })
-        .catch(function(e) {
-          console.log(e);
-          hide('unauthenticated');
-          hide('authenticating');
-          hide('authenticated');
-          show('error');
+      Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode({
+        baseURL: NUXEO_URL,
+        clientId: CLIENT_ID,
+        code,
+      }).then(function(token) {
+        nuxeo = new Nuxeo({ baseURL: NUXEO_URL, auth: { method: 'bearerToken', token : token }});
+        return nuxeo.operation('User.GetUserWorkspace')
+          .execute();
+      })
+      .then(function(doc) {
+        return nuxeo.repository().query({
+          pageProvider: 'document_content',
+          queryParams: [doc.uid]
         });
+      })
+      .then(function(res) {
+        renderDocuments(res.entries);
+        hide('authenticating');
+        show('authenticated')
+      })
+      .catch(function(e) {
+        console.log(e);
+        hide('unauthenticated');
+        hide('authenticating');
+        hide('authenticated');
+        show('error');
+      });
     }
 
     if (unauthenticated) {
-      var authURL = Nuxeo.oauth2.getAuthorizationURL(NUXEO_URL, CLIENT_ID);
+      var authURL = Nuxeo.oauth2.getAuthorizationURL({ baseURL: NUXEO_URL, clientId: CLIENT_ID });
       document.getElementById('authlink').href = authURL;
       show('unauthenticated');
     }
