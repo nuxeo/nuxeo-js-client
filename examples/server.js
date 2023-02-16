@@ -10,5 +10,5 @@ app.use(express.static(__dirname));
 
 const port = process.env.PORT || 8888;
 app.listen(port);
-/* eslint no-console: 0*/
+/* eslint no-console: 0 */
 console.log(`Server running at: http://localhost:${port}`);

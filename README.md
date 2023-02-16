@@ -23,11 +23,15 @@ The JS Client is compliant with all Nuxeo versions as of LTS 2015.
 
 After [installing](http://nodejs.org/#download) [Node.js](http://nodejs.org), use `npm` or `yarn` to install the `nuxeo` package:
 
-    $ npm install nuxeo
+```bash
+npm install nuxeo
+```
 
 or
 
-    $ yarn add nuxeo
+```bash
+yarn add nuxeo
+```
 
 ##### Node.js
 
@@ -40,7 +44,9 @@ var nuxeo = new Nuxeo({ ... });
 
 The `nuxeo` client can be also installed through bower:
 
-    $ bower install nuxeo --save
+```bash
+  bower install nuxeo --save
+```
 
 When added to your page, `Nuxeo` is available as a global variable.
 
@@ -122,6 +128,38 @@ Check out the [API documentation](https://nuxeo.github.io/nuxeo-js-client/latest
 Some working examples using the Nuxeo JavaScript Client can be found [here](https://github.com/nuxeo/nuxeo-js-client/tree/master/examples).
 
 ## Deprecated APIs
+
+__Nuxeo.oauth2.getAuthorizationURL(baseURL, clientId[, params])__ (since 4.0.0)
+
+The `getAuthorizationURL(baseURL, clientId[, params])` method is deprecated in favor of the `getAuthorizationURL(opts)` method. The old arguments are now passed in the `opts` object, such as:
+
+```javascript
+Nuxeo.oauth2.getAuthorizationURL({ baseURL, clientId, params })
+```
+
+__Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(baseURL, clientId, code[, params])__ (since 4.0.0)
+
+The `fetchAccessTokenFromAuthorizationCode(baseURL, clientId, code[, params])` method is deprecated in favor of the `fetchAccessTokenFromAuthorizationCode(opts)` method. The old arguments are now passed in the `opts` object, such as:
+
+```javascript
+Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode({ baseURL, clientId, code, params })
+```
+
+__Nuxeo.oauth2.fetchAccessTokenFromJWTToken(baseURL, clientId, jwtToken[, params])__ (since 4.0.0)
+
+The `fetchAccessTokenFromJWTToken(baseURL, clientId, jwtToken[, params])` method is deprecated in favor of the `fetchAccessTokenFromJWTToken(opts)` method. The old arguments are now passed in the `opts` object, such as:
+
+```javascript
+Nuxeo.oauth2.fetchAccessTokenFromJWTToken({ baseURL, clientId, jwtToken, params })
+```
+
+__Nuxeo.oauth2.refreshAccessToken(baseURL, clientId, refreshToken[, params])__ (since 4.0.0)
+
+The `refreshAccessToken(baseURL, clientId, refreshToken[, params])` method is deprecated in favor of the `refreshAccessToken(opts)` method. The old arguments are now passed in the `opts` object, such as:
+
+```javascript
+Nuxeo.oauth2.refreshAccessToken({ baseURL, clientId, refreshToken, params })
+```
 
 __Base#timeout__ (since 3.6.0)
 
@@ -246,7 +284,8 @@ var nuxeo = new Nuxeo({
   auth: {
     method: 'bearerToken',
     token: access_token,
-    clientId: 'my-app' // optional OAuth2 client ID to refresh the access token
+    clientId: 'my-app', // optional OAuth2 client ID to refresh the access token
+    clientSecret: 'my-secret', // required if the client defines a secret
   }
 });
 ```
@@ -272,7 +311,7 @@ __Retrieving Authorization Code__
 
 Generate a "log in" link to be used in a browser, such as:
 
-`http://localhost:8080/nuxeo/oauth2/authorize?client_id=CLIENT_ID&response_type=code&redirect_uri=REDIRECT_URI`
+`http://localhost:8080/nuxeo/oauth2/authorize?client_id=CLIENT_ID[&client_secret=CLIENT_SECRET]&response_type=code&redirect_uri=REDIRECT_URI`
 
 The user sees the login page then, after being logged in, the authorization prompt for the application.
 
@@ -290,6 +329,7 @@ POST http://localhost:8080/nuxeo/oauth2/token
   code=AUTH_CODE
   redirect_uri=REDIRECT_URI
   client_id=CLIENT_ID
+  client_secret=CLIENT_SECRET
 ```
 
 The Nuxeo Platform replies with an access token:
@@ -305,45 +345,64 @@ The Nuxeo Platform replies with an access token:
 
 There are some utility methods on the client to help you with this flow:
 
-__Nuxeo.oauth2.getAuthorizationURL(baseURL, clientId[, params])__
+__Nuxeo.oauth2.getAuthorizationURL(opts)__
 
-Returns the OAuth2 authorization URL for the given `baseURL` and `clientId`.
+Returns the OAuth2 authorization URL for the given `opts` object, containing `baseURL`, `clientId`, optional `clientSecret` and optional `params`.
 
 ```javascript
-var authorizationURL = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', 'my-app', {
-  state: 'xyz',
-  redirect_uri: 'http://localhost:8000/authorize',
+var authorizationURL = Nuxeo.oauth2.getAuthorizationURL({
+  baseURL: 'http://localhost:8080/nuxeo',
+  clientId: 'my-app',
+  clientSecret: 'my-secret', // required if the client defines a secret
+  params: {
+    state: 'xyz',
+    redirect_uri: 'http://localhost:8000/authorize',
+  }
 });
 console.log(authorizationURL); // http://localhost:8080/nuxeo/oauth2/authorize?client_id=my-app&response_type=code&state=xyz&redirect_uri=http://localhost:8000/authorize
 ```
 
-__Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(baseURL, clientId, code[, params])__
+__Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode(opts)__
 
-Fetches an OAuth2 access token for the given `baseURL`, `clientId` and `code`.
+Fetches an OAuth2 access token for the given `opts` object containing `baseURL`, `clientId`, `code`, optional `clientSecret` and optional `params`.
 
 ```javascript
 var code = ...
-Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode('http://localhost:8080/nuxeo', 'my-app', code, {
-  redirect_uri: 'http://localhost:8000/authorize',
+Nuxeo.oauth2.fetchAccessTokenFromAuthorizationCode({
+  baseURL: 'http://localhost:8080/nuxeo',
+  clientId: 'my-app',
+  clientSecret: 'my-secret', // required if the client defines a secret
+  code: code,
+  params: {
+    redirect_uri: 'http://localhost:8000/authorize',
+  }
 }).then(function(token) {
   // do something with the access token
   var nuxeo = new Nuxeo({
     auth: {
       method: 'bearerToken',
-      token: token
+      token: token,
+      clientId: 'my-app', // optional OAuth2 client ID to refresh the access token
+      clientSecret: 'my-secret', // required if the client defines a secret
     }
   });
 });
 ```
 
-__Nuxeo.oauth2.fetchAccessTokenFromJWTToken(baseURL, clientId, jwtToken[, params])__
+__Nuxeo.oauth2.fetchAccessTokenFromJWTToken(opts)__
 
-Fetches an OAuth2 access token for the given `baseURL`, `clientId` and `jwtToken`.
+Fetches an OAuth2 access token for the given `opts` object containing `baseURL`, `clientId`, `jwtToken`, optional `clientSecret` and optional `params`.
 
 ```javascript
 var jwtToken = ...
-Nuxeo.oauth2.fetchAccessTokenFromJWTToken('http://localhost:8080/nuxeo', 'my-app', jwtToken, {
-  redirect_uri: 'http://localhost:8000/authorize',
+Nuxeo.oauth2.fetchAccessTokenFromJWTToken({
+  baseURL: 'http://localhost:8080/nuxeo',
+  clientId: 'my-app',
+  clientSecret: 'my-secret', // required if the client defines a secret
+  jwtToken: jwtToken,
+  params: {
+    redirect_uri: 'http://localhost:8000/authorize',
+  }
 }).then(function(token) {
   // do something with the access token
   var nuxeo = new Nuxeo({
@@ -355,14 +414,18 @@ Nuxeo.oauth2.fetchAccessTokenFromJWTToken('http://localhost:8080/nuxeo', 'my-app
 });
 ```
 
-__Nuxeo.oauth2.refreshAccessToken(baseURL, clientId, refreshToken[, params])__
+__Nuxeo.oauth2.refreshAccessToken(optsbaseURL, clientId, refreshToken[, params])__
 
-Manually refresh an access token for the given `baseURL`, `clientId` and `refreshToken`.
+Manually refresh an access token for the given `opts` object containing `baseURL`, `clientId`, `refreshToken`, optional `clientSecret` and optional `params`.
 
 ```javascript
 var refreshToken = ...
-Nuxeo.oauth2.refreshAccessToken('http://localhost:8080/nuxeo', 'my-app', refreshToken)
-  .then(function(token) {
+Nuxeo.oauth2.refreshAccessToken({
+  baseURL: 'http://localhost:8080/nuxeo',
+  clientId: 'my-app',
+  clientSecret: 'my-secret', // required if the client defines a secret
+  refreshToken: refreshToken,
+}).then(function(token) {
     console.log(token); // refreshed access token
 });
 ```
