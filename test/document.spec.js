@@ -674,4 +674,17 @@ describe('Document', () => {
         });
     });
   });
+
+  // NXJS-199
+  it('should remove private properties when stringified', () => (
+    repository.fetch(FILE_TEST_PATH)
+      .then((doc) => {
+        const stringifiedDoc = JSON.parse(JSON.stringify(doc));
+        expect(stringifiedDoc._baseOptions).to.not.exist();
+        expect(stringifiedDoc._nuxeo).to.not.exist();
+        expect(stringifiedDoc._repository).to.not.exist();
+        expect(stringifiedDoc._dirtyProperties).to.not.exist();
+        expect(stringifiedDoc.properties).to.exist();
+      })
+  ));
 });
