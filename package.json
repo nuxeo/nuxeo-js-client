@@ -83,7 +83,6 @@
     "it:node": "mocha --timeout 30000 --require test/helpers/setup.js --require test/helpers/setup-node.js 'test/helpers/setup-logging.js' --reporter mocha-jenkins-reporter --reporter-options junit_report_path=ftest/target/$JS_REPORTS_DIR/test-results-node.xml,junit_report_stack=1 'test/**/*.spec.js'",
     "it:browser": "karma start karma.conf.saucelabs.js",
     "doc": "jsdoc -c jsdoc.json",
-    "release": "./bin/release.sh",
     "start": "yarn build:browser && node examples/server.js"
   },
   "browser": {
