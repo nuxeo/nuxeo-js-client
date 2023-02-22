@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2023 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  * Contributors:
- *     Kevin Leturc <kleturc@nuxeo.com>
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
- library identifier: "platform-ci-shared-library@v0.0.1"
+library identifier: "platform-ci-shared-library@v0.0.18"
 
 String getNodeJsVersion(String containerId) {
   container(containerId) {
@@ -205,6 +205,7 @@ pipeline {
   post {
     always {
       script {
+        currentBuild.description = "Build ${VERSION}"
         nxJira.updateIssues()
       }
     }

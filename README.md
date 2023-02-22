@@ -1,6 +1,6 @@
 ## Client Library for Nuxeo API
 
-[![Jenkins](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=Client/nuxeo-js-client-vs-master/master)](https://qa.nuxeo.org/jenkins/job/Client/job/nuxeo-js-client-vs-master/job/master/)
+[![Jenkins](https://jenkins.platform.dev.nuxeo.com/buildStatus/icon?job=js-client%2Fnuxeo-js-client%2Fmaster)](https://jenkins.platform.dev.nuxeo.com/job/js-client/job/nuxeo-js-client/job/master/)
 [![npm version](https://img.shields.io/npm/v/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
 [![npm downloads](https://img.shields.io/npm/dm/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
 [![Dependency Status](https://img.shields.io/david/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client) [![devDependency Status](https://img.shields.io/david/dev/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client#info=devDependencies)
