@@ -29,7 +29,7 @@
     "form-data": "^4.0.0",
     "md5": "^2.2.1",
     "mocha": "^10.2.0",
-    "node-fetch-npm": "^2.0.2",
+    "node-fetch": "^2.6.9",
     "promise-queue": "^2.2.2",
     "querystring": "^0.2.0",
     "random-js": "^1.0.8",
