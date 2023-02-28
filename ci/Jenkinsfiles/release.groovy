@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.18"
+library identifier: "platform-ci-shared-library@v0.0.19"
 
 pipeline {
   agent {
@@ -81,17 +81,28 @@ pipeline {
     }
 
     stage('Generate documentation') {
-      when {
-        expression { !nxUtils.isDryRun() }
-      }
       steps {
         container('nodejs-active') {
-          sh "./bin/doc.sh ${VERSION}"
+          script {
+            sh "git checkout v${VERSION}"
+            sh 'yarn run doc'
+            sh 'mv doc /tmp/nuxeo.js-doc'
+            // configure git to fetch other branches than the current one
+            sh 'git config --add remote.origin.fetch +refs/heads/gh-pages:refs/remotes/origin/gh-pages'
+            nxGit.fetch(reference: 'gh-pages')
+            sh 'git checkout gh-pages'
+            // move doc for the released version
+            sh "mv /tmp/nuxeo.js-doc ${VERSION}"
+            // copy doc for the latest version
+            sh 'rm -rf latest'
+            sh "cp -r ${VERSION} latest"
+            nxGit.commitPush(message: "Add documentation for release ${VERSION}", branch: 'gh-pages')
+          }
         }
       }
       post {
         always {
-          archiveArtifacts artifacts: '${VERSION}'
+          archiveArtifacts artifacts: "${VERSION}/**"
         }
       }
     }
@@ -100,7 +111,7 @@ pipeline {
       steps {
         container('nodejs-active') {
           script {
-            sh 'git checkout ${BRANCH_NAME}'
+            sh "git checkout ${BRANCH_NAME}"
             sh "yarn version --no-git-tag-version --patch"
             nxGit.commitPush(message: "Post release ${VERSION}")
           }
