@@ -1,23 +1,24 @@
 const baseConfiguration = require('./karma.base.conf.js');
 
 const browsers = {
-  sl_70_chrome: {
+  sl_latest_chrome: {
     base: 'SauceLabs',
     browserName: 'chrome',
-    platform: 'Windows',
-    version: '70',
+    platform: 'Windows 10',
+    version: 'latest',
   },
   sl_latest_firefox: {
     base: 'SauceLabs',
     browserName: 'firefox',
-    platform: 'Windows',
-    version: '64',
+    platform: 'Windows 10',
+    version: 'latest',
+    geckodriverVersion: '0.30.0',
   },
-  sl_latest_esr_firefox: {
+  sl_latest_safari: {
     base: 'SauceLabs',
-    browserName: 'firefox',
-    platform: 'Windows',
-    version: '60',
+    browserName: 'safari',
+    platform: 'macOS 12',
+    version: 'latest',
   },
 };
 
