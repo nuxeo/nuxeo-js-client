@@ -28,6 +28,7 @@ pipeline {
     githubProjectProperty(projectUrlStr: 'https://github.com/nuxeo/nuxeo-js-client')
   }
   environment {
+    JIRA_NXJS_MOVING_VERSION = 'next'
     VERSION = nxUtils.getVersion()
   }
   stages {
@@ -103,6 +104,32 @@ pipeline {
       post {
         always {
           archiveArtifacts artifacts: "${VERSION}/**"
+        }
+      }
+    }
+
+    stage('Release Jira version') {
+      steps {
+        container('nodejs-active') {
+          script {
+            def jiraVersionName = "${VERSION}"
+            // create a new released version in Jira
+            def jiraVersion = [
+                project: 'NXJS',
+                name: jiraVersionName,
+                releaseDate: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                released: true,
+            ]
+            nxJira.newVersion(version: jiraVersion)
+            // find Jira tickets included in this release and update them
+            def jiraTickets = nxJira.jqlSearch(jql: "project = NXJS and fixVersion = ${JIRA_NXJS_MOVING_VERSION}")
+            def previousVersion = sh(returnStdout: true, script: "perl -pe 's/\\b(\\d+)(?=\\D*\$)/\$1-1/e' <<< ${VERSION}").trim()
+            def changelog = nxGit.getChangeLog(previousVersion: previousVersion, version: env.VERSION)
+            def committedIssues = jiraTickets.data.issues.findAll { changelog.contains(it.key) }
+            committedIssues.each {
+              nxJira.editIssueFixVersion(idOrKey: it.key, fixVersionToRemove: env.JIRA_NXJS_MOVING_VERSION, fixVersionToAdd: jiraVersionName)
+            }
+          }
         }
       }
     }
