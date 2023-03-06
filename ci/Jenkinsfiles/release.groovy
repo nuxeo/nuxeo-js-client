@@ -16,6 +16,9 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 library identifier: "platform-ci-shared-library@v0.0.19"
 
 pipeline {
@@ -122,7 +125,7 @@ pipeline {
             ]
             nxJira.newVersion(version: jiraVersion)
             // find Jira tickets included in this release and update them
-            def jiraTickets = nxJira.jqlSearch(jql: "project = NXJS and fixVersion = ${JIRA_NXJS_MOVING_VERSION}")
+            def jiraTickets = nxJira.jqlSearch(jql: "project = NXJS and fixVersion = '${JIRA_NXJS_MOVING_VERSION}'")
             def previousVersion = sh(returnStdout: true, script: "perl -pe 's/\\b(\\d+)(?=\\D*\$)/\$1-1/e' <<< ${VERSION}").trim()
             def changelog = nxGit.getChangeLog(previousVersion: previousVersion, version: env.VERSION)
             def committedIssues = jiraTickets.data.issues.findAll { changelog.contains(it.key) }
