@@ -103,7 +103,7 @@ describe('Directory', () => {
   });
 
   // NXJS-206
-  it('should delete an entry with an id containing //', () => {
+  it('should delete an entry with an id containing a link', () => {
     const newEntry = {
       properties: {
         id: 'http://address.com/',
