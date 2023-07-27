@@ -38,7 +38,7 @@ environments:
     values:
       - nuxeo:
           image:
-            tag: {{ env "NUXEO_VERSION" | default "10.10" }}
+            tag: {{ env "NUXEO_VERSION" | default "10.10" | quote }}
         elasticsearch:
           imageTag: "6.8.23"
         mongodb:
@@ -48,7 +48,7 @@ environments:
     values:
       - nuxeo:
           image:
-            tag: {{ env "NUXEO_VERSION" | default "2021" }}
+            tag: {{ env "NUXEO_VERSION" | default "2021" | quote }}
         elasticsearch:
           imageTag: "7.9.2"
         mongodb:

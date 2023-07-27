@@ -19,7 +19,7 @@
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-library identifier: "platform-ci-shared-library@v0.0.19"
+library identifier: "platform-ci-shared-library@v0.0.25"
 
 pipeline {
   agent {
@@ -40,7 +40,7 @@ pipeline {
       steps {
         container('nodejs-active') {
           script {
-            nxK8s.setPodLabel()
+            nxK8s.setPodLabels()
           }
         }
       }
