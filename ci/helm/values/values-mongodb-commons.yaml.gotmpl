@@ -1,5 +1,6 @@
 image:
   tag: {{ .Values.mongodb.image.tag }}
+fullnameOverride: "mongodb"
 usePassword: false
 serviceAccount:
   create: false
