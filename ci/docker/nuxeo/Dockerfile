@@ -1,4 +1,4 @@
-ARG NUXEO_VERSION=2021
+ARG NUXEO_VERSION=2023
 
 FROM docker-private.packages.nuxeo.com/nuxeo/nuxeo:${NUXEO_VERSION}
 

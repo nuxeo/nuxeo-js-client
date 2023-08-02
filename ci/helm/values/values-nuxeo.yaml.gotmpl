@@ -22,7 +22,11 @@ mongodb:
   host: mongodb.{{ .Namespace }}.svc.cluster.local
 elasticsearch:
   enabled: true
+  {{- if .Values.opensearch.enabled }}
+  host: opensearch-cluster-master.{{ .Namespace }}.svc.cluster.local
+  {{- else }}
   host: elasticsearch-master.{{ .Namespace }}.svc.cluster.local
+  {{- end }}
 {{/* in the CI we need to have HTTPS for oauth2 tests */}}
 {{/* locally there's no issue as we bind the 8080 port and leverages localhost check */}}
 {{- if (env "BRANCH_NAME") }}

@@ -151,6 +151,15 @@ pipeline {
             }
           }
         }
+        stage('Nuxeo 2023') {
+          steps {
+            container('nodejs-active') {
+              script {
+                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=2023-${VERSION}", "NUXEO_VERSION=2023"])
+              }
+            }
+          }
+        }
       }
     }
 
@@ -159,10 +168,10 @@ pipeline {
         script {
           def stages = [:]
           // run functional tests against latest nuxeo version for active node
-          stages["Against Nuxeo 2021 - Node.js ${NODEJS_ACTIVE_VERSION}"] =
-            buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, '2021')
+          stages["Against Nuxeo 2023 - Node.js ${NODEJS_ACTIVE_VERSION}"] =
+            buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, '2023')
           // run functional tests against all nuxeo version for maintenance mode
-          for (nuxeoVersion in ["10.10", "2021"]) {
+          for (nuxeoVersion in ["10.10", "2021", "2023"]) {
             stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_MAINTENANCE_VERSION}"] =
               buildFunctionalTestStage("nodejs-maintenance", env.NODEJS_MAINTENANCE_VERSION, nuxeoVersion)
           }
@@ -174,7 +183,7 @@ pipeline {
     stage('Run Browser tests') {
       environment {
         JS_DIST_DIR = 'dist-nodejs-active'
-        JS_REPORTS_DIR = 'nuxeo-2021-browser'
+        JS_REPORTS_DIR = 'nuxeo-2023-browser'
       }
       steps {
         container('nodejs-active') {
@@ -182,8 +191,8 @@ pipeline {
             def testNamespace = "${CURRENT_NAMESPACE}-js-client-browser-${BRANCH_NAME}-${BUILD_NUMBER}".toLowerCase()
             def nuxeoDomain = "nuxeo-js-client-${BRANCH_NAME}.platform.dev.nuxeo.com".toLowerCase()
 
-            nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-2021",
-                secrets: [[name: 'platform-cluster-tls', namespace: 'platform']], envVars: ["NUXEO_VERSION=2021-${VERSION}",
+            nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-2023",
+                secrets: [[name: 'platform-cluster-tls', namespace: 'platform']], envVars: ["NUXEO_VERSION=2023-${VERSION}",
                 "NUXEO_DOMAIN=${nuxeoDomain}", "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
               withCredentials([usernamePassword(credentialsId: 'saucelabs-js-client-credentials', usernameVariable: 'SAUCE_USERNAME', 
                   passwordVariable: 'SAUCE_ACCESS_KEY')]) {
