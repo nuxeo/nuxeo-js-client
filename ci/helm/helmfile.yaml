@@ -25,10 +25,33 @@ releases:
   - name: elasticsearch
     chart: elastic/elasticsearch
     condition: elasticsearch.enabled
-    version: 7.9.2
+    version: 7.17.3
     values:
       - values/values-elasticsearch.yaml.gotmpl
       - values/values-tolerations.yaml.gotmpl
+  # Suppress some environment variables that can't be removed through values files that crash application startup
+    strategicMergePatches:
+    - apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: elasticsearch-master
+      spec:
+        template:
+          spec:
+            containers:
+            - name: elasticsearch
+              env:
+              {{ if eq .Environment.Name "functional-tests-10.10" }}
+              # The node.remote_cluster_client env var is set since ES 7.10 chart version, not working on ES 6.x application version
+              - name: node.remote_cluster_client
+                $patch: delete
+              {{ end }}
+              # The cluster.deprecation_indexing.enabled env var is set since ES 7.16 chart version, not working on our application version
+              - name: cluster.deprecation_indexing.enabled
+                $patch: delete
+              # The node.ml env var is set since ES 7.12 chart version, and it is not available in the oss version
+              - name: node.ml
+                $patch: delete
   - name: opensearch
     chart: opensearch/opensearch
     condition: opensearch.enabled
