@@ -4,21 +4,18 @@ const browsers = {
   sl_latest_chrome: {
     base: 'SauceLabs',
     browserName: 'chrome',
-    platform: 'Windows 10',
-    version: 'latest',
+    browserVersion: 'latest',
   },
   sl_latest_firefox: {
     base: 'SauceLabs',
     browserName: 'firefox',
-    platform: 'Windows 10',
-    version: 'latest',
-    geckodriverVersion: '0.30.0',
+    browserVersion: 'latest',
   },
   sl_latest_safari: {
     base: 'SauceLabs',
+    platformName: 'macOS 13',
     browserName: 'safari',
-    platform: 'macOS 12',
-    version: 'latest',
+    browserVersion: 'latest',
   },
 };
 
