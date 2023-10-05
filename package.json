@@ -66,6 +66,9 @@
     "rimraf": "^4.1.2",
     "watchify": "^4.0.0"
   },
+  "resolutions": {
+    "webdriverio": "^7.19.5"
+  },
   "scripts": {
     "clean": "rimraf ${JS_DIST_DIR:-dist}",
     "build": "yarn clean && yarn build:dist && yarn build:browser",
