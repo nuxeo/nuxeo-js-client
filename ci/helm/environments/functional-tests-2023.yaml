@@ -2,7 +2,3 @@ opensearch:
   enabled: true
 elasticsearch:
   enabled: false
-mongodb4:
-  enabled: false
-mongodb6:
-  enabled: true

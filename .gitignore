@@ -33,3 +33,7 @@ target
 dist
 dist-*
 doc
+
+# CI
+helmfile*.lock
+
