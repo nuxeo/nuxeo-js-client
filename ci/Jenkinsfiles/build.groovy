@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.38"
+library identifier: "platform-ci-shared-library@v0.0.39"
 
 String getNodeJsVersion(String containerId) {
   container(containerId) {

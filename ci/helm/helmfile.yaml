@@ -12,13 +12,16 @@ helmDefaults:
   timeout: 300
   wait: true
 
+# allow concurrent execution of helmfile declaring the same chart in two different versions
+lockFilePath: "helmfile-{{ .Values.nuxeo.image.tag }}.lock"
+
 releases:
   - name: nuxeo
     chart: nuxeo/nuxeo
     version: 3.0.11
     needs:
       - {{ eq .Environment.Name "functional-tests-2023" | ternary "opensearch" "elasticsearch" }}
-      - {{ eq .Environment.Name "functional-tests-2023" | ternary "mongodb6" "mongodb4" }}
+      - "mongodb"
     values:
       - values/values-nuxeo.yaml.gotmpl
       - values/values-tolerations.yaml.gotmpl
@@ -59,22 +62,24 @@ releases:
     values:
       - values/values-opensearch.yaml.gotmpl
       - values/values-tolerations.yaml.gotmpl
-  - name: mongodb4
+{{ if or (eq .Environment.Name "functional-tests-10.10") (eq .Environment.Name "functional-tests-2021") }}
+  - name: mongodb
     chart: bitnami/mongodb
-    condition: mongodb4.enabled
     version: 7.14.2
     values:
       - values/values-mongodb-4.yaml.gotmpl
       - values/values-mongodb-commons.yaml.gotmpl
       - values/values-tolerations.yaml.gotmpl
-  - name: mongodb6
+{{ end }}
+{{ if eq .Environment.Name "functional-tests-2023" }}
+  - name: mongodb
     chart: bitnami/mongodb
-    condition: mongodb6.enabled
     version: 13.3.1
     values:
       - values/values-mongodb-6.yaml.gotmpl
       - values/values-mongodb-commons.yaml.gotmpl
       - values/values-tolerations.yaml.gotmpl
+{{ end }}
 
 environments:
   functional-tests-10.10:
