@@ -42,7 +42,7 @@ repositories:
   - name: opensearch
     url: https://opensearch-project.github.io/helm-charts/
   - name: nuxeo
-    url: https://chartmuseum.platform.dev.nuxeo.com/
+    url: https://packages.nuxeo.com/repository/helm-releases-public/
 
 helmDefaults:
   timeout: 300
@@ -54,7 +54,7 @@ lockFilePath: "helmfile-{{ .Values.nuxeo.image.tag }}.lock"
 releases:
   - name: nuxeo
     chart: nuxeo/nuxeo
-    version: 3.0.11
+    version: ~3.1.0
     needs:
       - {{ eq .Environment.Name "functional-tests-2023" | ternary "opensearch" "elasticsearch" }}
       - "mongodb"
