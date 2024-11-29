@@ -1,4 +1,4 @@
-/* global Blob, FileReader */
+/* global FileReader */
 
 function createTextBlob(content, name) {
   let blob;
