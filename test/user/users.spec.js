@@ -23,6 +23,7 @@ describe('Users', () => {
       const newUser = {
         properties: {
           username: LEELA_USERNAME,
+          password: LEELA_USERNAME,
           firstName: 'Leela',
           company: 'Futurama',
           email: 'leela@futurama.com',

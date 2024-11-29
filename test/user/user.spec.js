@@ -12,6 +12,7 @@ describe('User', () => {
       'entity-type': 'user',
       properties: {
         username: LEELA_USERNAME,
+        password: LEELA_USERNAME,
         firstName: 'Leela',
       },
     });
