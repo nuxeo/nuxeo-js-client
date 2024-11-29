@@ -45,6 +45,8 @@ repositories:
     url: https://packages.nuxeo.com/repository/helm-releases-public/
 
 helmDefaults:
+  args:
+    - "--repository-cache ~/.cache/helm/repository-{{ env "NAMESPACE" | default "default" }}"
   timeout: 300
   wait: true
 
