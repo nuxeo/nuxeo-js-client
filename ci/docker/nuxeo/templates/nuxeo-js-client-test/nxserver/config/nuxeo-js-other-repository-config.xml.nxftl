@@ -1,0 +1,34 @@
+<#escape x as x?xml>
+<?xml version="1.0"?>
+<component name="org.nuxeo.multi.repository">
+
+<#if (nuxeo.search.client.default.name)?has_content>
+  <extension target="org.nuxeo.ecm.core.search.client.repository" point="searchClient">
+    <searchClient name="repository-other" searchIndex="repository-other" repository="other" />
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
+    <searchClient name="repository-other" factory="org.nuxeo.ecm.core.search.client.repository.RepositorySearchClientFactory" />
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchIndex">
+    <searchIndex name="repository-other" searchClient="repository-other" repository="other" />
+  </extension>
+
+</#if>
+  <extension target="org.nuxeo.ecm.core.storage.sql.RepositoryService" point="repository">
+    <repository name="other">
+      <indexing>
+        <fulltext disabled="true" />
+      </indexing>
+    </repository>
+  </extension>
+
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <datasource name="jdbc/repository_other" driverClassName="org.h2.Driver">
+      <property name="url">jdbc:h2:mem:other;DB_CLOSE_DELAY=-1</property>
+    </datasource>
+  </extension>
+
+</component>
+</#escape>

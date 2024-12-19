@@ -1,0 +1,39 @@
+<#escape x as x?xml>
+<?xml version="1.0"?>
+<component name="org.nuxeo.test.opensearch">
+
+<#if (nuxeo.search.client.default.name)?has_content>
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="other">
+      <client id="search/default" />
+      <mapping file="opensearch1-doc-mapping.json" />
+      <settings file="opensearch1-doc-settings.json" />
+    </index>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search.client.opensearch1" point="searchClient">
+    <searchClient name="opensearch">
+      <searchIndex name="enhanced-other" technicalName="other" />
+    </searchClient>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchIndex">
+    <searchIndex name="enhanced-other" searchClient="opensearch" repository="other" default="true" />
+  </extension>
+<#else>
+  <extension target="org.nuxeo.elasticsearch.ElasticSearchComponent"
+    point="elasticSearchIndex">
+    <elasticSearchIndex name="other" type="doc" repository="other">
+      <fetchFromSource>
+        <include>ecm:*</include>
+        <include>dc:*</include>
+        <exclude>ecm:binarytext</exclude>
+      </fetchFromSource>
+      <settings file="elasticsearch-doc-settings.json" />
+      <mapping file="elasticsearch-doc-mapping.json" />
+    </elasticSearchIndex>
+  </extension>
+</#if>
+
+</component>
+</#escape>
