@@ -33,9 +33,9 @@ Closure buildFunctionalTestStage(String containerId, String nodejsVersion, Strin
   return {
     container(containerId) {
       nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-${nuxeoVersion}",
-          secrets: [[name: 'platform-cluster-tls', namespace: 'platform']], envVars: ["NUXEO_VERSION=${nuxeoVersion}-${VERSION}",
-          "JS_REPORTS_DIR=nuxeo-${nuxeoVersionSlug}-node-${nodejsVersionSlug}", "NUXEO_DOMAIN=${nuxeoDomain}", 
-          "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
+          secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: 'instance-clid-preprod', namespace: 'platform']],
+          envVars: ["NUXEO_VERSION=${nuxeoVersion}-${VERSION}", "JS_REPORTS_DIR=nuxeo-${nuxeoVersionSlug}-node-${nodejsVersionSlug}",
+            "NUXEO_DOMAIN=${nuxeoDomain}", "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
         script {
           try {
             sh "yarn it:cover"
@@ -160,6 +160,15 @@ pipeline {
             }
           }
         }
+        stage('Nuxeo 2025') {
+          steps {
+            container('nodejs-active') {
+              script {
+                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=2025-${VERSION}", "NUXEO_VERSION=2025.x"])
+              }
+            }
+          }
+        }
       }
     }
 
@@ -167,9 +176,11 @@ pipeline {
       steps {
         script {
           def stages = [:]
-          // run functional tests against latest nuxeo version for active node
-          stages["Against Nuxeo 2023 - Node.js ${NODEJS_ACTIVE_VERSION}"] =
-            buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, '2023')
+          // run functional tests against latest and upcoming nuxeo version for active node
+          for (nuxeoVersion in ["2023", "2025"]) {
+            stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_ACTIVE_VERSION}"] =
+              buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, nuxeoVersion)
+          }
           // run functional tests against all nuxeo version for maintenance mode
           for (nuxeoVersion in ["10.10", "2021", "2023"]) {
             stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_MAINTENANCE_VERSION}"] =
