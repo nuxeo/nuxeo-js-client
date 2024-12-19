@@ -51,7 +51,21 @@ customProperties:
     nuxeo.append.templates.nuxeo-js-client-test=nuxeo-js-client-test
 {{- if hasPrefix "10.10" .Values.nuxeo.image.tag }}
 {{/* this value is lost for 10.10 */}}
-customProperties:
   elasticsearch: |
     elasticsearch.client=RestClient
+{{- end }}
+{{- if hasPrefix "2025" .Values.nuxeo.image.tag }}
+  default: |
+    nuxeo.append.templates.default=default
+{{- end }}
+{{- if hasPrefix "2025" .Values.nuxeo.image.tag }}
+customEnvs:
+- name: NUXEO_CONNECT_URL
+  value: https://nos-preprod-connect.nuxeocloud.com/nuxeo/site/
+- name: NUXEO_CLID
+  valueFrom:
+    secretKeyRef:
+      name: instance-clid-preprod
+      key: instance.clid
+packages: nuxeo-audit-opensearch1 nuxeo-search-client-opensearch1
 {{- end }}
