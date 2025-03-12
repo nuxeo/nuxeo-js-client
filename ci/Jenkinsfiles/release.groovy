@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ pipeline {
     githubProjectProperty(projectUrlStr: 'https://github.com/nuxeo/nuxeo-js-client')
   }
   environment {
-    JIRA_NXJS_MOVING_VERSION = 'next'
+    JIRA_NXJS_MOVING_VERSION = '"next"'
     VERSION = nxUtils.getVersion()
   }
   stages {
