@@ -20,19 +20,8 @@ build:
   artifacts:
     - image: "$DOCKER_REGISTRY/nuxeo/nuxeo-js-client-ftests"
       context: .
-      kaniko:
-        dockerfile: ci/docker/nuxeo/Dockerfile
-        useNewRun: true
-        singleSnapshot: true
-        snapshotMode: "time"
-        buildArgs:
-          NUXEO_VERSION: "{{.NUXEO_VERSION}}"
-  cluster:
-    namespace: $CURRENT_NAMESPACE
-    dockerConfig:
-      secretName: jenkins-docker-cfg
-    tolerations:
-      - key: team
-        operator: "Equal"
-        value: platform
-        effect: "NoSchedule"
+      custom:
+        buildCommand: |
+          docker-buildx \
+            --build-arg NUXEO_VERSION={{.NUXEO_VERSION}} \
+            --file ci/docker/nuxeo/Dockerfile \
