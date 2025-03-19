@@ -6,11 +6,10 @@ minimumMasterNodes: 1
 resources:
   requests:
     cpu: "250m"
-    memory: "1024Mi"
+    memory: "2Gi"
   limits:
-    cpu: "500m"
-    memory: "1024Mi"
-esJavaOpts: "-Xmx380m -Xms380m"
+    memory: "2Gi"
+esJavaOpts: "-Xmx1g -Xms1g"
 labels:
   {{ tpl (readFile "labels.yaml.gotmpl") . | nindent 2 }}
   dev.nuxeo.com/app: elasticsearch

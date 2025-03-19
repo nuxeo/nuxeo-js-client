@@ -9,8 +9,7 @@ resources:
     cpu: "1"
     memory: "1Gi"
   limits:
-    cpu: "2"
-    memory: "2Gi"
+    memory: "1Gi"
 labels:
   {{ tpl (readFile "labels.yaml.gotmpl") . | nindent 2 }}
   dev.nuxeo.com/app: mongodb
