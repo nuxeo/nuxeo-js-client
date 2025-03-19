@@ -43,6 +43,12 @@ ingress:
     - {{ requiredEnv "NUXEO_DOMAIN" }}
     secretName: platform-cluster-tls
 {{- end }}
+customProperties:
+  dev: |
+    org.nuxeo.dev=true
+    org.nuxeo.rest.stack.enable=true
+  nuxeo-js-client-test: |
+    nuxeo.append.templates.nuxeo-js-client-test=nuxeo-js-client-test
 {{- if hasPrefix "10.10" .Values.nuxeo.image.tag }}
 {{/* this value is lost for 10.10 */}}
 customProperties:
