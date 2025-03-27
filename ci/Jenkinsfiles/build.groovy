@@ -33,7 +33,7 @@ Closure buildFunctionalTestStage(String containerId, String nodejsVersion, Strin
   return {
     container(containerId) {
       nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-${nuxeoVersion}",
-          secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: 'instance-clid-preprod', namespace: 'platform']],
+          secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: 'instance-clid', namespace: 'platform']],
           envVars: ["NUXEO_VERSION=${nuxeoVersion}-${VERSION}", "JS_REPORTS_DIR=nuxeo-${nuxeoVersionSlug}-node-${nodejsVersionSlug}",
             "NUXEO_DOMAIN=${nuxeoDomain}", "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
         script {
@@ -164,7 +164,7 @@ pipeline {
           steps {
             container('nodejs-active') {
               script {
-                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=2025-${VERSION}", "NUXEO_VERSION=2025.x"])
+                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=2025-${VERSION}", "NUXEO_VERSION=2025"])
               }
             }
           }
@@ -194,7 +194,7 @@ pipeline {
     stage('Run Browser tests') {
       environment {
         JS_DIST_DIR = 'dist-nodejs-active'
-        JS_REPORTS_DIR = 'nuxeo-2023-browser'
+        JS_REPORTS_DIR = 'nuxeo-2025-browser'
       }
       steps {
         container('nodejs-active') {
@@ -202,9 +202,9 @@ pipeline {
             def testNamespace = "${CURRENT_NAMESPACE}-js-client-browser-${BRANCH_NAME}-${BUILD_NUMBER}".toLowerCase()
             def nuxeoDomain = "nuxeo-js-client-${BRANCH_NAME}.platform.dev.nuxeo.com".toLowerCase()
 
-            nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-2023",
-                secrets: [[name: 'platform-cluster-tls', namespace: 'platform']], envVars: ["NUXEO_VERSION=2023-${VERSION}",
-                "NUXEO_DOMAIN=${nuxeoDomain}", "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
+            nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-2025",
+                secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: 'instance-clid', namespace: 'platform']],
+                envVars: ["NUXEO_VERSION=2025-${VERSION}", "NUXEO_DOMAIN=${nuxeoDomain}", "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
               withCredentials([usernamePassword(credentialsId: 'saucelabs-js-client-credentials', usernameVariable: 'SAUCE_USERNAME', 
                   passwordVariable: 'SAUCE_ACCESS_KEY')]) {
                 sh 'yarn run it:browser'
