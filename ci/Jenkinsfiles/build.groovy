@@ -164,7 +164,7 @@ pipeline {
           steps {
             container('nodejs-active') {
               script {
-                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=2025-${VERSION}", "NUXEO_VERSION=2025.x"])
+                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=2025-${VERSION}", "NUXEO_VERSION=2025"])
               }
             }
           }
