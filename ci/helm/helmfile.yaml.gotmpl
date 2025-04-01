@@ -1,15 +1,4 @@
 environments:
-  functional-tests-10.10:
-    values:
-      - environments/functional-tests-1010.yaml
-      - nuxeo:
-          image:
-            tag: {{ env "NUXEO_VERSION" | default "10.10" | quote }}
-        elasticsearch:
-          imageTag: "6.8.23"
-        mongodb:
-          image:
-            tag: "4.2"
   functional-tests-2021:
     values:
       - environments/functional-tests-2021.yaml
@@ -94,11 +83,6 @@ releases:
             containers:
             - name: elasticsearch
               env:
-              {{ if eq .Environment.Name "functional-tests-10.10" }}
-              # The node.remote_cluster_client env var is set since ES 7.10 chart version, not working on ES 6.x application version
-              - name: node.remote_cluster_client
-                $patch: delete
-              {{ end }}
               # The cluster.deprecation_indexing.enabled env var is set since ES 7.16 chart version, not working on our application version
               - name: cluster.deprecation_indexing.enabled
                 $patch: delete
@@ -112,7 +96,7 @@ releases:
     values:
       - values/values-opensearch.yaml.gotmpl
       - values/values-tolerations.yaml.gotmpl
-{{ if or (eq .Environment.Name "functional-tests-10.10") (eq .Environment.Name "functional-tests-2021") }}
+{{ if eq .Environment.Name "functional-tests-2021" }}
   - name: mongodb
     chart: bitnami/mongodb
     version: 7.14.2

@@ -132,16 +132,6 @@ pipeline {
 
     stage('Build functional Docker images') {
       parallel {
-        stage('Nuxeo 10.10') {
-          steps {
-            container('nodejs-active') {
-              script {
-                // TODO for 10.10 retrieve the last HF version
-                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=10.10-${VERSION}", "NUXEO_VERSION=10.10-HF67"])
-              }
-            }
-          }
-        }
         stage('Nuxeo 2021') {
           steps {
             container('nodejs-active') {
@@ -177,12 +167,12 @@ pipeline {
         script {
           def stages = [:]
           // run functional tests against latest and upcoming nuxeo version for active node
-          for (nuxeoVersion in ["2023", "2025"]) {
+          for (nuxeoVersion in ["2025"]) {
             stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_ACTIVE_VERSION}"] =
               buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, nuxeoVersion)
           }
           // run functional tests against all nuxeo version for maintenance mode
-          for (nuxeoVersion in ["10.10", "2021", "2023"]) {
+          for (nuxeoVersion in ["2021", "2023", "2025"]) {
             stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_MAINTENANCE_VERSION}"] =
               buildFunctionalTestStage("nodejs-maintenance", env.NODEJS_MAINTENANCE_VERSION, nuxeoVersion)
           }
