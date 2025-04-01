@@ -49,11 +49,6 @@ customProperties:
     org.nuxeo.rest.stack.enable=true
   nuxeo-js-client-test: |
     nuxeo.append.templates.nuxeo-js-client-test=nuxeo-js-client-test
-{{- if hasPrefix "10.10" .Values.nuxeo.image.tag }}
-{{/* this value is lost for 10.10 */}}
-  elasticsearch: |
-    elasticsearch.client=RestClient
-{{- end }}
 {{- if hasPrefix "2025" .Values.nuxeo.image.tag }}
 customEnvs:
 - name: NUXEO_CLID
