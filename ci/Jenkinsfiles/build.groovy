@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022-2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,12 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.67"
+library identifier: "platform-ci-shared-library@v0.0.71"
+
+String getClidSecret(nuxeoTag) {
+  // target connect preprod if nuxeo tag is a build tag or a moving tag
+  return nuxeoTag.matches("^\\d+\\.(x|\\d+\\.\\d+)\$") ? 'instance-clid-preprod' : 'instance-clid'
+}
 
 String getNodeJsVersion(String containerId) {
   container(containerId) {
@@ -24,18 +29,27 @@ String getNodeJsVersion(String containerId) {
   }
 }
 
-Closure buildFunctionalTestStage(String containerId, String nodejsVersion, String nuxeoVersion) {
+Closure buildFunctionalTestStage(String containerId, String nodejsVersion, String nuxeoTag) {
+  def nuxeoFullVersion = nxDocker.getLabel(image: "${PRIVATE_DOCKER_REGISTRY}/nuxeo/nuxeo:${nuxeoTag}", label: 'org.nuxeo.version')
+  def clidSecret = getClidSecret(nuxeoTag)
+
   def nodejsVersionSlug = nodejsVersion.replaceAll('\\..*', '')
-  def nuxeoVersionSlug = nuxeoVersion.replaceAll('\\..*', '')
-  def testNamespace = "${CURRENT_NAMESPACE}-js-client-ftests-${BRANCH_NAME}-${BUILD_NUMBER}-nuxeo-${nuxeoVersionSlug}-node-${nodejsVersionSlug}".toLowerCase()
-  def nuxeoDomain = "nuxeo-${nuxeoVersionSlug}-node-${nodejsVersionSlug}-js-client-${BRANCH_NAME}.platform.dev.nuxeo.com".toLowerCase()
+  def nuxeoTagSlug = nuxeoTag.replaceAll('\\..*', '')
+  def testNamespace = "${CURRENT_NAMESPACE}-js-client-ftests-${BRANCH_NAME}-${BUILD_NUMBER}-nuxeo-${nuxeoTagSlug}-node-${nodejsVersionSlug}".toLowerCase()
+  def nuxeoDomain = "nuxeo-${nuxeoTagSlug}-node-${nodejsVersionSlug}-js-client-${BRANCH_NAME}.platform.dev.nuxeo.com".toLowerCase()
 
   return {
     container(containerId) {
-      nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-${nuxeoVersion}",
-          secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: 'instance-clid', namespace: 'platform']],
-          envVars: ["NUXEO_VERSION=${nuxeoVersion}-${VERSION}", "JS_REPORTS_DIR=nuxeo-${nuxeoVersionSlug}-node-${nodejsVersionSlug}",
-            "NUXEO_DOMAIN=${nuxeoDomain}", "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
+      nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-${nuxeoTag}",
+          secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: clidSecret, namespace: 'platform']],
+          envVars: [
+            "CONNECT_CLID_SECRET=${clidSecret}", 
+            "NUXEO_VERSION=${nuxeoFullVersion}",
+            "VERSION=${nuxeoTag}-${VERSION}", 
+            "JS_REPORTS_DIR=nuxeo-${nuxeoTagSlug}-node-${nodejsVersionSlug}",
+            "NUXEO_DOMAIN=${nuxeoDomain}", 
+            "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo",
+          ]) {
         script {
           try {
             sh "yarn it:cover"
@@ -132,15 +146,6 @@ pipeline {
 
     stage('Build functional Docker images') {
       parallel {
-        stage('Nuxeo 2021') {
-          steps {
-            container('nodejs-active') {
-              script {
-                nxDocker.build(skaffoldFile: 'ci/docker/nuxeo/skaffold.yaml', envVars: ["FTESTS_VERSION=2021-${VERSION}", "NUXEO_VERSION=2021"])
-              }
-            }
-          }
-        }
         stage('Nuxeo 2023') {
           steps {
             container('nodejs-active') {
@@ -167,14 +172,14 @@ pipeline {
         script {
           def stages = [:]
           // run functional tests against latest and upcoming nuxeo version for active node
-          for (nuxeoVersion in ["2025"]) {
-            stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_ACTIVE_VERSION}"] =
-              buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, nuxeoVersion)
+          for (nuxeoTag in ["2025"]) {
+            stages["Against Nuxeo ${nuxeoTag} - Node.js ${NODEJS_ACTIVE_VERSION}"] =
+              buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, nuxeoTag)
           }
           // run functional tests against all nuxeo version for maintenance mode
-          for (nuxeoVersion in ["2023", "2025"]) {
-            stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_MAINTENANCE_VERSION}"] =
-              buildFunctionalTestStage("nodejs-maintenance", env.NODEJS_MAINTENANCE_VERSION, nuxeoVersion)
+          for (nuxeoTag in ["2023", "2025"]) {
+            stages["Against Nuxeo ${nuxeoTag} - Node.js ${NODEJS_MAINTENANCE_VERSION}"] =
+              buildFunctionalTestStage("nodejs-maintenance", env.NODEJS_MAINTENANCE_VERSION, nuxeoTag)
           }
           parallel stages
         }
@@ -189,12 +194,19 @@ pipeline {
       steps {
         container('nodejs-active') {
           script {
+            def nuxeoFullVersion = nxDocker.getLabel(image: "${PRIVATE_DOCKER_REGISTRY}/nuxeo/nuxeo:2025", label: 'org.nuxeo.version')
+
             def testNamespace = "${CURRENT_NAMESPACE}-js-client-browser-${BRANCH_NAME}-${BUILD_NUMBER}".toLowerCase()
             def nuxeoDomain = "nuxeo-js-client-${BRANCH_NAME}.platform.dev.nuxeo.com".toLowerCase()
 
             nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-2025",
                 secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: 'instance-clid', namespace: 'platform']],
-                envVars: ["NUXEO_VERSION=2025-${VERSION}", "NUXEO_DOMAIN=${nuxeoDomain}", "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo"]) {
+                envVars: [
+                  "VERSION=2025-${VERSION}",
+                  "NUXEO_VERSION=${nuxeoFullVersion}",
+                  "NUXEO_DOMAIN=${nuxeoDomain}", 
+                  "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo",
+                ]) {
               withCredentials([usernamePassword(credentialsId: 'saucelabs-js-client-credentials', usernameVariable: 'SAUCE_USERNAME', 
                   passwordVariable: 'SAUCE_ACCESS_KEY')]) {
                 sh 'yarn run it:browser'
