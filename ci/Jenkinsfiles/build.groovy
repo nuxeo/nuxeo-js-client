@@ -172,7 +172,7 @@ pipeline {
               buildFunctionalTestStage("nodejs-active", env.NODEJS_ACTIVE_VERSION, nuxeoVersion)
           }
           // run functional tests against all nuxeo version for maintenance mode
-          for (nuxeoVersion in ["2021", "2023", "2025"]) {
+          for (nuxeoVersion in ["2023", "2025"]) {
             stages["Against Nuxeo ${nuxeoVersion} - Node.js ${NODEJS_MAINTENANCE_VERSION}"] =
               buildFunctionalTestStage("nodejs-maintenance", env.NODEJS_MAINTENANCE_VERSION, nuxeoVersion)
           }
