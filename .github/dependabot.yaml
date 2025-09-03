@@ -1,0 +1,12 @@
+version: 2
+updates:
+- package-ecosystem: "npm"
+  directory: "/"
+  schedule:
+    interval: "daily"
+  # Enable version updates along with security updates, limit to 10 to prevent CI overload
+  open-pull-requests-limit: 10
+  ignore:
+  # Major version updates (doesn't work for security updates, need to list them explicitly, see below)
+  - dependency-name: "*"
+    update-types: ["version-update:semver-major"]
