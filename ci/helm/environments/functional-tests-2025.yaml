@@ -1,4 +1,13 @@
+# these values are required by helmfile-base.yaml.gotmpl releases
+nuxeo:
+  enabled: true
+mongodb:
+  enabled: true
+postgresql:
+  enabled: false
 opensearch:
   enabled: true
-elasticsearch:
-  enabled: false
+kafka:
+  enabled: true
+
+# values definition
