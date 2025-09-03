@@ -8,6 +8,6 @@ postgresql:
 opensearch:
   enabled: true
 kafka:
-  enabled: true
+  enabled: false
 
 # values definition
