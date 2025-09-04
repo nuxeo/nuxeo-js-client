@@ -1,4 +1,0 @@
-opensearch:
-  enabled: false
-elasticsearch:
-  enabled: true

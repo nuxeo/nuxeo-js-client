@@ -1,50 +1,15 @@
 environments:
-  functional-tests-2021:
-    values:
-      - environments/functional-tests-2021.yaml
-      - nuxeo:
-          image:
-            tag: {{ env "NUXEO_VERSION" | default "2021" | quote }}
-        elasticsearch:
-          imageTag: "7.9.2"
-        mongodb:
-          image:
-            tag: "4.4"
   functional-tests-2023:
     values:
       - environments/functional-tests-2023.yaml
-      - nuxeo:
-          image:
-            tag: {{ env "NUXEO_VERSION" | default "2023" | quote }}
-        opensearch:
-          image:
-            tag: "1.3.6"
-        mongodb:
-          image:
-            tag: "6.0.2"
   functional-tests-2025:
     values:
       - environments/functional-tests-2025.yaml
-      - nuxeo:
-          image:
-            tag: {{ env "NUXEO_VERSION" | default "2025" | quote }}
-        opensearch:
-          image:
-            tag: "1.3.19"
-        mongodb:
-          image:
-            tag: "8.0.3"
+values: # values for all environments and helmfiles
+- git::https://{{ requiredEnv "GITHUB_USER" }}:{{ requiredEnv "GITHUB_PASSWORD" }}@github.com/nuxeo/nuxeo-lts.git@ci/helm/apps/base/values/env-values-global.yaml.gotmpl?ref=v{{ requiredEnv "NUXEO_VERSION" }}&depth=1
+- values/env-values-global.yaml
+- values/env-values-nuxeo.yaml.gotmpl
 ---
-repositories:
-  - name: bitnami
-    url: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
-  - name: elastic
-    url: https://helm.elastic.co/
-  - name: opensearch
-    url: https://opensearch-project.github.io/helm-charts/
-  - name: nuxeo
-    url: https://packages.nuxeo.com/repository/helm-releases-public/
-
 helmDefaults:
   args:
     - "--repository-cache ~/.cache/helm/repository-{{ env "NAMESPACE" | default "default" }}"
@@ -52,74 +17,9 @@ helmDefaults:
   wait: true
 
 # allow concurrent execution of helmfile declaring the same chart in two different versions
-lockFilePath: "helmfile-{{ .Values.nuxeo.image.tag }}.lock"
+lockFilePath: "helmfile-{{ requiredEnv "VERSION" }}.lock"
 
-releases:
-  - name: nuxeo
-    chart: nuxeo/nuxeo
-    version: ~3.1.0
-    needs:
-      - {{ any (eq .Environment.Name "functional-tests-2023") (eq .Environment.Name "functional-tests-2025") | ternary "opensearch" "elasticsearch" }}
-      - "mongodb"
-    values:
-      - values/values-nuxeo.yaml.gotmpl
-      - values/values-tolerations.yaml.gotmpl
-  - name: elasticsearch
-    chart: elastic/elasticsearch
-    condition: elasticsearch.enabled
-    version: 7.17.3
-    values:
-      - values/values-elasticsearch.yaml.gotmpl
-      - values/values-tolerations.yaml.gotmpl
-  # Suppress some environment variables that can't be removed through values files that crash application startup
-    strategicMergePatches:
-    - apiVersion: apps/v1
-      kind: StatefulSet
-      metadata:
-        name: elasticsearch-master
-      spec:
-        template:
-          spec:
-            containers:
-            - name: elasticsearch
-              env:
-              # The cluster.deprecation_indexing.enabled env var is set since ES 7.16 chart version, not working on our application version
-              - name: cluster.deprecation_indexing.enabled
-                $patch: delete
-              # The node.ml env var is set since ES 7.12 chart version, and it is not available in the oss version
-              - name: node.ml
-                $patch: delete
-  - name: opensearch
-    chart: opensearch/opensearch
-    condition: opensearch.enabled
-    version: 1.16.0
-    values:
-      - values/values-opensearch.yaml.gotmpl
-      - values/values-tolerations.yaml.gotmpl
-{{ if eq .Environment.Name "functional-tests-2021" }}
-  - name: mongodb
-    chart: bitnami/mongodb
-    version: 7.14.2
-    values:
-      - values/values-mongodb-4.yaml.gotmpl
-      - values/values-mongodb-commons.yaml.gotmpl
-      - values/values-tolerations.yaml.gotmpl
-{{ end }}
-{{ if eq .Environment.Name "functional-tests-2023" }}
-  - name: mongodb
-    chart: oci://registry-1.docker.io/bitnamicharts/mongodb
-    version: 13.3.1
-    values:
-      - values/values-mongodb.yaml.gotmpl
-      - values/values-mongodb-commons.yaml.gotmpl
-      - values/values-tolerations.yaml.gotmpl
-{{ end }}
-{{ if eq .Environment.Name "functional-tests-2025" }}
-  - name: mongodb
-    chart: oci://registry-1.docker.io/bitnamicharts/mongodb
-    version: 16.1.1
-    values:
-      - values/values-mongodb.yaml.gotmpl
-      - values/values-mongodb-commons.yaml.gotmpl
-      - values/values-tolerations.yaml.gotmpl
-{{ end }}
+helmfiles:
+- path: git::https://{{ requiredEnv "GITHUB_USER" }}:{{ requiredEnv "GITHUB_PASSWORD" }}@github.com/nuxeo/nuxeo-lts.git@ci/helm/apps/helmfile-base.yaml.gotmpl?ref=v{{ requiredEnv "NUXEO_VERSION" }}&depth=1
+  values:
+  - {{ toYaml .Values | nindent 4 }}

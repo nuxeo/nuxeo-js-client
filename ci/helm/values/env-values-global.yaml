@@ -1,0 +1,4 @@
+global:
+  labels:
+    dev.nuxeo.com/repository: nuxeo-js-client
+    dev.nuxeo.com/usage: ftests
