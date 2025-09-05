@@ -66,27 +66,27 @@
     "rimraf": "^4.0.0",
     "watchify": "^4.0.0"
   },
-  "resolutions": {
+  "overrides": {
     "webdriverio": "^7.0.0"
   },
   "scripts": {
     "clean": "rimraf ${JS_DIST_DIR:-dist}",
-    "build": "yarn clean && yarn build:dist && yarn build:browser",
+    "build": "npm run clean && npm run build:dist && npm run build:browser",
     "build:dist": "node bin/build-dist.js",
     "build:browser": "mkdirp ${JS_DIST_DIR:-dist} && browserify --entry lib/index-browserify.js --transform babelify --outfile ${JS_DIST_DIR:-dist}/nuxeo.js",
     "lint": "eslint 'lib' 'test'",
-    "pretest": "rimraf coverage && yarn lint",
-    "test": "yarn test:cover && yarn test:browser",
-    "test:cover": "nyc --include lib --all --reporter text --reporter lcov yarn test:node",
+    "pretest": "rimraf coverage && npm run lint",
+    "test": "npm run test:cover && npm run test:browser",
+    "test:cover": "nyc --include lib --all --reporter text --reporter lcov npm run test:node",
     "test:node": "mocha --timeout 30000 --require test/helpers/setup.js --require test/helpers/setup-node.js 'test/helpers/setup-logging.js' 'test/**/*.spec.js'",
     "test:browser": "karma start karma.conf.local.js",
-    "it": "yarn it:checkstyle && yarn build && yarn it:cover && yarn it:browser",
+    "it": "npm run it:checkstyle && npm run build && npm run it:cover && npm run it:browser",
     "it:checkstyle": "eslint 'lib' 'test' --format checkstyle --output-file ftest/target/checkstyle-result.xml",
-    "it:cover": "nyc --include lib --all --reporter cobertura yarn it:node",
+    "it:cover": "nyc --temp-dir nyc/$JS_REPORTS_DIR/.nyc_output --include lib --all --reporter cobertura npm run it:node",
     "it:node": "mocha --timeout 30000 --require test/helpers/setup.js --require test/helpers/setup-node.js 'test/helpers/setup-logging.js' --reporter mocha-jenkins-reporter --reporter-options junit_report_path=ftest/target/$JS_REPORTS_DIR/test-results-node.xml,junit_report_stack=1 'test/**/*.spec.js'",
     "it:browser": "karma start karma.conf.saucelabs.js",
     "doc": "jsdoc -c jsdoc.json",
-    "start": "yarn build:browser && node examples/server.js"
+    "start": "npm run build:browser && node examples/server.js"
   },
   "browser": {
     "promise-queue": "promise-queue/lib/index.js",
