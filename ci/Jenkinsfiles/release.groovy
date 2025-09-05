@@ -55,8 +55,8 @@ pipeline {
             sh "git checkout -b release-${VERSION}"
             // update README links to point to the released doc
             sh "sed -i 's|nuxeo-js-client/latest|nuxeo-js-client/${VERSION}|g' README.md"
-            sh 'yarn --frozen-lockfile'
-            sh 'yarn build'
+            sh 'npm ci'
+            sh 'npm run build'
             // force add updated files (dist is ignored)
             sh 'git add -f dist'
             nxGit.commitTagPush()
@@ -79,7 +79,7 @@ pipeline {
           dir('dist') {
             sh "git checkout v${VERSION}"
             withCredentials([file(credentialsId: 'npmjs-npmrc', variable: 'npm_config_userconfig')]) {
-              sh 'yarn publish --non-interactive'
+              sh 'npm publish --yes'
             }
           }
         }
@@ -91,7 +91,7 @@ pipeline {
         container('nodejs-active') {
           script {
             sh "git checkout v${VERSION}"
-            sh 'yarn run doc'
+            sh 'npm run doc'
             sh 'mv doc /tmp/nuxeo.js-doc'
             // configure git to fetch other branches than the current one
             sh 'git config --add remote.origin.fetch +refs/heads/gh-pages:refs/remotes/origin/gh-pages'
@@ -137,7 +137,7 @@ pipeline {
         container('nodejs-active') {
           script {
             sh "git checkout ${BRANCH_NAME}"
-            sh "yarn version --no-git-tag-version --patch"
+            sh "npm version patch --no-git-tag-version"
             nxGit.commitPush(message: "Post release ${VERSION}")
           }
         }
