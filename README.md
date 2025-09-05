@@ -3,7 +3,7 @@
 [![Jenkins](https://jenkins.platform.dev.nuxeo.com/buildStatus/icon?job=js-client%2Fnuxeo-js-client%2Fmaster)](https://jenkins.platform.dev.nuxeo.com/job/js-client/job/nuxeo-js-client/job/master/)
 [![npm version](https://img.shields.io/npm/v/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
 [![npm downloads](https://img.shields.io/npm/dm/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
-[![Dependency Status](https://img.shields.io/david/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client) [![devDependency Status](https://img.shields.io/david/dev/nuxeo/nuxeo-js-client.svg?style=flat-square)](https://david-dm.org/nuxeo/nuxeo-js-client#info=devDependencies)
+
 
 <img alt="Browser Support thanks to SauceLabs" src="https://saucelabs.com/browser-matrix/nuxeo-js-client.svg" width="200" />
 
@@ -21,16 +21,10 @@ The JS Client is compliant with all Nuxeo versions as of LTS 2015.
 
 #### Node.js Applications
 
-After [installing](http://nodejs.org/#download) [Node.js](http://nodejs.org), use `npm` or `yarn` to install the `nuxeo` package:
+After [installing](http://nodejs.org/#download) [Node.js](http://nodejs.org), use `npm` to install the `nuxeo` package:
 
 ```bash
 npm install nuxeo
-```
-
-or
-
-```bash
-yarn add nuxeo
 ```
 
 ##### Node.js
@@ -100,7 +94,7 @@ $q.when(nuxeo.request('/path/').get()).then(function(res) {
 
 #### Angular v2 Applications
 
-After adding `nuxeo` through `npm` or `yarn` to your application, you can use the Nuxeo client directly by requiring the `nuxeo` module:
+After adding `nuxeo` through `npm` to your application, you can use the Nuxeo client directly by requiring the `nuxeo` module:
 
 ```javascript
 const Nuxeo = require('nuxeo');
@@ -113,7 +107,7 @@ const nuxeo = new Nuxeo({...});
 
 #### React Applications
 
-After adding `nuxeo` through `npm` or `yarn` to your application:
+After adding `nuxeo` through `npm` to your application:
 
 ```javascript
 var Nuxeo = require('nuxeo');
@@ -988,16 +982,15 @@ See our [contribution documentation](https://doc.nuxeo.com/x/VIZH).
 
 * [Node.js](http://nodejs.org/#download)
 * [Bower](http://bower.io/)
-* [yarn](https://yarnpkg.com/)
 
 ### Setup
 
-Install [Node.js](http://nodejs.org/#download) and then use `yarn` to install all the required
+Install [Node.js](http://nodejs.org/#download) and then use `npm` to install all the required
 libraries:
 
     $ git clone https://github.com/nuxeo/nuxeo-js-client
     $ cd nuxeo-js-client
-    $ yarn
+    $ npm install
 
 ### Test
 
@@ -1005,15 +998,15 @@ A Nuxeo Platform instance needs to be running on `http://localhost:8080/nuxeo` f
 
 Tests can be launched on Node.js with:
 
-    $ yarn test:node
+    $ npm run test:node
 
 For testing the browser client (tests are run on Chrome by default):
 
-    $ yarn test:browser
+    $ npm run test:browser
 
 To run both Node.js and browser tests:
 
-    $ yarn test
+    $ npm run test
 
 
 ### Reporting Issues

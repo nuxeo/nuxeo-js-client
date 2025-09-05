@@ -55,7 +55,7 @@ Closure buildFunctionalTestStage(String containerId, String nodejsVersion, Strin
           ]) {
         script {
           try {
-            sh "yarn it:cover"
+            sh "npm run it:cover"
           } finally {
             junit testResults: "ftest/target/${JS_REPORTS_DIR}/test-results-node.xml"
           }
@@ -95,9 +95,9 @@ pipeline {
     stage('Lint project') {
       steps {
         container('nodejs-active') {
-          sh 'yarn install'
+          sh 'npm install'
           // don't fail the build to let tests run, there will be a lint status on the PR
-          sh 'yarn run it:checkstyle || true'
+          sh 'npm run it:checkstyle || true'
         }
       }
       post {
@@ -116,8 +116,8 @@ pipeline {
           }
           steps {
             container('nodejs-active') {
-              nxWithGitHubStatus(context: 'yarn/build/nodejs-active', message: "Build with Node.js ${NODEJS_ACTIVE_VERSION}") {
-                sh 'yarn run build'
+              nxWithGitHubStatus(context: 'npm/build/nodejs-active', message: "Build with Node.js ${NODEJS_ACTIVE_VERSION}") {
+                sh 'npm run build'
               }
             }
           }
@@ -133,8 +133,8 @@ pipeline {
           }
           steps {
             container('nodejs-maintenance') {
-              nxWithGitHubStatus(context: 'yarn/build/nodejs-maintenance', message: "Build with Node.js ${NODEJS_MAINTENANCE_VERSION}") {
-                sh 'yarn run build'
+              nxWithGitHubStatus(context: 'npm/build/nodejs-maintenance', message: "Build with Node.js ${NODEJS_MAINTENANCE_VERSION}") {
+                sh 'npm run build'
               }
             }
           }
@@ -212,7 +212,7 @@ pipeline {
                 ]) {
               withCredentials([usernamePassword(credentialsId: 'saucelabs-js-client-credentials', usernameVariable: 'SAUCE_USERNAME', 
                   passwordVariable: 'SAUCE_ACCESS_KEY')]) {
-                sh 'yarn run it:browser'
+                sh 'npm run it:browser'
               }
             }
           }
