@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.71"
+library identifier: "platform-ci-shared-library@v0.0.75"
 
 String getClidSecret(nuxeoTag) {
   // target connect preprod if nuxeo tag is a build tag or a moving tag
