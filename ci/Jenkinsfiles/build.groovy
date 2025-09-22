@@ -38,9 +38,6 @@ Closure buildFunctionalTestStage(String containerId, String nodejsVersion, Strin
   def testNamespace = "${CURRENT_NAMESPACE}-js-client-ftests-${BRANCH_NAME}-${BUILD_NUMBER}-nuxeo-${nuxeoTagSlug}-node-${nodejsVersionSlug}".toLowerCase()
   def nuxeoDomain = "nuxeo-${nuxeoTagSlug}-node-${nodejsVersionSlug}-js-client-${BRANCH_NAME}.platform.dev.nuxeo.com".toLowerCase()
 
-  if (nuxeoFullVersion.startsWith("2023")) {
-    nuxeoFullVersion = "2023.36.0"
-  }
   return {
     container(containerId) {
       nxWithHelmfileDeployment(namespace: testNamespace, environment: "functional-tests-${nuxeoTag}",
