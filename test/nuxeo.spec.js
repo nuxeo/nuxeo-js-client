@@ -91,7 +91,7 @@ describe('Nuxeo', () => {
 
         const { user } = n;
         expect(user['entity-type']).to.be.equal('user');
-        expect(user.id).to.be.equal('Administrator');
+        expect(user.id).to.exist();
         expect(user.properties.username).to.be.equal('Administrator');
         expect(user.properties.groups).to.be.eql(['administrators']);
 

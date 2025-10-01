@@ -13,7 +13,8 @@ describe('Users', () => {
     it('should fetch Administrator user', () => (
       users.fetch('Administrator')
         .then((user) => {
-          expect(user.id).to.be.equal('Administrator');
+          expect(user.id).to.exist();
+          expect(user.properties.username).to.be.equal('Administrator');
         })
     ));
   });
@@ -31,7 +32,8 @@ describe('Users', () => {
       };
       return users.create(newUser)
         .then((user) => {
-          expect(user.id).to.be.equal(LEELA_USERNAME);
+          expect(user.id).to.exist();
+          expect(user.properties.username).to.be.equal(LEELA_USERNAME);
           expect(user.properties.firstName).to.be.equal('Leela');
           expect(user.properties.lastName).to.be.null();
           expect(user.properties.company).to.be.equal('Futurama');

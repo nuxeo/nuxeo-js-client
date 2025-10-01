@@ -13,6 +13,7 @@ describe('Groups', () => {
     it('should fetch administrators group', () => (
       groups.fetch('administrators')
         .then((group) => {
+          expect(group.id).to.exist();
           expect(group.groupname).to.be.equal('administrators');
           expect(group.grouplabel).to.be.equal('Administrators group');
         })

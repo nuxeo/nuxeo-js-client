@@ -495,7 +495,7 @@ The `connect` method fills the `user` property of the client. `user` is a full `
 var nuxeo = new Nuxeo({ ... });
 nuxeo.connect()
   .then(function(client){
-    // client.user.id === 'Administrator'
+    // client.user.properties.username === 'Administrator'
     console.log(client.user);
   })
   .catch(function(error) {
@@ -845,7 +845,8 @@ __Fetch an user__
 nuxeo.users()
   .fetch('Administrator')
   .then(function(user) {
-    // user.id === 'Administrator'
+    // user.id === '00000000-0000-0000-0000-000000000000' || user.id === 'Administrator' (previous behavior)
+    // user.properties.username === 'Administrator'
   });
 ```
 
@@ -863,7 +864,8 @@ var newUser = {
 nuxeo.users()
   .create(newUser)
   .then(function(user) {
-    // user.id === 'leela'
+    // user.id === '00000000-0000-0000-0000-000000000000' || user.id === 'leela' (previous behavior)
+    // user.properties.username === 'leela'
   });
 ```
 
