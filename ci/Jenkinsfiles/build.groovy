@@ -187,6 +187,9 @@ pipeline {
     }
 
     stage('Run Browser tests') {
+      options {
+        timeout(time: 20, unit: 'MINUTES')
+      }
       environment {
         JS_DIST_DIR = 'dist-nodejs-active'
         JS_REPORTS_DIR = 'nuxeo-2025-browser'
