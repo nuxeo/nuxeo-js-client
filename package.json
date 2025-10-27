@@ -67,6 +67,9 @@
     "watchify": "^4.0.0"
   },
   "overrides": {
+    "puppeteer-core": {
+      "tar-fs": "^2.0.0"
+    },
     "webdriverio": "^7.0.0"
   },
   "scripts": {
