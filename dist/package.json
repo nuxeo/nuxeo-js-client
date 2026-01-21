@@ -1,0 +1,52 @@
+{
+  "name": "nuxeo",
+  "description": "JavaScript client library for Nuxeo API",
+  "version": "4.0.6",
+  "main": "./lib/index.js",
+  "author": "Nuxeo (http://www.nuxeo.com/)",
+  "contributors": [
+    {
+      "name": "Thomas Roger",
+      "email": "troger@nuxeo.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/nuxeo/nuxeo-js-client",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nuxeo/nuxeo-js-client.git"
+  },
+  "engines": {
+    "node": ">= 14"
+  },
+  "keywords": [
+    "nuxeo"
+  ],
+  "dependencies": {
+    "buffer": "^6.0.0",
+    "es6-promise": "^4.0.0",
+    "extend": "^3.0.0",
+    "form-data": "^4.0.0",
+    "md5": "^2.0.0",
+    "mocha": "^10.0.0",
+    "node-fetch": "^2.0.0",
+    "promise-queue": "^2.0.0",
+    "querystring": "^0.2.0",
+    "random-js": "^1.0.0",
+    "whatwg-fetch": "^3.0.0"
+  },
+  "overrides": {
+    "webdriverio": "^7.0.0"
+  },
+  "browser": {
+    "promise-queue": "promise-queue/lib/index.js",
+    "./lib/deps/fetch.js": "./lib/deps/fetch-browser.js",
+    "./lib/deps/promise.js": "./lib/deps/promise-browser.js",
+    "./lib/deps/form-data.js": "./lib/deps/form-data-browser.js",
+    "./lib/deps/utils/buffer.js": "./lib/deps/utils/buffer-browser.js"
+  },
+  "react-native": {
+    "./lib/deps/fetch.js": "./lib/deps/fetch-react-native.js",
+    "./lib/deps/promise.js": "./lib/deps/promise.js"
+  }
+}
