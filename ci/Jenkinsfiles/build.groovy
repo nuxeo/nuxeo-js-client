@@ -187,6 +187,10 @@ pipeline {
     }
 
     stage('Run Browser tests') {
+      // disable browser tests as Karma is not compatible with Sauce Labs v4
+      when {
+        expression { false }
+      }
       options {
         timeout(time: 20, unit: 'MINUTES')
       }
