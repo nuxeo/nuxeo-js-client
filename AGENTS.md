@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-This is the **Nuxeo JavaScript Client** (`nuxeo` on npm), a JavaScript library for interacting with the Nuxeo Platform REST API. It runs on Node.js, browsers, and React Native. The library version is 4.x, published under the Apache 2.0 license.
+This is the **Nuxeo JavaScript Client** (`nuxeo` on npm), a JavaScript library for interacting with the Nuxeo Platform REST API. It runs on Node.js, browsers, and React Native. The library version is 5.x, published under the Apache 2.0 license.
 
 ## Language and Runtime
 
 - **JavaScript (ES6+)** -- no TypeScript
-- Node.js >= 14
+- Node.js >= 18
 - No `async`/`await` -- the codebase uses **Promise chains** (`.then()` / `.catch()`) exclusively
 - **CommonJS** module system (`require` / `module.exports`) -- no ES modules (`import`/`export`)
 
@@ -56,9 +56,12 @@ test/                       # Integration tests (require a live Nuxeo server)
   helpers/                  # Test setup files
     setup.js                # Chai + dirty-chai initialization
     setup-node.js           # Node.js globals (Nuxeo, baseURL, expect, isBrowser)
-    setup-browser.js        # Browser globals (Nuxeo, baseURL, expect, isBrowser, support)
+    setup-browser.js        # Browser setup (sets window.expect; other globals set by browser-tests.html)
     setup-logging.js        # Logging setup
     blob-helper.js          # Blob test utilities
+  browser-tests.html        # HTML page for browser tests (Mocha runner with result collection)
+  wdio/                     # WebdriverIO specs (excluded from Browserify bundle and Node.js Mocha)
+    browser-bridge.js       # Bridges browser Mocha results to WDIO reporters
   *.spec.js                 # Test files (one per module)
   <subdir>/*.spec.js        # Subdirectory-specific tests (user/, group/, directory/, workflow/)
 
@@ -232,6 +235,7 @@ Agents working on this codebase should understand these Nuxeo server concepts:
 npm run build           # Clean, copy lib/ to dist/, and build browser bundle
 npm run build:dist      # Copy lib/ to dist/ with simplified package.json (no transpilation)
 npm run build:browser   # Browserify + Babel bundle to dist/nuxeo.js
+npm run build:tests     # Browserify + Babel bundle test suite to build/tests.js (for browser tests)
 npm run lint            # ESLint on lib/ and test/
 npm run doc             # Generate JSDoc documentation to doc/
 ```
@@ -243,11 +247,20 @@ Note: `build:dist` copies source files to `dist/` and creates a simplified `pack
 ### Framework
 
 - **Mocha** + **Chai** (expect style) + **dirty-chai** (function-style assertions: `expect(x).to.exist()` not `expect(x).to.exist`)
-- Browser tests via **Karma** + **SauceLabs**
+- Browser tests via **WebdriverIO** + **Sauce Labs** (replaced Karma in v5)
 
 ### Important: Integration Tests Only
 
 All tests are **integration tests** that require a running Nuxeo Platform instance. They cannot be run locally without a server. The server URL is configured via the `NUXEO_BASE_URL` environment variable (defaults to `http://localhost:8080/nuxeo`).
+
+### Browser Test Prerequisites
+
+- **Google Chrome** must be installed locally for `npm run test:browser`
+- Browser tests use **WebdriverIO** (`wdio.conf.js`) with auto-managed chromedriver to control a system-installed Chrome
+- The test suite is pre-bundled with Browserify into `build/tests.js` and loaded alongside `dist/nuxeo.js` in `test/browser-tests.html`
+- A single WDIO spec (`test/wdio/browser-bridge.js`) opens the HTML page, waits for in-browser Mocha to complete, and reports results back to WDIO reporters
+- Configuration is in `wdio.conf.js` (single file for both local and Sauce Labs modes)
+- For CI (`npm run it:browser`), Sauce Labs credentials (`SAUCE_USERNAME`, `SAUCE_ACCESS_KEY`) must be set via env vars
 
 ### Test Conventions
 

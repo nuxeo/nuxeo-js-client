@@ -110,6 +110,7 @@ pipeline {
         stage('With Node.js active') {
           environment {
             JS_DIST_DIR = 'dist-nodejs-active'
+            JS_BUILD_DIR = 'build-nodejs-active'
           }
           steps {
             container('nodejs-active') {
@@ -127,6 +128,7 @@ pipeline {
         stage('With Node.js maintenance') {
           environment {
             JS_DIST_DIR = 'dist-nodejs-maintenance'
+            JS_BUILD_DIR = 'build-nodejs-maintenance'
           }
           steps {
             container('nodejs-maintenance') {
@@ -187,15 +189,12 @@ pipeline {
     }
 
     stage('Run Browser tests') {
-      // disable browser tests as Karma is not compatible with Sauce Labs v4
-      when {
-        expression { false }
-      }
       options {
         timeout(time: 20, unit: 'MINUTES')
       }
       environment {
         JS_DIST_DIR = 'dist-nodejs-active'
+        JS_BUILD_DIR = 'build-nodejs-active'
         JS_REPORTS_DIR = 'nuxeo-2025-browser'
       }
       steps {

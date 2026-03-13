@@ -33,6 +33,11 @@ target
 dist
 dist-*
 doc
+build
+build-*
+
+# Generated browser test page (created at runtime by wdio.conf.js)
+test/browser-tests.generated.html
 
 # CI
 helmfile*.lock

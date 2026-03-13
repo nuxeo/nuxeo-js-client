@@ -983,6 +983,7 @@ See our [contribution documentation](https://doc.nuxeo.com/x/VIZH).
 ### Requirements
 
 * [Node.js](http://nodejs.org/#download)
+* [Google Chrome](https://www.google.com/chrome/) (for running browser tests locally with `npm run test:browser`)
 * [Bower](http://bower.io/)
 
 ### Setup
@@ -1002,7 +1003,7 @@ Tests can be launched on Node.js with:
 
     $ npm run test:node
 
-For testing the browser client (tests are run on Chrome by default):
+For testing the browser client (requires Google Chrome; tests are run on Chrome by default):
 
     $ npm run test:browser
 
