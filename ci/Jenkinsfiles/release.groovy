@@ -19,7 +19,7 @@
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-library identifier: "platform-ci-shared-library@v0.0.75"
+library identifier: "platform-ci-shared-library@v0.0.79"
 
 pipeline {
   agent {
@@ -34,7 +34,7 @@ pipeline {
     JIRA_PROJECT = 'NXJS'
     JIRA_MOVING_VERSION = '"next"'
     JIRA_RELEASED_VERSION = "${VERSION}"
-    VERSION = nxUtils.getVersion()
+    VERSION = nxUtils.getReleaseVersion()
   }
   stages {
 
@@ -59,13 +59,37 @@ pipeline {
             sh 'npm run build'
             // force add updated files (dist is ignored)
             sh 'git add -f dist'
-            nxGit.commitTagPush()
+            nxGit.commitTag(tag: "v${VERSION}")
           }
         }
       }
       post {
         always {
           archiveArtifacts artifacts: 'dist/**'
+        }
+      }
+    }
+
+    stage('Check blocker issues') {
+      steps {
+        container('nodejs-active') {
+          script {
+            def blockerIssueCheck = nxProject.checkBlockerJiraIssues()
+            if (blockerIssueCheck) {
+              env.TEAMS_NOTIFICATION_MESSAGE = blockerIssueCheck.message
+              error 'Found some unresolved or uncommitted blocker issues'
+            }
+          }
+        }
+      }
+    }
+
+    stage('Git push') {
+      steps {
+        container('nodejs-active') {
+          script {
+            nxGit.push(reference: "v${VERSION}")
+          }
         }
       }
     }
@@ -126,6 +150,8 @@ pipeline {
                 released   : true,
               ],
               jiraMovingVersionName: env.JIRA_MOVING_VERSION,
+              tagPrefix: 'v',
+              version: env.VERSION,
             )
           }
         }
@@ -150,7 +176,7 @@ pipeline {
     always {
       script {
         nxUtils.setReleaseDescription()
-        nxUtils.notifyReleaseStatusIfNecessary()
+        nxUtils.notifyReleaseStatusIfNecessary(details: env.TEAMS_NOTIFICATION_MESSAGE)
       }
     }
   }
