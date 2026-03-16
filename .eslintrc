@@ -15,7 +15,6 @@
     "no-underscore-dangle": "off"
   },
   "globals": {
-    "__karma__": false,
     "baseURL": false,
     "Nuxeo": false,
     "window": false
