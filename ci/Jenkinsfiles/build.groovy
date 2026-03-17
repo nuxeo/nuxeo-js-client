@@ -49,7 +49,8 @@ Closure buildFunctionalTestStage(String containerId, String nodejsVersion, Strin
             "JS_REPORTS_DIR=nuxeo-${nuxeoTagSlug}-node-${nodejsVersionSlug}",
             "NUXEO_DOMAIN=${nuxeoDomain}", 
             "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo",
-          ]) {
+          ],
+          cacheName: "functional-tests-${nuxeoTagSlug}-${nodejsVersionSlug}") {
         script {
           try {
             sh "npm run it:cover"
