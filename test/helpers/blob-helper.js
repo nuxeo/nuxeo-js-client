@@ -31,16 +31,18 @@ function getTextFromBody(body) {
         resolve();
       }
     } else {
+      const reader = body.getReader();
+      const decoder = new TextDecoder();
       let data = '';
-      body.on('data', (chunk) => {
-        if (chunk === null) {
-          return;
+      const read = () => reader.read().then(({ done, value }) => {
+        if (done) {
+          resolve(data);
+          return undefined;
         }
-        data += chunk.toString();
+        data += decoder.decode(value, { stream: true });
+        return read();
       });
-      body.on('end', () => {
-        resolve(data);
-      });
+      read();
     }
   });
 }
