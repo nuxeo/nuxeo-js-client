@@ -1,5 +1,5 @@
-const qs = require('querystring');
 const jwt = require('jsonwebtoken');
+const qs = require('qs');
 
 const fetch = require('../lib/deps/fetch');
 const { btoa } = require('../lib/deps/utils/base64');
