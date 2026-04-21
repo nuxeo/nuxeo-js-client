@@ -4,7 +4,7 @@ describe('User', () => {
   let nuxeo;
   let users;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     users = nuxeo.users();
 
@@ -18,13 +18,13 @@ describe('User', () => {
     });
   });
 
-  after(() => users.delete(LEELA_USERNAME));
+  afterAll(() => users.delete(LEELA_USERNAME));
 
   it('should be retrieved from Users', () => (
     users.fetch('Administrator')
       .then((user) => {
-        expect(user).to.be.an.instanceof(Nuxeo.User);
-        expect(user.id).to.exist();
+        expect(user).toBeInstanceOf(Nuxeo.User);
+        expect(user.id).toBeDefined();
       })
   ));
 
@@ -34,8 +34,8 @@ describe('User', () => {
         user.set({
           lastName: 'foo',
         });
-        expect(user.properties.lastName).to.be.null();
-        expect(user._dirtyProperties.lastName).to.be.equal('foo');
+        expect(user.properties.lastName).toBeNull();
+        expect(user._dirtyProperties.lastName).toBe('foo');
       })
     ));
   });
@@ -43,13 +43,13 @@ describe('User', () => {
   describe('#get', () => {
     it('should return a property value', () => (
       users.fetch(LEELA_USERNAME).then((user) => {
-        expect(user.get('firstName')).to.be.equal('Leela');
+        expect(user.get('firstName')).toBe('Leela');
       })
     ));
 
     it('should return undefined for non existing property', () => (
       users.fetch(LEELA_USERNAME).then((user) => {
-        expect(user.get('non-existing')).to.be.undefined();
+        expect(user.get('non-existing')).toBeUndefined();
       })
     ));
 
@@ -58,7 +58,7 @@ describe('User', () => {
         user.set({
           lastName: 'foo',
         });
-        expect(user.get('lastName')).to.be.equal('foo');
+        expect(user.get('lastName')).toBe('foo');
       })
     ));
   });
@@ -67,11 +67,11 @@ describe('User', () => {
     it('should save an updated user', () => (
       users.fetch(LEELA_USERNAME)
         .then((user) => {
-          expect(user.get('firstName')).to.be.equal('Leela');
+          expect(user.get('firstName')).toBe('Leela');
           user.set({ firstName: 'Fry?' });
           return user.save();
         }).then((user) => {
-          expect(user.get('firstName')).to.be.equal('Fry?');
+          expect(user.get('firstName')).toBe('Fry?');
         })
     ));
   });

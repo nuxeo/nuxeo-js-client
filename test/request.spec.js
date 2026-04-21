@@ -7,7 +7,7 @@ const WS_JS_TESTS_PATH = join(WS_ROOT_PATH, WS_JS_TEST_NAME);
 describe('Request', () => {
   let nuxeo;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
 
     const newDoc = {
@@ -22,9 +22,9 @@ describe('Request', () => {
 
   it('should allow configuring request path', () => {
     const req = nuxeo.request('dummy');
-    expect(req._path).to.be.equal('dummy');
+    expect(req._path).toBe('dummy');
     req.path('document').path('path');
-    expect(req._path).to.be.equal('dummy/document/path');
+    expect(req._path).toBe('dummy/document/path');
   });
 
   it('should allow configuring query parameters', () => {
@@ -33,20 +33,20 @@ describe('Request', () => {
         bar: 'foo',
       },
     });
-    expect(req._queryParams).to.be.eql({
+    expect(req._queryParams).toEqual({
       bar: 'foo',
     });
     req.queryParams({
       foo: 'bar',
     });
-    expect(req._queryParams).to.be.eql({
+    expect(req._queryParams).toEqual({
       bar: 'foo',
       foo: 'bar',
     });
     req.queryParams({
       bar: 'bar',
     });
-    expect(req._queryParams).to.be.eql({
+    expect(req._queryParams).toEqual({
       bar: 'bar',
       foo: 'bar',
     });
@@ -64,7 +64,7 @@ describe('Request', () => {
       .then((res) => {
         if (res.url.length > 0) {
           // url is empty on FF
-          expect(res.url).to.be.equal(`${baseURL}/api/v1/path/default-domain/workspaces/ws-js-tests?foo=foo&bar=bar`);
+          expect(res.url).toBe(`${baseURL}/api/v1/path/default-domain/workspaces/ws-js-tests?foo=foo&bar=bar`);
         }
       })
   ));
@@ -72,9 +72,9 @@ describe('Request', () => {
   it('should do a GET request', () => (
     nuxeo.request(join('path', WS_JS_TESTS_PATH))
       .get().then((res) => {
-        expect(res.uid).to.exist();
-        expect(res.path).to.be.equal(WS_JS_TESTS_PATH);
-        expect(res.type).to.be.equal('Workspace');
+        expect(res.uid).toBeDefined();
+        expect(res.path).toBe(WS_JS_TESTS_PATH);
+        expect(res.type).toBe('Workspace');
       })
   ));
 
@@ -92,9 +92,9 @@ describe('Request', () => {
         body: newDoc,
       })
       .then((res) => {
-        expect(res.uid).to.exist();
-        expect(res.path).to.be.equal(join(WS_JS_TESTS_PATH, 'foo'));
-        expect(res.type).to.be.equal('File');
+        expect(res.uid).toBeDefined();
+        expect(res.path).toBe(join(WS_JS_TESTS_PATH, 'foo'));
+        expect(res.type).toBe('File');
       });
   });
 
@@ -111,17 +111,17 @@ describe('Request', () => {
         schemas: ['dublincore'],
       })
       .then((res) => {
-        expect(res.uid).to.exist();
-        expect(res.path).to.be.equal(WS_JS_TESTS_PATH);
-        expect(res.type).to.be.equal('Workspace');
-        expect(res.properties['dc:description']).to.be.equal('bar');
+        expect(res.uid).toBeDefined();
+        expect(res.path).toBe(WS_JS_TESTS_PATH);
+        expect(res.type).toBe('Workspace');
+        expect(res.properties['dc:description']).toBe('bar');
       });
   });
 
   it('should do a DELETE request', () => (
     nuxeo.request(join('path', WS_JS_TESTS_PATH))
       .delete().then((res) => {
-        expect(res.status).to.be.equal(204);
+        expect(res.status).toBe(204);
       })
   ));
 
@@ -131,10 +131,10 @@ describe('Request', () => {
       .get()
       .then((res) => {
         const { entries } = res;
-        expect(entries).to.be.an.instanceof(Array);
-        expect(entries.length > 0).to.be.true();
-        expect(entries[0].directoryName).to.be.equal('nature');
-        expect(entries[0]._directory).to.exist();
+        expect(entries).toBeInstanceOf(Array);
+        expect(entries.length > 0).toBe(true);
+        expect(entries[0].directoryName).toBe('nature');
+        expect(entries[0]._directory).toBeDefined();
       })
   ));
 });

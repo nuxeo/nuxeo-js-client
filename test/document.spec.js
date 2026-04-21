@@ -17,7 +17,7 @@ describe('Document', () => {
   let nuxeo;
   let repository;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     repository = nuxeo.repository({
       schemas: ['dublincore'],
@@ -51,7 +51,7 @@ describe('Document', () => {
       .then(() => nuxeo.users().create(newUser));
   });
 
-  after(() => (
+  afterAll(() => (
     repository.delete(WS_JS_TESTS_PATH)
       .then(() => nuxeo.users().delete('leela'))
   ));
@@ -59,8 +59,8 @@ describe('Document', () => {
   it('should be retrieved from a Repository', () => (
     repository.fetch('/default-domain')
       .then((doc) => {
-        expect(doc).to.be.an.instanceof(Nuxeo.Document);
-        expect(doc.uid).to.exist();
+        expect(doc).toBeInstanceOf(Nuxeo.Document);
+        expect(doc.uid).toBeDefined();
       })
   ));
 
@@ -68,13 +68,13 @@ describe('Document', () => {
     it('should return true for a folderish document', () => (
       repository.fetch('/default-domain')
         .then((doc) => {
-          expect(doc.isFolder()).to.be.true();
+          expect(doc.isFolder()).toBe(true);
         })
     ));
     it('should return false for a non-folderish document', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.isFolder()).to.be.false();
+          expect(doc.isFolder()).toBe(false);
         })
     ));
   });
@@ -83,13 +83,13 @@ describe('Document', () => {
     it('should return true for a document with SuperSpace facet', () => (
       repository.fetch('/default-domain')
         .then((doc) => {
-          expect(doc.hasFacet('SuperSpace')).to.be.true();
+          expect(doc.hasFacet('SuperSpace')).toBe(true);
         })
     ));
     it('should return false for a document without SupserSpace facet', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.hasFacet('SuperSpace')).to.be.false();
+          expect(doc.hasFacet('SuperSpace')).toBe(false);
         })
     ));
   });
@@ -103,13 +103,13 @@ describe('Document', () => {
           'dc:title': 'collection',
         },
       }).then((doc) => {
-        expect(doc.isCollection()).to.be.true();
+        expect(doc.isCollection()).toBe(true);
       })
     ));
     it('should return false for a document that is not a Collection', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.isCollection()).to.be.false();
+          expect(doc.isCollection()).toBe(false);
         })
     ));
   });
@@ -118,13 +118,13 @@ describe('Document', () => {
     it('should return true for a document that is Collectable', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.isCollectable()).to.be.true();
+          expect(doc.isCollectable()).toBe(true);
         })
     ));
     it('should return false for a document that is not Collectable', () => (
       repository.fetch(WS_ROOT_PATH)
         .then((doc) => {
-          expect(doc.isCollectable()).to.be.false();
+          expect(doc.isCollectable()).toBe(false);
         })
     ));
   });
@@ -136,8 +136,8 @@ describe('Document', () => {
           doc.set({
             'dc:description': 'foo',
           });
-          expect(doc.properties['dc:description']).to.be.null();
-          expect(doc._dirtyProperties['dc:description']).to.be.equal('foo');
+          expect(doc.properties['dc:description']).toBeNull();
+          expect(doc._dirtyProperties['dc:description']).toBe('foo');
         })
     ));
   });
@@ -146,14 +146,14 @@ describe('Document', () => {
     it('should return a property value', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.get('dc:title')).to.be.equal('bar.txt');
+          expect(doc.get('dc:title')).toBe('bar.txt');
         })
     ));
 
     it('should return undefined for non existing property', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.get('dc:non-existing')).to.be.undefined();
+          expect(doc.get('dc:non-existing')).toBeUndefined();
         })
     ));
 
@@ -163,7 +163,7 @@ describe('Document', () => {
           doc.set({
             'dc:description': 'foo',
           });
-          expect(doc.get('dc:description')).to.be.equal('foo');
+          expect(doc.get('dc:description')).toBe('foo');
         })
     ));
   });
@@ -172,14 +172,14 @@ describe('Document', () => {
     it('should save an updated document', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.get('dc:description')).to.be.null();
+          expect(doc.get('dc:description')).toBeNull();
           doc.set({
             'dc:description': 'foo',
           });
           return doc.save();
         })
         .then((doc) => {
-          expect(doc.get('dc:description')).to.be.equal('foo');
+          expect(doc.get('dc:description')).toBe('foo');
         })
     ));
 
@@ -195,9 +195,9 @@ describe('Document', () => {
           return doc.save({ schemas: ['dublincore', 'file'] });
         })
         .then((doc) => {
-          expect(doc.get('file:content').name).to.be.equal('foo.txt');
-          expect(doc.get('file:content').length).to.be.equal('3');
-          expect(doc.get('file:content')['mime-type']).to.be.equal('text/plain');
+          expect(doc.get('file:content').name).toBe('foo.txt');
+          expect(doc.get('file:content').length).toBe('3');
+          expect(doc.get('file:content')['mime-type']).toBe('text/plain');
         });
     });
 
@@ -215,15 +215,15 @@ describe('Document', () => {
         })
         .then((doc) => {
           const files = doc.get('files:files');
-          expect(files).to.exist();
+          expect(files).toBeDefined();
           const fooFile = files[0].file;
-          expect(fooFile.name).to.be.equal('foo.txt');
-          expect(fooFile.length).to.be.equal('3');
-          expect(fooFile['mime-type']).to.be.equal('text/plain');
+          expect(fooFile.name).toBe('foo.txt');
+          expect(fooFile.length).toBe('3');
+          expect(fooFile['mime-type']).toBe('text/plain');
           const barFile = files[1].file;
-          expect(barFile.name).to.be.equal('bar.txt');
-          expect(barFile.length).to.be.equal('3');
-          expect(barFile['mime-type']).to.be.equal('text/plain');
+          expect(barFile.name).toBe('bar.txt');
+          expect(barFile.length).toBe('3');
+          expect(barFile['mime-type']).toBe('text/plain');
         });
     });
   });
@@ -235,7 +235,7 @@ describe('Document', () => {
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
-          expect(text).to.be.equal('foo');
+          expect(text).toBe('foo');
         })
     ));
 
@@ -245,7 +245,7 @@ describe('Document', () => {
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
-          expect(text).to.be.equal('foo');
+          expect(text).toBe('foo');
         })
     ));
   });
@@ -256,7 +256,7 @@ describe('Document', () => {
     const FOLDER_PATH = join(WS_JS_TESTS_PATH, 'folder');
     const FOO_PATH_AFTER_RENAMING = join(WS_JS_TESTS_PATH, 'newFoo');
 
-    before(() => {
+    beforeAll(() => {
       const doc = {
         name: 'foo',
         type: 'File',
@@ -279,7 +279,7 @@ describe('Document', () => {
       repository.fetch(FOO_PATH_BEFORE)
         .then((doc) => doc.move(FOLDER_PATH))
         .then((doc) => {
-          expect(doc.path).to.be.equal(FOO_PATH_AFTER);
+          expect(doc.path).toBe(FOO_PATH_AFTER);
         })
     ));
 
@@ -287,7 +287,7 @@ describe('Document', () => {
       repository.fetch(FOO_PATH_AFTER)
         .then((doc) => doc.move(WS_JS_TESTS_PATH, 'newFoo'))
         .then((doc) => {
-          expect(doc.path).to.be.equal(FOO_PATH_AFTER_RENAMING);
+          expect(doc.path).toBe(FOO_PATH_AFTER_RENAMING);
         })
     ));
   });
@@ -296,11 +296,11 @@ describe('Document', () => {
     it('should set the life cycle state to approved', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.state).to.be.equal('project');
+          expect(doc.state).toBe('project');
           return doc.followTransition('approve');
         })
         .then((doc) => {
-          expect(doc.state).to.be.equal('approved');
+          expect(doc.state).toBe('approved');
         })
     ));
   });
@@ -313,8 +313,8 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html') >= 0).to.be.true();
-            expect(text.indexOf('foo') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).toBe(true);
+            expect(text.indexOf('foo') >= 0).toBe(true);
           })
       ));
 
@@ -324,8 +324,8 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html') >= 0).to.be.true();
-            expect(text.indexOf('foo') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).toBe(true);
+            expect(text.indexOf('foo') >= 0).toBe(true);
           })
       ));
 
@@ -335,8 +335,8 @@ describe('Document', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html') >= 0).to.be.true();
-            expect(text.indexOf('foo') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).toBe(true);
+            expect(text.indexOf('foo') >= 0).toBe(true);
           })
       ));
     });
@@ -347,8 +347,8 @@ describe('Document', () => {
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
-          expect(text.indexOf('<html') >= 0).to.be.true();
-          expect(text.indexOf('foo') >= 0).to.be.true();
+          expect(text.indexOf('<html') >= 0).toBe(true);
+          expect(text.indexOf('foo') >= 0).toBe(true);
         })
     ));
   });
@@ -377,18 +377,18 @@ describe('Document', () => {
         repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.scheduleConversion({ format: 'html' }))
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('conversionScheduled');
-            expect(res.conversionId).to.exist();
-            expect(res.pollingURL).to.exist();
-            expect(res.resultURL).to.exist();
+            expect(res['entity-type']).toBe('conversionScheduled');
+            expect(res.conversionId).toBeDefined();
+            expect(res.pollingURL).toBeDefined();
+            expect(res.resultURL).toBeDefined();
             return waitForConversion(res.pollingURL);
           })
           .then((res) => nuxeo.http({ url: res.resultURL }))
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html') >= 0).to.be.true();
-            expect(text.indexOf('foo') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).toBe(true);
+            expect(text.indexOf('foo') >= 0).toBe(true);
           })
       ));
 
@@ -396,18 +396,18 @@ describe('Document', () => {
         repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.scheduleConversion({ type: 'text/html' }))
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('conversionScheduled');
-            expect(res.conversionId).to.exist();
-            expect(res.pollingURL).to.exist();
-            expect(res.resultURL).to.exist();
+            expect(res['entity-type']).toBe('conversionScheduled');
+            expect(res.conversionId).toBeDefined();
+            expect(res.pollingURL).toBeDefined();
+            expect(res.resultURL).toBeDefined();
             return waitForConversion(res.pollingURL);
           })
           .then((res) => nuxeo.http({ url: res.resultURL }))
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html') >= 0).to.be.true();
-            expect(text.indexOf('foo') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).toBe(true);
+            expect(text.indexOf('foo') >= 0).toBe(true);
           })
       ));
 
@@ -415,18 +415,18 @@ describe('Document', () => {
         repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.scheduleConversion({ converter: 'office2html' }))
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('conversionScheduled');
-            expect(res.conversionId).to.exist();
-            expect(res.pollingURL).to.exist();
-            expect(res.resultURL).to.exist();
+            expect(res['entity-type']).toBe('conversionScheduled');
+            expect(res.conversionId).toBeDefined();
+            expect(res.pollingURL).toBeDefined();
+            expect(res.resultURL).toBeDefined();
             return waitForConversion(res.pollingURL);
           })
           .then((res) => nuxeo.http({ url: res.resultURL }))
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text.indexOf('<html') >= 0).to.be.true();
-            expect(text.indexOf('foo') >= 0).to.be.true();
+            expect(text.indexOf('<html') >= 0).toBe(true);
+            expect(text.indexOf('foo') >= 0).toBe(true);
           })
       ));
     });
@@ -435,18 +435,18 @@ describe('Document', () => {
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => doc.scheduleConversion({ xpath: 'file:content', type: 'text/html' }))
         .then((res) => {
-          expect(res['entity-type']).to.be.equal('conversionScheduled');
-          expect(res.conversionId).to.exist();
-          expect(res.pollingURL).to.exist();
-          expect(res.resultURL).to.exist();
+          expect(res['entity-type']).toBe('conversionScheduled');
+          expect(res.conversionId).toBeDefined();
+          expect(res.pollingURL).toBeDefined();
+          expect(res.resultURL).toBeDefined();
           return waitForConversion(res.pollingURL);
         })
         .then((res) => nuxeo.http({ url: res.resultURL }))
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
-          expect(text.indexOf('<html') >= 0).to.be.true();
-          expect(text.indexOf('foo') >= 0).to.be.true();
+          expect(text.indexOf('<html') >= 0).toBe(true);
+          expect(text.indexOf('foo') >= 0).toBe(true);
         })
     ));
   });
@@ -456,10 +456,10 @@ describe('Document', () => {
       repository.fetch(WS_JS_TESTS_PATH)
         .then((doc) => doc.fetchRenditions())
         .then((renditions) => {
-          expect(renditions.length).to.be.equal(3);
-          expect(renditions[0].name).to.be.equal('thumbnail');
-          expect(renditions[1].name).to.be.equal('xmlExport');
-          expect(renditions[2].name).to.be.equal('zipTreeExport');
+          expect(renditions.length).toBe(3);
+          expect(renditions[0].name).toBe('thumbnail');
+          expect(renditions[1].name).toBe('xmlExport');
+          expect(renditions[2].name).toBe('zipTreeExport');
         })
     ));
   });
@@ -471,8 +471,8 @@ describe('Document', () => {
         .then((res) => (isBrowser ? res.blob() : res.body))
         .then((body) => getTextFromBody(body))
         .then((text) => {
-          expect(text).to.contain('<?xml version="1.0" encoding="UTF-8"?>');
-          expect(text).to.contain(`<path>${FILE_TEST_PATH.substring(1)}</path>`);
+          expect(text).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+          expect(text).toContain(`<path>${FILE_TEST_PATH.substring(1)}</path>`);
         })
     ));
   });
@@ -482,10 +482,10 @@ describe('Document', () => {
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => doc.fetchACLs())
         .then((acls) => {
-          expect(acls.length).to.be.equal(1);
-          expect(acls[0].name).to.be.equal('inherited');
-          expect(acls[0].aces[0].id).to.be.equal('Administrator:Everything:true:::');
-          expect(acls[0].aces[1].id).to.be.equal('members:Read:true:::');
+          expect(acls.length).toBe(1);
+          expect(acls[0].name).toBe('inherited');
+          expect(acls[0].aces[0].id).toBe('Administrator:Everything:true:::');
+          expect(acls[0].aces[1].id).toBe('members:Read:true:::');
         })
     ));
   });
@@ -499,8 +499,8 @@ describe('Document', () => {
         }))
         .then((doc) => doc.fetchACLs())
         .then((acls) => {
-          expect(acls[0].name).to.be.equal('local');
-          expect(acls[0].aces[0].id).to.be.equal('members:Write:true:Administrator::');
+          expect(acls[0].name).toBe('local');
+          expect(acls[0].aces[0].id).toBe('members:Write:true:Administrator::');
         })
     ));
   });
@@ -513,7 +513,7 @@ describe('Document', () => {
         }))
         .then((doc) => doc.fetchACLs())
         .then((acls) => {
-          expect(acls[0].name).to.be.equal('inherited');
+          expect(acls[0].name).toBe('inherited');
         })
     ));
   });
@@ -522,13 +522,13 @@ describe('Document', () => {
     it('should returns true for Write permission on a document', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => doc.hasPermission('Write'))
-        .then((perm) => expect(perm).to.be.true())
+        .then((perm) => expect(perm).toBe(true))
     ));
 
     it('should returns false for a non existing permission on a document', () => (
       repository.fetch(FILE_TEST_PATH)
         .then((doc) => doc.hasPermission('Foo'))
-        .then((perm) => expect(perm).to.be.false())
+        .then((perm) => expect(perm).toBe(false))
     ));
 
     it('should returns false if the user does not have the permission', () => (
@@ -540,7 +540,7 @@ describe('Document', () => {
         .then(() => new Nuxeo({ baseURL, auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
         .then((n) => n.repository().fetch(FILE_TEST_PATH))
         .then((doc) => doc.hasPermission('Write'))
-        .then((perm) => expect(perm).to.be.false())
+        .then((perm) => expect(perm).toBe(false))
     ));
   });
 
@@ -551,41 +551,43 @@ describe('Document', () => {
           .then((doc) => doc.lock())
           .then((doc) => doc.fetchLockStatus())
           .then((status) => {
-            expect(status.lockOwner).to.exist();
-            expect(status.lockCreated).to.exist();
+            expect(status.lockOwner).toBeDefined();
+            expect(status.lockCreated).toBeDefined();
           })
       );
 
       it('should lock the document', lockDocument);
 
-      it('should throw an error when locking a document already locked', function f(done) {
+      it('should throw an error when locking a document already locked', () => {
         // Hardcoded (11.1) here until the new relase of nuxeo.
         if (nuxeo.serverVersion.gte('11.1')) {
-          this.skip();
+          return Promise.resolve();
         }
 
-        repository.fetch(FILE_TEST_PATH)
+        return repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.lock())
-          .then(() => done('Must not resolved when locking a document already locked'), () => done());
+          .then(
+            () => { throw new Error('Must not resolved when locking a document already locked'); },
+            () => {},
+          );
       });
 
-      it('should not fail on a locked document if the user is the lock owner', function f(done) {
+      it('should not fail on a locked document if the user is the lock owner', () => {
         if (nuxeo.serverVersion.lt('11.1')) {
-          this.skip();
+          return Promise.resolve();
         }
 
-        lockDocument().then(() => done(),
-          () => done('should not fail on a document already locked by the same user'));
+        return lockDocument();
       });
 
-      it('should throw an error when locking a document already locked by an other user', function f(done) {
+      it('should throw an error when locking a document already locked by an other user', () => {
         /* Not testing with a different user since in 10.10 or lower relocking fails with any user,
          which is already tested above */
         if (nuxeo.serverVersion.lt('11.1')) {
-          this.skip();
+          return Promise.resolve();
         }
 
-        repository.fetch(FILE_TEST_PATH)
+        return repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.addPermission({
             username: 'leela',
             permission: 'ReadWrite',
@@ -593,8 +595,10 @@ describe('Document', () => {
           .then(() => new Nuxeo({ baseURL, auth: { method: 'basic', username: 'leela', password: 'leela1' } }))
           .then((n) => n.repository().fetch(FILE_TEST_PATH))
           .then((doc) => doc.lock())
-          .then(() => done('Must not resolved when locking a document already locked by an other user'),
-            () => done());
+          .then(
+            () => { throw new Error('Must not resolved when locking a document already locked by an other user'); },
+            () => {},
+          );
       });
     });
 
@@ -604,8 +608,8 @@ describe('Document', () => {
           .then((doc) => doc.unlock())
           .then((doc) => doc.fetchLockStatus())
           .then((status) => {
-            expect(status.lockOwner).to.not.exist();
-            expect(status.lockCreated).to.not.exist();
+            expect(status.lockOwner).toBeUndefined();
+            expect(status.lockCreated).toBeUndefined();
           })
       ));
 
@@ -614,8 +618,8 @@ describe('Document', () => {
           .then((doc) => doc.unlock())
           .then((doc) => doc.fetchLockStatus())
           .then((status) => {
-            expect(status.lockOwner).to.not.exist();
-            expect(status.lockCreated).to.not.exist();
+            expect(status.lockOwner).toBeUndefined();
+            expect(status.lockCreated).toBeUndefined();
           })
       ));
     });
@@ -625,8 +629,8 @@ describe('Document', () => {
         repository.fetch(FILE_TEST_PATH)
           .then((doc) => doc.fetchLockStatus())
           .then((status) => {
-            expect(status.lockOwner).to.not.exist();
-            expect(status.lockCreated).to.not.exist();
+            expect(status.lockOwner).toBeUndefined();
+            expect(status.lockCreated).toBeUndefined();
           })
       ));
 
@@ -635,9 +639,9 @@ describe('Document', () => {
           .then((doc) => doc.lock())
           .then((doc) => doc.fetchLockStatus())
           .then((status) => {
-            expect(status.lockOwner).to.exist();
-            expect(status.lockOwner).to.be.equal('Administrator');
-            expect(status.lockCreated).to.exist();
+            expect(status.lockOwner).toBeDefined();
+            expect(status.lockOwner).toBe('Administrator');
+            expect(status.lockCreated).toBeDefined();
           })
       ));
     });
@@ -668,9 +672,9 @@ describe('Document', () => {
       return repository.fetch(WS_JS_TESTS_PATH)
         .then((doc) => pollAudit(doc))
         .then((res) => {
-          expect(res['entity-type']).to.be.equal('logEntries');
-          expect(res.entries.length).to.be.equal(1);
-          expect(res.entries[0].eventId).to.be.equal('documentCreated');
+          expect(res['entity-type']).toBe('logEntries');
+          expect(res.entries.length).toBe(1);
+          expect(res.entries[0].eventId).toBe('documentCreated');
         });
     });
   });
@@ -680,11 +684,11 @@ describe('Document', () => {
     repository.fetch(FILE_TEST_PATH)
       .then((doc) => {
         const stringifiedDoc = JSON.parse(JSON.stringify(doc));
-        expect(stringifiedDoc._baseOptions).to.not.exist();
-        expect(stringifiedDoc._nuxeo).to.not.exist();
-        expect(stringifiedDoc._repository).to.not.exist();
-        expect(stringifiedDoc._dirtyProperties).to.not.exist();
-        expect(stringifiedDoc.properties).to.exist();
+        expect(stringifiedDoc._baseOptions).toBeUndefined();
+        expect(stringifiedDoc._nuxeo).toBeUndefined();
+        expect(stringifiedDoc._repository).toBeUndefined();
+        expect(stringifiedDoc._dirtyProperties).toBeUndefined();
+        expect(stringifiedDoc.properties).toBeDefined();
       })
   ));
 });

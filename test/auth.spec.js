@@ -21,7 +21,7 @@ describe('Authenticators', () => {
       ];
 
       headersToCheck.forEach((headers) => {
-        expect(headers).to.have.property('Authorization', authorizationHeader);
+        expect(headers).toHaveProperty('Authorization', authorizationHeader);
       });
     });
 
@@ -37,7 +37,7 @@ describe('Authenticators', () => {
       authenticatedURLsToCheck.forEach((authenticatedURL) => {
         const regex = /(https?:\/\/)(.+)/;
         const baseURLWithAuth = baseURL.replace(regex, '$1test:1234@$2');
-        expect(authenticatedURL).to.be.equal(`${baseURLWithAuth}/api/v1/path/`);
+        expect(authenticatedURL).toBe(`${baseURLWithAuth}/api/v1/path/`);
       });
     });
   });
@@ -57,7 +57,7 @@ describe('Authenticators', () => {
       ];
 
       headersToCheck.forEach((headers) => {
-        expect(headers).to.have.property('X-Authentication-Token', 'secret_token');
+        expect(headers).toHaveProperty('X-Authentication-Token', 'secret_token');
       });
     });
 
@@ -70,7 +70,7 @@ describe('Authenticators', () => {
       ];
 
       authenticatedURLsToCheck.forEach((authenticatedURL) => {
-        expect(authenticatedURL).to.be.equal(`${baseURL}/api/v1/path/?token=secret_token`);
+        expect(authenticatedURL).toBe(`${baseURL}/api/v1/path/?token=secret_token`);
       });
     });
   });
@@ -96,7 +96,7 @@ describe('Authenticators', () => {
       ];
 
       headersToCheck.forEach((headers) => {
-        expect(headers).to.have.property('Authorization', 'Bearer secret_token');
+        expect(headers).toHaveProperty('Authorization', 'Bearer secret_token');
       });
     });
 
@@ -110,7 +110,7 @@ describe('Authenticators', () => {
       ];
 
       authenticatedURLsToCheck.forEach((authenticatedURL) => {
-        expect(authenticatedURL).to.be.equal(`${baseURL}/api/v1/path/?access_token=secret_token`);
+        expect(authenticatedURL).toBe(`${baseURL}/api/v1/path/?access_token=secret_token`);
       });
     });
   });
@@ -131,16 +131,16 @@ describe('Authenticators', () => {
       ];
 
       headersToCheck.forEach((headers) => {
-        expect(headers).to.have.all.keys('NX_RD', 'NX_TS', 'NX_TOKEN', 'NX_USER');
+        expect(Object.keys(headers).sort()).toEqual(['NX_RD', 'NX_TS', 'NX_TOKEN', 'NX_USER'].sort());
       });
     });
 
     it('should not authenticate an URL', () => {
-      expect(authenticator).to.not.have.property('authenticateURL');
+      expect(authenticator).not.toHaveProperty('authenticateURL');
 
       const url = `${baseURL}/api/v1/path/`;
       const authenticatedURL = nuxeo.authenticateURL(url);
-      expect(authenticatedURL).to.be.equal(url);
+      expect(authenticatedURL).toBe(url);
     });
   });
 });

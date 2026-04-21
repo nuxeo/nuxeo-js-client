@@ -11,7 +11,7 @@ describe('Multi Repository', () => {
   let repositoryDefault;
   let repositoryOther;
 
-  before(() => {
+  beforeAll(() => {
     nuxeoDefault = new Nuxeo({
       baseURL,
       auth: { method: 'basic', username: 'Administrator', password: 'Administrator' },
@@ -34,11 +34,11 @@ describe('Multi Repository', () => {
     it('should fetch Root document on other repository', () => (
       Promise.all([repositoryDefault.fetch('/'), repositoryOther.fetch('/')])
         .then(([rootDefault, rootOther]) => {
-          expect(rootOther.uid).to.exist();
-          expect(rootDefault.uid).to.exist();
-          expect(rootOther.uid).to.not.equals(rootDefault.uid);
-          expect(rootOther.repository).to.equals(REPOSITORY_OTHER);
-          expect(rootDefault.repository).to.equals(REPOSITORY_DEFAULT);
+          expect(rootOther.uid).toBeDefined();
+          expect(rootDefault.uid).toBeDefined();
+          expect(rootOther.uid).not.toBe(rootDefault.uid);
+          expect(rootOther.repository).toBe(REPOSITORY_OTHER);
+          expect(rootDefault.repository).toBe(REPOSITORY_DEFAULT);
         })
     ));
 
@@ -54,10 +54,10 @@ describe('Multi Repository', () => {
       return repositoryOther.fetch('/')
         .then((root) => repositoryOther.create(root.uid, newOtherDoc))
         .then((doc) => {
-          expect(doc.uid).to.exist();
-          expect(doc.type).to.equals('File');
-          expect(doc.title).to.equals(OTHER_DOC_NAME);
-          expect(doc.repository).to.equals(REPOSITORY_OTHER);
+          expect(doc.uid).toBeDefined();
+          expect(doc.type).toBe('File');
+          expect(doc.title).toBe(OTHER_DOC_NAME);
+          expect(doc.repository).toBe(REPOSITORY_OTHER);
           return repositoryOther.fetch(doc.uid);
         })
         .then((doc) => (
@@ -65,8 +65,8 @@ describe('Multi Repository', () => {
             .then(
               () => expect.fail(null, null, 'doc should not exist in `default` repository'),
               (error) => {
-                expect(error).to.be.not.null();
-                expect(error.response.status).to.be.equal(404);
+                expect(error).not.toBeNull();
+                expect(error.response.status).toBe(404);
               })
         ));
     });
@@ -78,24 +78,24 @@ describe('Multi Repository', () => {
           return doc.save();
         })
         .then((doc) => {
-          expect(doc.uid).to.exist();
-          expect(doc.type).to.equals('File');
-          expect(doc.title).to.equals('bar');
-          expect(doc.repository).to.equals(REPOSITORY_OTHER);
+          expect(doc.uid).toBeDefined();
+          expect(doc.type).toBe('File');
+          expect(doc.title).toBe('bar');
+          expect(doc.repository).toBe(REPOSITORY_OTHER);
         })
     ));
 
     it('should delete a document on other repository', () => (
       repositoryOther.delete(OTHER_DOC_PATH)
         .then((res) => {
-          expect(res.status).to.be.equal(204);
+          expect(res.status).toBe(204);
           return repositoryOther.fetch(OTHER_DOC_PATH);
         })
         .then(
           () => expect.fail(null, null, 'doc should not exist in `other` repository'),
           (error) => {
-            expect(error).to.be.not.null();
-            expect(error.response.status).to.be.equal(404);
+            expect(error).not.toBeNull();
+            expect(error.response.status).toBe(404);
           })
     ));
   });
@@ -106,11 +106,11 @@ describe('Multi Repository', () => {
       const operationOther = nuxeoOther.operation('Repository.GetDocument').param('value', '/');
       return Promise.all([operationDefault.execute(), operationOther.execute()])
         .then(([rootDefault, rootOther]) => {
-          expect(rootOther.uid).to.exist();
-          expect(rootDefault.uid).to.exist();
-          expect(rootOther.uid).to.not.equals(rootDefault.uid);
-          expect(rootOther.repository).to.equals(REPOSITORY_OTHER);
-          expect(rootDefault.repository).to.equals(REPOSITORY_DEFAULT);
+          expect(rootOther.uid).toBeDefined();
+          expect(rootDefault.uid).toBeDefined();
+          expect(rootOther.uid).not.toBe(rootDefault.uid);
+          expect(rootOther.repository).toBe(REPOSITORY_OTHER);
+          expect(rootDefault.repository).toBe(REPOSITORY_DEFAULT);
         });
     });
   });

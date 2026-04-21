@@ -9,7 +9,7 @@ describe('Repository', () => {
   let nuxeo;
   let repository;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     repository = nuxeo.repository({
       schemas: ['dublincore'],
@@ -21,7 +21,7 @@ describe('Repository', () => {
     it('should fetch default domain document', () => (
       repository.fetch('/default-domain')
         .then((doc) => {
-          expect(doc.uid).to.exist();
+          expect(doc.uid).toBeDefined();
         })
     ));
 
@@ -30,8 +30,8 @@ describe('Repository', () => {
         .then(
           () => expect.fail(null, null, 'doc should not exist'),
           (error) => {
-            expect(error).to.be.not.null();
-            expect(error.response.status).to.be.equal(404);
+            expect(error).not.toBeNull();
+            expect(error.response.status).toBe(404);
           })
     ));
   });
@@ -47,9 +47,9 @@ describe('Repository', () => {
       };
       return repository.create(WS_ROOT_PATH, newDoc)
         .then((doc) => {
-          expect(doc.uid).to.exist();
-          expect(doc.path).to.be.equal(WS_JS_TESTS_PATH);
-          expect(doc.type).to.be.equal('Workspace');
+          expect(doc.uid).toBeDefined();
+          expect(doc.path).toBe(WS_JS_TESTS_PATH);
+          expect(doc.type).toBe('Workspace');
         });
     });
   });
@@ -58,12 +58,12 @@ describe('Repository', () => {
     it('should update document properties', () => (
       repository.fetch(WS_JS_TESTS_PATH)
         .then((doc) => {
-          expect(doc.properties['dc:title']).to.be.equal('foo');
+          expect(doc.properties['dc:title']).toBe('foo');
           doc.properties['dc:title'] = 'bar';
           return repository.update(doc);
         })
         .then((updatedDoc) => {
-          expect(updatedDoc.properties['dc:title']).to.be.equal('bar');
+          expect(updatedDoc.properties['dc:title']).toBe('bar');
         })
     ));
   });
@@ -72,7 +72,7 @@ describe('Repository', () => {
     it('should delete a document', () => (
       repository.delete(WS_JS_TESTS_PATH)
         .then((res) => {
-          expect(res.status).to.be.equal(204);
+          expect(res.status).toBe(204);
         })
     ));
   });
@@ -84,18 +84,18 @@ describe('Repository', () => {
       }, {
         resolveWithFullResponse: true,
       }).then((res) => {
-        expect(res.url).to.not.have.string('query/');
-        expect(res.url).to.have.string('search/');
+        expect(res.url).not.toContain('query/');
+        expect(res.url).toContain('search/');
         return res.json();
       }).then((res) => {
         const {
           entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages,
         } = res;
-        expect(entries.length).to.be.equal(1);
-        expect(resultsCount).to.be.equal(1);
-        expect(currentPageSize).to.be.equal(1);
-        expect(currentPageIndex).to.be.equal(0);
-        expect(numberOfPages).to.be.equal(1);
+        expect(entries.length).toBe(1);
+        expect(resultsCount).toBe(1);
+        expect(currentPageSize).toBe(1);
+        expect(currentPageIndex).toBe(0);
+        expect(numberOfPages).toBe(1);
       })
     ));
 
@@ -109,11 +109,11 @@ describe('Repository', () => {
           const {
             entries, resultsCount, currentPageSize, currentPageIndex, numberOfPages,
           } = res;
-          expect(entries.length).to.be.equal(3);
-          expect(resultsCount).to.be.equal(3);
-          expect(currentPageSize).to.be.equal(3);
-          expect(currentPageIndex).to.be.equal(0);
-          expect(numberOfPages).to.be.equal(1);
+          expect(entries.length).toBe(3);
+          expect(resultsCount).toBe(3);
+          expect(currentPageSize).toBe(3);
+          expect(currentPageIndex).toBe(0);
+          expect(numberOfPages).toBe(1);
         })
     ));
 
@@ -135,11 +135,11 @@ describe('Repository', () => {
           const {
             entries, currentPageSize, currentPageIndex, isNextPageAvailable,
           } = res;
-          expect(entries.length).to.be.equal(1);
-          expect(currentPageSize).to.be.equal(1);
-          expect(currentPageIndex).to.be.equal(0);
-          expect(isNextPageAvailable).to.be.true();
-          expect(entries[0].title).to.be.equal('Sections');
+          expect(entries.length).toBe(1);
+          expect(currentPageSize).toBe(1);
+          expect(currentPageIndex).toBe(0);
+          expect(isNextPageAvailable).toBe(true);
+          expect(entries[0].title).toBe('Sections');
         })
         .then(() => repository.query({
           pageProvider: 'CURRENT_DOC_CHILDREN',
@@ -153,11 +153,11 @@ describe('Repository', () => {
           const {
             entries, currentPageSize, currentPageIndex, isNextPageAvailable,
           } = res;
-          expect(entries.length).to.be.equal(1);
-          expect(currentPageSize).to.be.equal(1);
-          expect(currentPageIndex).to.be.equal(1);
-          expect(isNextPageAvailable).to.be.true();
-          expect(entries[0].title).to.be.equal('Templates');
+          expect(entries.length).toBe(1);
+          expect(currentPageSize).toBe(1);
+          expect(currentPageIndex).toBe(1);
+          expect(isNextPageAvailable).toBe(true);
+          expect(entries[0].title).toBe('Templates');
         })
         .then(() => repository.query({
           pageProvider: 'CURRENT_DOC_CHILDREN',
@@ -171,11 +171,11 @@ describe('Repository', () => {
           const {
             entries, currentPageSize, currentPageIndex, isNextPageAvailable,
           } = res;
-          expect(entries.length).to.be.equal(1);
-          expect(currentPageSize).to.be.equal(1);
-          expect(currentPageIndex).to.be.equal(2);
-          expect(isNextPageAvailable).to.be.true();
-          expect(entries[0].title).to.be.equal('Workspaces');
+          expect(entries.length).toBe(1);
+          expect(currentPageSize).toBe(1);
+          expect(currentPageIndex).toBe(2);
+          expect(isNextPageAvailable).toBe(true);
+          expect(entries[0].title).toBe('Workspaces');
         })
         .then(() => repository.query({
           pageProvider: 'CURRENT_DOC_CHILDREN',
@@ -189,10 +189,10 @@ describe('Repository', () => {
           const {
             entries, currentPageSize, currentPageIndex, isNextPageAvailable,
           } = res;
-          expect(entries.length).to.be.equal(0);
-          expect(currentPageSize).to.be.equal(0);
-          expect(currentPageIndex).to.be.equal(3);
-          expect(isNextPageAvailable).to.be.false();
+          expect(entries.length).toBe(0);
+          expect(currentPageSize).toBe(0);
+          expect(currentPageIndex).toBe(3);
+          expect(isNextPageAvailable).toBe(false);
         });
     });
   });
@@ -220,10 +220,10 @@ describe('Repository', () => {
       return _repository.create(WS_ROOT_PATH, newDoc)
         .then((doc) => _repository.fetch(doc.path))
         .then((doc) => {
-          expect(doc.uid).to.exist();
-          expect(doc.path.endsWith(name)).to.be.true();
-          expect(doc.type).to.be.equal('Workspace');
-          expect(doc.get('dc:title')).to.be.equal(name);
+          expect(doc.uid).toBeDefined();
+          expect(doc.path.endsWith(name)).toBe(true);
+          expect(doc.type).toBe('Workspace');
+          expect(doc.get('dc:title')).toBe(name);
           return _repository.delete(doc.path);
         });
     });
@@ -240,10 +240,10 @@ describe('Repository', () => {
       return _repository.create(WS_ROOT_PATH, newDoc)
         .then((doc) => _repository.fetch(doc.path))
         .then((doc) => {
-          expect(doc.uid).to.exist();
-          expect(doc.path.endsWith(name)).to.be.true();
-          expect(doc.type).to.be.equal('Workspace');
-          expect(doc.get('dc:title')).to.be.equal(name);
+          expect(doc.uid).toBeDefined();
+          expect(doc.path.endsWith(name)).toBe(true);
+          expect(doc.type).toBe('Workspace');
+          expect(doc.get('dc:title')).toBe(name);
           return _repository.delete(doc.path);
         });
     });
@@ -260,10 +260,10 @@ describe('Repository', () => {
       return _repository.create(WS_ROOT_PATH, newDoc)
         .then((doc) => _repository.fetch(doc.path))
         .then((doc) => {
-          expect(doc.uid).to.exist();
-          expect(doc.path.endsWith(name)).to.be.true();
-          expect(doc.type).to.be.equal('Workspace');
-          expect(doc.get('dc:title')).to.be.equal(name);
+          expect(doc.uid).toBeDefined();
+          expect(doc.path.endsWith(name)).toBe(true);
+          expect(doc.type).toBe('Workspace');
+          expect(doc.get('dc:title')).toBe(name);
           return _repository.delete(doc.path);
         });
     });
@@ -280,10 +280,10 @@ describe('Repository', () => {
       return _repository.create(WS_ROOT_PATH, newDoc)
         .then((doc) => _repository.fetch(doc.path))
         .then((doc) => {
-          expect(doc.uid).to.exist();
-          expect(doc.path.endsWith(name)).to.be.true();
-          expect(doc.type).to.be.equal('Workspace');
-          expect(doc.get('dc:title')).to.be.equal(name);
+          expect(doc.uid).toBeDefined();
+          expect(doc.path.endsWith(name)).toBe(true);
+          expect(doc.type).toBe('Workspace');
+          expect(doc.get('dc:title')).toBe(name);
           return _repository.delete(doc.path);
         });
     });
