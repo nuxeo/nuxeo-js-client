@@ -4,7 +4,7 @@ describe('Directory', () => {
   let nuxeo;
   let dir;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     dir = nuxeo.directory('nature');
     return nuxeo.connect();
@@ -15,8 +15,8 @@ describe('Directory', () => {
       dir.fetchAll()
         .then((res) => {
           const { entries } = res;
-          expect(entries).to.be.an.instanceof(Array);
-          expect(entries.length > 0).to.be.true();
+          expect(entries).toBeInstanceOf(Array);
+          expect(entries.length > 0).toBe(true);
         })
     ));
   });
@@ -25,20 +25,20 @@ describe('Directory', () => {
     it('should fetch article entry', () => (
       dir.fetch('article')
         .then((entry) => {
-          expect(entry['entity-type']).to.be.equal('directoryEntry');
-          expect(entry.directoryName).to.be.equal('nature');
-          expect(entry.properties.id).to.be.equal('article');
-          expect(entry.properties.label).to.be.equal('label.directories.nature.article');
+          expect(entry['entity-type']).toBe('directoryEntry');
+          expect(entry.directoryName).toBe('nature');
+          expect(entry.properties.id).toBe('article');
+          expect(entry.properties.label).toBe('label.directories.nature.article');
         })
     ));
 
     it('should fetch article entry with a translated label', () => (
       dir.fetch('article', { translateProperties: { directoryEntry: ['label'] } })
         .then((entry) => {
-          expect(entry['entity-type']).to.be.equal('directoryEntry');
-          expect(entry.directoryName).to.be.equal('nature');
-          expect(entry.properties.id).to.be.equal('article');
-          expect(entry.properties.label).to.be.equal('Article');
+          expect(entry['entity-type']).toBe('directoryEntry');
+          expect(entry.directoryName).toBe('nature');
+          expect(entry.properties.id).toBe('article');
+          expect(entry.properties.label).toBe('Article');
         })
     ));
   });
@@ -52,10 +52,10 @@ describe('Directory', () => {
         },
       };
       return dir.create(newEntry).then((entry) => {
-        expect(entry['entity-type']).to.be.equal('directoryEntry');
-        expect(entry.directoryName).to.be.equal('nature');
-        expect(entry.properties.id).to.be.equal('foo');
-        expect(entry.properties.label).to.be.equal('Foo');
+        expect(entry['entity-type']).toBe('directoryEntry');
+        expect(entry.directoryName).toBe('nature');
+        expect(entry.properties.id).toBe('foo');
+        expect(entry.properties.label).toBe('Foo');
       });
     });
   });
@@ -63,11 +63,11 @@ describe('Directory', () => {
   describe('#update', () => {
     it('should update an entry', () => (
       dir.fetch('foo').then((entry) => {
-        expect(entry.properties.label).to.be.equal('Foo');
+        expect(entry.properties.label).toBe('Foo');
         entry.properties.label = 'Foo Fighters';
         return dir.update(entry);
       }).then((updatedEntry) => {
-        expect(updatedEntry.properties.label).to.be.equal('Foo Fighters');
+        expect(updatedEntry.properties.label).toBe('Foo Fighters');
       })
     ));
   });
@@ -75,7 +75,7 @@ describe('Directory', () => {
   describe('#delete', () => {
     it('should delete an entry', () => (
       dir.delete('foo').then((res) => {
-        expect(res.status).to.be.equal(204);
+        expect(res.status).toBe(204);
       })
     ));
   });
@@ -87,17 +87,17 @@ describe('Directory', () => {
 
     const dir2 = nuxeo.directory('oauth2Tokens');
     return dir2.create({ properties: { accessToken: 'token' } }).then((entry) => {
-      expect(entry.id).to.exist();
-      expect(entry.id).to.be.a('string');
-      expect(entry.properties.id).to.be.a('number');
-      expect(entry.properties.accessToken).to.be.equal('token');
+      expect(entry.id).toBeDefined();
+      expect(typeof entry.id).toBe('string');
+      expect(typeof entry.properties.id).toBe('number');
+      expect(entry.properties.accessToken).toBe('token');
       return dir2.update({
         id: entry.id,
         properties: {
           accessToken: 'newToken',
         },
       }).then((updatedEntry) => {
-        expect(updatedEntry.properties.accessToken).to.be.equal('newToken');
+        expect(updatedEntry.properties.accessToken).toBe('newToken');
       });
     });
   });
@@ -111,13 +111,13 @@ describe('Directory', () => {
       },
     };
     return dir.create(newEntry).then((entry) => {
-      expect(entry['entity-type']).to.be.equal('directoryEntry');
-      expect(entry.directoryName).to.be.equal('nature');
-      expect(entry.properties.id).to.be.equal('http://address.com/');
-      expect(entry.properties.label).to.be.equal('label');
+      expect(entry['entity-type']).toBe('directoryEntry');
+      expect(entry.directoryName).toBe('nature');
+      expect(entry.properties.id).toBe('http://address.com/');
+      expect(entry.properties.label).toBe('label');
 
       return dir.delete('http://address.com/').then((res) => {
-        expect(res.status).to.be.equal(204);
+        expect(res.status).toBe(204);
       });
     });
   });

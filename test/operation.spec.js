@@ -12,7 +12,7 @@ const FILE_TEST_PATH = join(WS_JS_TESTS_1_PATH, FILE_TEST_NAME);
 describe('Operation', () => {
   let nuxeo;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({
       baseURL,
       auth: {
@@ -51,7 +51,7 @@ describe('Operation', () => {
       .then(() => repository.create(WS_JS_TESTS_1_PATH, newDoc3));
   });
 
-  after(() => (
+  afterAll(() => (
     nuxeo.repository().delete(WS_JS_TESTS_1_PATH)
       .then(() => nuxeo.repository().delete(WS_JS_TESTS_2_PATH))
   ));
@@ -62,12 +62,12 @@ describe('Operation', () => {
       param1: 'foo',
       param2: 'bar',
     });
-    expect(op._automationParams.params).to.be.eql({
+    expect(op._automationParams.params).toEqual({
       param1: 'foo',
       param2: 'bar',
     });
     op.param('param1', 'bar').param('param3', 'foo');
-    expect(op._automationParams.params).to.be.eql({
+    expect(op._automationParams.params).toEqual({
       param1: 'bar',
       param2: 'bar',
       param3: 'foo',
@@ -79,14 +79,14 @@ describe('Operation', () => {
     op.context({
       currentDocument: '/',
     });
-    expect(op._automationParams.context).to.be.eql({
+    expect(op._automationParams.context).toEqual({
       currentDocument: '/',
     });
     // replace the whole context
     op.context({
       foo: 'bar',
     });
-    expect(op._automationParams.context).to.be.eql({
+    expect(op._automationParams.context).toEqual({
       foo: 'bar',
     });
   });
@@ -94,9 +94,9 @@ describe('Operation', () => {
   it('should allow different operation input', () => {
     const op = nuxeo.operation('Noop');
     op.input('doc:docId');
-    expect(op._automationParams.input).to.be.equal('doc:docId');
+    expect(op._automationParams.input).toBe('doc:docId');
     op.input(['dodId1', 'docId2', 'docId3']);
-    expect(op._automationParams.input).to.be.eql(['dodId1', 'docId2', 'docId3']);
+    expect(op._automationParams.input).toEqual(['dodId1', 'docId2', 'docId3']);
     const blob = new Nuxeo.Blob({
       content: 'foo',
       name: 'bar.txt',
@@ -104,7 +104,7 @@ describe('Operation', () => {
       size: 3,
     });
     op.input(blob);
-    expect(op._automationParams.input).to.be.an.instanceof(Nuxeo.Blob);
+    expect(op._automationParams.input).toBeInstanceOf(Nuxeo.Blob);
     const anotherBlob = new Nuxeo.Blob({
       content: 'bar',
       name: 'foo.txt',
@@ -112,8 +112,8 @@ describe('Operation', () => {
       size: 3,
     });
     op.input([blob, anotherBlob]);
-    expect(op._automationParams.input).to.be.an.instanceof(Array);
-    expect(op._automationParams.input).to.be.eql([blob, anotherBlob]);
+    expect(op._automationParams.input).toBeInstanceOf(Array);
+    expect(op._automationParams.input).toEqual([blob, anotherBlob]);
   });
 
   describe('#execute', () => {
@@ -126,9 +126,9 @@ describe('Operation', () => {
           })
           .execute()
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('documents');
-            expect(res.entries.length).to.be.equal(1);
-            expect(res.entries[0].properties['dc:title']).to.be.equal('Workspaces');
+            expect(res['entity-type']).toBe('documents');
+            expect(res.entries.length).toBe(1);
+            expect(res.entries[0].properties['dc:title']).toBe('Workspaces');
           })
       ));
 
@@ -140,8 +140,8 @@ describe('Operation', () => {
           })
           .execute()
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('document');
-            expect(res.properties['dc:title']).to.be.equal('Workspaces');
+            expect(res['entity-type']).toBe('document');
+            expect(res.properties['dc:title']).toBe('Workspaces');
           })
       ));
 
@@ -153,12 +153,12 @@ describe('Operation', () => {
           })
           .execute()
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('documents');
-            expect(res.entries.length).to.be.equal(2);
-            expect(res.entries[0].path).to.be.equal(WS_JS_TESTS_1_PATH);
-            expect(res.entries[0].properties['dc:description']).to.be.equal('sample description');
-            expect(res.entries[1].path).to.be.equal(WS_JS_TESTS_2_PATH);
-            expect(res.entries[1].properties['dc:description']).to.be.equal('sample description');
+            expect(res['entity-type']).toBe('documents');
+            expect(res.entries.length).toBe(2);
+            expect(res.entries[0].path).toBe(WS_JS_TESTS_1_PATH);
+            expect(res.entries[0].properties['dc:description']).toBe('sample description');
+            expect(res.entries[1].path).toBe(WS_JS_TESTS_2_PATH);
+            expect(res.entries[1].properties['dc:description']).toBe('sample description');
           })
       ));
 
@@ -174,8 +174,8 @@ describe('Operation', () => {
               .execute()
           ))
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('document');
-            expect(res.properties['dc:title']).to.be.equal('Workspaces');
+            expect(res['entity-type']).toBe('document');
+            expect(res.properties['dc:title']).toBe('Workspaces');
           })
       ));
 
@@ -191,12 +191,12 @@ describe('Operation', () => {
               .execute()
           ))
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('documents');
-            expect(res.entries.length).to.be.equal(2);
-            expect(res.entries[0].path).to.be.equal(WS_JS_TESTS_1_PATH);
-            expect(res.entries[0].properties['dc:description']).to.be.equal('another description');
-            expect(res.entries[1].path).to.be.equal(WS_JS_TESTS_2_PATH);
-            expect(res.entries[1].properties['dc:description']).to.be.equal('another description');
+            expect(res['entity-type']).toBe('documents');
+            expect(res.entries.length).toBe(2);
+            expect(res.entries[0].path).toBe(WS_JS_TESTS_1_PATH);
+            expect(res.entries[0].properties['dc:description']).toBe('another description');
+            expect(res.entries[1].path).toBe(WS_JS_TESTS_2_PATH);
+            expect(res.entries[1].properties['dc:description']).toBe('another description');
           });
       });
 
@@ -211,8 +211,8 @@ describe('Operation', () => {
           })
           .execute()
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('string');
-            expect(res.value).to.be.equal('Foo');
+            expect(res['entity-type']).toBe('string');
+            expect(res.value).toBe('Foo');
           })
       ));
 
@@ -223,7 +223,7 @@ describe('Operation', () => {
           .input(blob)
           .execute()
           .then((res) => {
-            expect(res.status).to.be.equal(200);
+            expect(res.status).toBe(200);
             return nuxeo.operation('Repository.GetDocument')
               .param('value', FILE_TEST_PATH)
               .execute({
@@ -231,7 +231,7 @@ describe('Operation', () => {
               });
           })
           .then((doc) => {
-            expect(doc.properties['file:content'].name).to.be.equal('foo.txt');
+            expect(doc.properties['file:content'].name).toBe('foo.txt');
           });
       });
 
@@ -249,14 +249,14 @@ describe('Operation', () => {
               .execute({ schemas: ['dublincore', 'note'] })
           ))
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('documents');
-            expect(res.entries.length).to.be.equal(2);
-            expect(res.entries[0].title).to.be.equal('foo.txt');
-            expect(res.entries[0].type).to.be.equal('Note');
-            expect(res.entries[0].properties['note:note']).to.be.equal('foo');
-            expect(res.entries[1].title).to.be.equal('bar.txt');
-            expect(res.entries[1].type).to.be.equal('Note');
-            expect(res.entries[1].properties['note:note']).to.be.equal('bar');
+            expect(res['entity-type']).toBe('documents');
+            expect(res.entries.length).toBe(2);
+            expect(res.entries[0].title).toBe('foo.txt');
+            expect(res.entries[0].type).toBe('Note');
+            expect(res.entries[0].properties['note:note']).toBe('foo');
+            expect(res.entries[1].title).toBe('bar.txt');
+            expect(res.entries[1].type).toBe('Note');
+            expect(res.entries[1].properties['note:note']).toBe('bar');
           });
       });
 
@@ -272,10 +272,10 @@ describe('Operation', () => {
             .context({ currentDocument: WS_JS_TESTS_2_PATH })
             .execute({ schemas: ['dublincore', 'note'] })
         )).then((res) => {
-          expect(res['entity-type']).to.be.equal('document');
-          expect(res.title).to.be.equal('bar.txt');
-          expect(res.type).to.be.equal('Note');
-          expect(res.properties['note:note']).to.be.equal('bar');
+          expect(res['entity-type']).toBe('document');
+          expect(res.title).toBe('bar.txt');
+          expect(res.type).toBe('Note');
+          expect(res.properties['note:note']).toBe('bar');
         });
       });
     });
@@ -289,10 +289,10 @@ describe('Operation', () => {
           })
           .execute()
           .then((res) => {
-            expect(res.status).to.be.equal(204);
+            expect(res.status).toBe(204);
             return res.text();
           })
-          .then((text) => expect(text).to.be.empty())
+          .then((text) => expect(text).toHaveLength(0))
       ));
 
       it('document', () => (
@@ -303,9 +303,9 @@ describe('Operation', () => {
           })
           .execute()
           .then((res) => {
-            expect(res).to.be.instanceof(Nuxeo.Document);
-            expect(res['entity-type']).to.be.equal('document');
-            expect(res.properties['dc:title']).to.be.equal('Workspaces');
+            expect(res).toBeInstanceOf(Nuxeo.Document);
+            expect(res['entity-type']).toBe('document');
+            expect(res.properties['dc:title']).toBe('Workspaces');
           })
       ));
 
@@ -320,9 +320,9 @@ describe('Operation', () => {
               .execute()
           ))
           .then((res) => {
-            expect(res['entity-type']).to.be.equal('documents');
-            expect(res.entries.length).to.be.equal(3);
-            expect(res.entries[0]).to.be.instanceof(Nuxeo.Document);
+            expect(res['entity-type']).toBe('documents');
+            expect(res.entries.length).toBe(3);
+            expect(res.entries[0]).toBeInstanceOf(Nuxeo.Document);
           })
       ));
 
@@ -333,7 +333,7 @@ describe('Operation', () => {
           .then((res) => (isBrowser ? res.blob() : res.body))
           .then((body) => getTextFromBody(body))
           .then((text) => {
-            expect(text).to.be.equal('foo');
+            expect(text).toBe('foo');
           })
       ));
     });
@@ -344,12 +344,12 @@ describe('Operation', () => {
       return op.execute()
         .then((res) => {
           // no thumbnail enricher header
-          expect(res.contextParameters).to.not.exist();
+          expect(res.contextParameters).toBeUndefined();
         })
         .then(() => op.header('enrichers-document', 'thumbnail').execute())
         .then((res) => {
           // with thumbnail enricher header
-          expect(res.contextParameters.thumbnail.url).to.exist();
+          expect(res.contextParameters.thumbnail.url).toBeDefined();
         });
     });
   });

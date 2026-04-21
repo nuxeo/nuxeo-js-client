@@ -10,7 +10,7 @@ describe('Workflow spec', () => {
   let nuxeo;
   let repository;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     repository = nuxeo.repository({
       schemas: ['dublincore'],
@@ -34,7 +34,7 @@ describe('Workflow spec', () => {
       .then(() => nuxeo.repository().create(WS_JS_TESTS_PATH, newDoc2));
   });
 
-  after(() => (
+  afterAll(() => (
     repository.delete(WS_JS_TESTS_PATH)
       .then(() => repository.delete('/task-root'))
       .then(() => repository.delete('/document-route-instances-root'))
@@ -47,7 +47,7 @@ describe('Workflow spec', () => {
         return workflows.start('SerialDocumentReview')
           .then(() => workflows.fetchStartedWorkflows('SerialDocumentReview'))
           .then(({ entries }) => {
-            expect(entries.length).to.be.equal(1);
+            expect(entries.length).toBe(1);
           });
       });
     });
@@ -57,7 +57,7 @@ describe('Workflow spec', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchTasks()
           .then(({ entries }) => {
-            expect(entries.length).to.be.equal(1);
+            expect(entries.length).toBe(1);
           });
       });
 
@@ -67,7 +67,7 @@ describe('Workflow spec', () => {
           .then(({ entries }) => entries[0])
           .then((wf) => workflows.fetchTasks({ workflowInstanceId: wf.id }))
           .then(({ entries }) => {
-            expect(entries.length).to.be.equal(1);
+            expect(entries.length).toBe(1);
           });
       });
 
@@ -77,7 +77,7 @@ describe('Workflow spec', () => {
           .then(({ entries }) => entries[0])
           .then((wf) => workflows.fetchTasks({ workflowInstanceId: wf.id, actorId: 'Administrator' }))
           .then(({ entries }) => {
-            expect(entries.length).to.be.equal(1);
+            expect(entries.length).toBe(1);
           });
       });
 
@@ -87,7 +87,7 @@ describe('Workflow spec', () => {
           .then(({ entries }) => entries[0])
           .then((wf) => workflows.fetchTasks({ workflowInstanceId: wf.id, actorId: 'leela' }))
           .then(({ entries }) => {
-            expect(entries.length).to.be.equal(0);
+            expect(entries.length).toBe(0);
           });
       });
 
@@ -97,7 +97,7 @@ describe('Workflow spec', () => {
           .then(({ entries }) => entries[0])
           .then((wf) => workflows.fetchTasks({ workflowInstanceId: wf.id, workflowModelName: 'SerialDocumentReview' }))
           .then(({ entries }) => {
-            expect(entries.length).to.be.equal(1);
+            expect(entries.length).toBe(1);
           });
       });
 
@@ -105,7 +105,7 @@ describe('Workflow spec', () => {
         const workflows = nuxeo.workflows();
         return workflows.fetchTasks({ workflowModelName: 'foo' })
           .then(({ entries }) => {
-            expect(entries.length).to.be.equal(0);
+            expect(entries.length).toBe(0);
           });
       });
     });
@@ -119,7 +119,7 @@ describe('Workflow spec', () => {
           .then(({ entries }) => entries[0])
           .then((wf) => wf.fetchGraph())
           .then((graph) => {
-            expect(graph['entity-type']).to.be.equal('graph');
+            expect(graph['entity-type']).toBe('graph');
           });
       });
     });
@@ -130,42 +130,42 @@ describe('Workflow spec', () => {
     return repository.fetch(FILE_TEST_PATH)
       .then((doc) => doc.startWorkflow('SerialDocumentReview'))
       .then((workflow) => {
-        expect(workflow).to.be.an.instanceof(Nuxeo.Workflow);
+        expect(workflow).toBeInstanceOf(Nuxeo.Workflow);
         currentWorkflow = workflow;
         return workflow.fetchTasks();
       })
       .then(({ entries }) => {
-        expect(entries.length).to.be.equal(1);
+        expect(entries.length).toBe(1);
         return entries[0];
       })
       .then((task) => {
-        expect(task).to.be.an.instanceof(Nuxeo.Task);
+        expect(task).toBeInstanceOf(Nuxeo.Task);
         task.variable('participants', ['user:Administrator'])
           .variable('assignees', ['user:Administrator'])
           .variable('end_date', '2011-10-23T12:00:00.00Z');
         return task.complete('start_review', { comment: 'a comment' });
       })
       .then((task) => {
-        expect(task.state).to.be.equal('ended');
+        expect(task.state).toBe('ended');
       })
       // next task
       .then(() => currentWorkflow.fetchTasks())
       .then(({ entries }) => {
-        expect(entries.length).to.be.equal(1);
+        expect(entries.length).toBe(1);
         return entries[0];
       })
       .then((task) => {
-        expect(task).to.be.an.instanceof(Nuxeo.Task);
+        expect(task).toBeInstanceOf(Nuxeo.Task);
         return task.complete('validate');
       })
       .then((task) => {
-        expect(task.state).to.be.equal('ended');
+        expect(task.state).toBe('ended');
       })
       // check no workflow is running
       .then(() => repository.fetch(FILE_TEST_PATH))
       .then((doc) => doc.fetchWorkflows())
       .then(({ entries }) => {
-        expect(entries.length).to.be.equal(0);
+        expect(entries.length).toBe(0);
       });
   });
 });

@@ -6,7 +6,7 @@ describe('DirectoryEntry', () => {
   let nuxeo;
   let dir;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     dir = nuxeo.directory('nature');
 
@@ -14,13 +14,13 @@ describe('DirectoryEntry', () => {
       .then(() => dir.create({ properties: { id: FOO_ENTRY } }));
   });
 
-  after(() => dir.delete('foo'));
+  afterAll(() => dir.delete('foo'));
 
   it('should be retrieved from a Directory', () => (
     dir.fetch(FOO_ENTRY).then((entry) => {
-      expect(entry).to.be.an.instanceof(Nuxeo.DirectoryEntry);
-      expect(entry.directoryName).to.be.equal('nature');
-      expect(entry.properties.id).to.be.equal('foo');
+      expect(entry).toBeInstanceOf(Nuxeo.DirectoryEntry);
+      expect(entry.directoryName).toBe('nature');
+      expect(entry.properties.id).toBe('foo');
     })
   ));
 
@@ -30,8 +30,8 @@ describe('DirectoryEntry', () => {
         entry.set({
           label: 'foo',
         });
-        expect(entry.properties.label).to.be.null();
-        expect(entry._dirtyProperties.label).to.be.equal('foo');
+        expect(entry.properties.label).toBeNull();
+        expect(entry._dirtyProperties.label).toBe('foo');
       })
     ));
   });
@@ -39,13 +39,13 @@ describe('DirectoryEntry', () => {
   describe('#get', () => {
     it('should return a property value', () => (
       dir.fetch(FOO_ENTRY).then((entry) => {
-        expect(entry.get('id')).to.be.equal('foo');
+        expect(entry.get('id')).toBe('foo');
       })
     ));
 
     it('should return undefined for non existing property', () => (
       dir.fetch(FOO_ENTRY).then((entry) => {
-        expect(entry.get('non-existing')).to.be.undefined();
+        expect(entry.get('non-existing')).toBeUndefined();
       })
     ));
 
@@ -54,7 +54,7 @@ describe('DirectoryEntry', () => {
         entry.set({
           label: 'foo',
         });
-        expect(entry.get('label')).to.be.equal('foo');
+        expect(entry.get('label')).toBe('foo');
       })
     ));
   });
@@ -63,11 +63,11 @@ describe('DirectoryEntry', () => {
     it('should save an updated entry', () => (
       dir.fetch(FOO_ENTRY)
         .then((entry) => {
-          expect(entry.get('label')).to.be.null();
+          expect(entry.get('label')).toBeNull();
           entry.set({ label: 'Foo' });
           return entry.save();
         }).then((entry) => {
-          expect(entry.get('label')).to.be.equal('Foo');
+          expect(entry.get('label')).toBe('Foo');
         })
     ));
   });
@@ -79,14 +79,14 @@ describe('DirectoryEntry', () => {
 
     const dir2 = nuxeo.directory('oauth2Tokens');
     return dir2.create({ properties: { accessToken: 'token' } }).then((entry) => {
-      expect(entry.id).to.exist();
-      expect(entry.id).to.be.a('string');
-      expect(entry.properties.id).to.be.a('number');
-      expect(entry.properties.accessToken).to.be.equal('token');
+      expect(entry.id).toBeDefined();
+      expect(typeof entry.id).toBe('string');
+      expect(typeof entry.properties.id).toBe('number');
+      expect(entry.properties.accessToken).toBe('token');
       entry.set({ accessToken: 'newToken' });
       return entry.save();
     }).then((updatedEntry) => {
-      expect(updatedEntry.properties.accessToken).to.be.equal('newToken');
+      expect(updatedEntry.properties.accessToken).toBe('newToken');
     });
   });
 });

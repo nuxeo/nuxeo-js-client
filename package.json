@@ -38,9 +38,7 @@
     "@wdio/spec-reporter": "^9.0.0",
     "@wdio/static-server-service": "^9.0.0",
     "c8": "^11.0.0",
-    "chai": "^4.0.0",
     "content-disposition": "^0.5.0",
-    "dirty-chai": "^2.0.0",
     "esbuild": "^0.28.0",
     "eslint": "^8.0.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -51,9 +49,8 @@
     "jsonwebtoken": "^9.0.0",
     "junit-report-builder": "^5.1.1",
     "mkdirp": "^3.0.1",
-    "mocha": "^10.8.2",
-    "mocha-jenkins-reporter": "^0.4.0",
-    "rimraf": "^6.1.3"
+    "rimraf": "^6.1.3",
+    "vitest": "^4.1.5"
   },
   "scripts": {
     "clean": "rimraf ${JS_DIST_DIR:-dist} ${JS_BUILD_DIR:-build}",
@@ -65,12 +62,12 @@
     "pretest": "rimraf coverage && npm run lint",
     "test": "npm run test:cover && npm run test:browser",
     "test:cover": "c8 --include lib --all --reporter text --reporter lcov npm run test:node",
-    "test:node": "mocha --timeout 30000 --require test/helpers/setup.js --require test/helpers/setup-node.js 'test/helpers/setup-logging.js' 'test/**/*.spec.js'",
+    "test:node": "vitest run",
     "test:browser": "npm run build:browser && npm run build:tests && npx wdio run ./wdio.conf.js",
     "it": "npm run it:checkstyle && npm run build && npm run it:cover && npm run it:browser",
     "it:checkstyle": "eslint 'lib' 'test' --format checkstyle --output-file ftest/target/checkstyle-result.xml",
     "it:cover": "c8 --temp-directory $JS_REPORTS_DIR/.c8_output --include lib --all --reporter cobertura --reports-dir=$JS_REPORTS_DIR npm run it:node",
-    "it:node": "mocha --timeout 30000 --require test/helpers/setup.js --require test/helpers/setup-node.js 'test/helpers/setup-logging.js' --reporter mocha-jenkins-reporter --reporter-options junit_report_path=ftest/target/$JS_REPORTS_DIR/test-results-node.xml,junit_report_stack=1,junit_report_name=node 'test/**/*.spec.js'",
+    "it:node": "vitest run --reporter=junit --outputFile=ftest/target/$JS_REPORTS_DIR/test-results-node.xml",
     "it:browser": "npm run build:tests && npx wdio run ./wdio.conf.js",
     "doc": "jsdoc -c jsdoc.json",
     "start": "npm run build:browser && node examples/server.js"

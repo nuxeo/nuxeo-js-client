@@ -4,7 +4,7 @@ describe('Group', () => {
   let nuxeo;
   let groups;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     groups = nuxeo.groups();
 
@@ -15,12 +15,12 @@ describe('Group', () => {
     });
   });
 
-  after(() => groups.delete(FOO_GROUPNAME));
+  afterAll(() => groups.delete(FOO_GROUPNAME));
 
   it('should be retrieved from Groups', () => (
     groups.fetch('administrators').then((group) => {
-      expect(group).to.be.an.instanceof(Nuxeo.Group);
-      expect(group.groupname).to.exist();
+      expect(group).toBeInstanceOf(Nuxeo.Group);
+      expect(group.groupname).toBeDefined();
     })
   ));
 
@@ -28,11 +28,11 @@ describe('Group', () => {
     it('should save an updated group', () => (
       groups.fetch(FOO_GROUPNAME)
         .then((group) => {
-          expect(group.grouplabel).to.be.equal('Foo');
+          expect(group.grouplabel).toBe('Foo');
           group.grouplabel = 'Foo Fighters';
           return group.save();
         }).then((group) => {
-          expect(group.grouplabel).to.be.equal('Foo Fighters');
+          expect(group.grouplabel).toBe('Foo Fighters');
         })
     ));
   });

@@ -12,7 +12,7 @@ const FILE_TEST_PATH = join(WS_JS_TESTS_PATH, FILE_TEST_NAME);
 describe('UTF-8 filenames spec', () => {
   let nuxeo;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({
       baseURL,
       auth: {
@@ -44,7 +44,7 @@ describe('UTF-8 filenames spec', () => {
       .then(() => repository.create(WS_JS_TESTS_PATH, file));
   });
 
-  after(() => nuxeo.repository().delete(WS_JS_TESTS_PATH));
+  afterAll(() => nuxeo.repository().delete(WS_JS_TESTS_PATH));
 
   describe('should upload a blob with an UTF-8 filename', () => {
     const nuxeoBlob = createTextBlob('foo', 'café.txt');
@@ -54,7 +54,7 @@ describe('UTF-8 filenames spec', () => {
       return batch.upload(nuxeoBlob)
         .then(() => batch.fetchBlob(0))
         .then(({ blob }) => {
-          expect(blob.name).to.equal('café.txt');
+          expect(blob.name).toBe('café.txt');
           return nuxeo.operation('Blob.AttachOnDocument')
             .param('document', FILE_TEST_PATH)
             .input(blob)
@@ -62,7 +62,7 @@ describe('UTF-8 filenames spec', () => {
         })
         .then(() => nuxeo.repository().fetch(FILE_TEST_PATH))
         .then((doc) => {
-          expect(doc.get('file:content').name).to.equal('café.txt');
+          expect(doc.get('file:content').name).toBe('café.txt');
         });
     });
 
@@ -73,7 +73,7 @@ describe('UTF-8 filenames spec', () => {
         .execute()
         .then(() => nuxeo.repository().fetch(FILE_TEST_PATH))
         .then((doc) => {
-          expect(doc.get('file:content').name).to.equal('café.txt');
+          expect(doc.get('file:content').name).toBe('café.txt');
         })
     ));
 
@@ -84,13 +84,13 @@ describe('UTF-8 filenames spec', () => {
         .input(nuxeoBinBlob)
         .execute()
         .then((doc) => {
-          expect(doc.get('dc:title')).to.equal('café.bin');
+          expect(doc.get('dc:title')).toBe('café.bin');
         });
     });
   });
 
   describe('should retrieve a blob UTF-8 filename', () => {
-    before(() => {
+    beforeAll(() => {
       const nuxeoBlob = createTextBlob('foo', 'café.txt');
       return nuxeo.operation('Blob.AttachOnDocument')
         .param('document', FILE_TEST_PATH)
@@ -104,14 +104,14 @@ describe('UTF-8 filenames spec', () => {
         .execute()
         .then((res) => {
           const disposition = contentDisposition.parse(res.headers.get('content-disposition'));
-          expect(disposition.parameters.filename).to.be.equal('café.txt');
+          expect(disposition.parameters.filename).toBe('café.txt');
         })
     ));
 
     it('in document properties', () => (
       nuxeo.repository().fetch(FILE_TEST_PATH)
         .then((doc) => {
-          expect(doc.get('file:content').name).to.be.equal('café.txt');
+          expect(doc.get('file:content').name).toBe('café.txt');
         })
     ));
 
@@ -120,7 +120,7 @@ describe('UTF-8 filenames spec', () => {
         .get()
         .then((res) => {
           const disposition = contentDisposition.parse(res.headers.get('content-disposition'));
-          expect(disposition.parameters.filename).to.be.equal('café.txt');
+          expect(disposition.parameters.filename).toBe('café.txt');
         })
     ));
   });
