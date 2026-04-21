@@ -28,8 +28,8 @@
     "md5": "^2.0.0",
     "mocha": "^10.0.0",
     "promise-queue": "^2.0.0",
-    "querystring": "^0.2.0",
-    "random-js": "^1.0.0"
+    "qs": "^6.15.1",
+    "random-js": "^2.1.0"
   },
   "devDependencies": {
     "@wdio/cli": "^9.0.0",
@@ -59,7 +59,7 @@
     "clean": "rimraf ${JS_DIST_DIR:-dist} ${JS_BUILD_DIR:-build}",
     "build": "npm run clean && npm run build:dist && npm run build:browser",
     "build:dist": "node bin/build-dist.js",
-    "build:browser": "mkdir -p ${JS_DIST_DIR:-dist} && esbuild lib/index-browserify.js --bundle --format=iife --platform=browser --outfile=${JS_DIST_DIR:-dist}/nuxeo.js",
+    "build:browser": "mkdir -p ${JS_DIST_DIR:-dist} && esbuild lib/index-browserify.js --bundle --format=iife --platform=browser --external:crypto --outfile=${JS_DIST_DIR:-dist}/nuxeo.js",
     "build:tests": "mkdir -p ${JS_BUILD_DIR:-build} && node bin/bundle-tests.js",
     "lint": "eslint 'lib' 'test'",
     "pretest": "rimraf coverage && npm run lint",
