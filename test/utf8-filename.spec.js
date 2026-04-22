@@ -1,5 +1,3 @@
-const contentDisposition = require('content-disposition');
-
 const join = require('../lib/deps/utils/join');
 const { createTextBlob } = require('./helpers/blob-helper');
 
@@ -8,6 +6,22 @@ const WS_JS_TEST_NAME = 'ws-js-tests1';
 const WS_JS_TESTS_PATH = join(WS_ROOT_PATH, WS_JS_TEST_NAME);
 const FILE_TEST_NAME = 'bar';
 const FILE_TEST_PATH = join(WS_JS_TESTS_PATH, FILE_TEST_NAME);
+
+/**
+ * Extracts the filename from a Content-Disposition header value.
+ * Prefers the RFC 5987/2231 filename* parameter when present,
+ * falling back to the basic filename parameter.
+ */
+const getFilename = (header) => {
+  // Try RFC 5987 filename* first (e.g. filename*=UTF-8''caf%C3%A9.txt)
+  const extMatch = header.match(/filename\*\s*=\s*UTF-8''([^\s;]+)/i);
+  if (extMatch) {
+    return decodeURIComponent(extMatch[1]);
+  }
+  // Fall back to basic filename (quoted or unquoted)
+  const match = header.match(/filename\s*=\s*"?([^";]+)"?/i);
+  return match ? match[1] : null;
+};
 
 describe('UTF-8 filenames spec', () => {
   let nuxeo;
@@ -103,8 +117,8 @@ describe('UTF-8 filenames spec', () => {
         .input(FILE_TEST_PATH)
         .execute()
         .then((res) => {
-          const disposition = contentDisposition.parse(res.headers.get('content-disposition'));
-          expect(disposition.parameters.filename).toBe('café.txt');
+          const filename = getFilename(res.headers.get('content-disposition'));
+          expect(filename).toBe('café.txt');
         })
     ));
 
@@ -119,8 +133,8 @@ describe('UTF-8 filenames spec', () => {
       nuxeo.request(`path${FILE_TEST_PATH}/@blob/file:content`)
         .get()
         .then((res) => {
-          const disposition = contentDisposition.parse(res.headers.get('content-disposition'));
-          expect(disposition.parameters.filename).toBe('café.txt');
+          const filename = getFilename(res.headers.get('content-disposition'));
+          expect(filename).toBe('café.txt');
         })
     ));
   });
