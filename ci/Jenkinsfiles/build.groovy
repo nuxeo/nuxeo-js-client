@@ -214,10 +214,7 @@ pipeline {
                   "NUXEO_DOMAIN=${nuxeoDomain}", 
                   "NUXEO_BASE_URL=https://${nuxeoDomain}/nuxeo",
                 ]) {
-              withCredentials([usernamePassword(credentialsId: 'saucelabs-js-client-credentials', usernameVariable: 'SAUCE_USERNAME', 
-                  passwordVariable: 'SAUCE_ACCESS_KEY')]) {
-                sh 'npm run it:browser'
-              }
+              sh 'npm run it:browser'
             }
           }
         }
