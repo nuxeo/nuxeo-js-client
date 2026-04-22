@@ -47,21 +47,17 @@ lib/                        # Source code
   workflow/                 # Workflow management (Workflows manager + Workflow/Task models)
   deps/                     # Platform abstraction layer (see "Multi-Platform Support")
     fetch.js / fetch-browser.js / fetch-react-native.js
-    promise.js / promise-browser.js
-    form-data.js / form-data-browser.js
+    promise.js              # Exports native Promise (single file, no browser variant needed)
+    form-data.js            # NuxeoFormData subclass of global FormData (single file, no browser variant)
     constants.js            # Shared constants (enricher names, depth values)
     utils/                  # join.js, encodePath.js, base64.js, buffer.js, flatten.js
 
 test/                       # Integration tests (require a live Nuxeo server)
   helpers/                  # Test setup files
-    setup.js                # Chai + dirty-chai initialization
-    setup-node.js           # Node.js globals (Nuxeo, baseURL, expect, isBrowser)
-    setup-browser.js        # Browser setup (sets window.expect; other globals set by browser-tests.html)
-    setup-logging.js        # Logging setup
-    blob-helper.js          # Blob test utilities
-  browser-tests.html        # HTML page for browser tests (Mocha runner with result collection)
-  wdio/                     # WebdriverIO specs (excluded from Browserify bundle and Node.js Mocha)
-    browser-bridge.js       # Bridges browser Mocha results to WDIO reporters
+    setup-node.js           # Node.js globals (Nuxeo, baseURL, isBrowser, support)
+    setup-browser-vitest.mjs # Browser globals for Vitest browser mode (ESM, uses dynamic import)
+    setup-logging.js        # Logging setup (uses Vitest TaskContext API)
+    blob-helper.js          # Blob test utilities (handles Web ReadableStream)
   *.spec.js                 # Test files (one per module)
   <subdir>/*.spec.js        # Subdirectory-specific tests (user/, group/, directory/, workflow/)
 
@@ -142,7 +138,7 @@ The codebase uses no custom error classes. Errors are native `Error` objects wit
 
 ```js
 // In Nuxeo#http() -- any non-2xx status:
-const error = new Error(res.statusText);
+const error = new Error(res.statusText || `${res.status}`);
 error.response = res; // the full fetch Response object
 reject(error);
 ```
@@ -199,9 +195,9 @@ The library runs on three platforms: **Node.js**, **Browser**, and **React Nativ
 
 | Module                       | Node.js                  | Browser                            | React Native                    |
 |------------------------------|--------------------------|------------------------------------|---------------------------------|
-| `deps/fetch.js`              | `node-fetch`             | `whatwg-fetch` (polyfill)          | global `fetch`                  |
-| `deps/promise.js`            | Native `Promise`         | `es6-promise` polyfill + native    | Native `Promise` (same as Node) |
-| `deps/form-data.js`          | `form-data` package      | Native `FormData`                  | Node.js `form-data` (not swapped) |
+| `deps/fetch.js`              | Native `fetch` (Node 18+)| `self.fetch` (global)              | global `fetch`                  |
+| `deps/promise.js`            | Native `Promise`         | Native `Promise` (same file, no browser remap) | Native `Promise` (same as Node) |
+| `deps/form-data.js`          | `NuxeoFormData` (extends global `FormData`, adds `appendWithMimeType`) | Same (no browser remap) | Same (no remap) |
 | `deps/utils/buffer.js`       | Native `Buffer`          | `buffer` package                   | Native `Buffer` (not swapped)   |
 
 The `"browser"` field also remaps `promise-queue` to `promise-queue/lib/index.js`.
@@ -229,25 +225,24 @@ Agents working on this codebase should understand these Nuxeo server concepts:
 
 ## Build System
 
-**Browserify** + **Babel** (`@babel/preset-env`) for browser builds. No webpack, rollup, or other bundlers.
+**esbuild** for browser builds. No webpack, rollup, Browserify, or Babel.
 
 ```bash
 npm run build           # Clean, copy lib/ to dist/, and build browser bundle
 npm run build:dist      # Copy lib/ to dist/ with simplified package.json (no transpilation)
-npm run build:browser   # Browserify + Babel bundle to dist/nuxeo.js
-npm run build:tests     # Browserify + Babel bundle test suite to build/tests.js (for browser tests)
+npm run build:browser   # esbuild IIFE bundle to dist/nuxeo.js (--external:crypto for browser compat)
 npm run lint            # ESLint on lib/ and test/
 npm run doc             # Generate JSDoc documentation to doc/
 ```
 
-Note: `build:dist` copies source files to `dist/` and creates a simplified `package.json` (no devDependencies, no scripts). Babel is only used by Browserify for the browser bundle, not for the Node.js distribution.
+Note: `build:dist` copies source files to `dist/` and creates a simplified `package.json` (no devDependencies, no scripts). esbuild natively supports the `"browser"` field in `package.json` for module remapping.
 
 ## Testing
 
 ### Framework
 
-- **Mocha** + **Chai** (expect style) + **dirty-chai** (function-style assertions: `expect(x).to.exist()` not `expect(x).to.exist`)
-- Browser tests via **WebdriverIO** + **Sauce Labs** (replaced Karma in v5)
+- **Vitest** with `expect` assertions (global mode)
+- Browser tests via **Vitest browser mode** + **Playwright** provider (headless Chromium)
 
 ### Important: Integration Tests Only
 
@@ -255,12 +250,13 @@ All tests are **integration tests** that require a running Nuxeo Platform instan
 
 ### Browser Test Prerequisites
 
-- **Google Chrome** must be installed locally for `npm run test:browser`
-- Browser tests use **WebdriverIO** (`wdio.conf.js`) with auto-managed chromedriver to control a system-installed Chrome
-- The test suite is pre-bundled with Browserify into `build/tests.js` and loaded alongside `dist/nuxeo.js` in `test/browser-tests.html`
-- A single WDIO spec (`test/wdio/browser-bridge.js`) opens the HTML page, waits for in-browser Mocha to complete, and reports results back to WDIO reporters
-- Configuration is in `wdio.conf.js` (single file for both local and Sauce Labs modes)
-- For CI (`npm run it:browser`), Sauce Labs credentials (`SAUCE_USERNAME`, `SAUCE_ACCESS_KEY`) must be set via env vars
+- Browser tests use **Vitest browser mode** with the `@vitest/browser-playwright` provider
+- Playwright uses the system-installed Google Chrome (`channel: 'chrome'` in launch options), no separate browser download needed
+- On CI (Oracle Linux 9), Chrome is pre-installed in the `builder-nodejs` Docker image (`platform-builders` repo)
+- Locally, any Chrome or Chromium installation is picked up automatically
+- The `vite-plugin-commonjs` Vite plugin transforms CJS `require()` calls for browser consumption
+- Configuration is in `vitest.config.browser.mjs`
+- OAuth2 tests are excluded from browser runs (`jsonwebtoken` is Node-only)
 
 ### Test Conventions
 
@@ -268,9 +264,9 @@ All tests are **integration tests** that require a running Nuxeo Platform instan
 - Tests use global variables set up by helpers: `Nuxeo`, `baseURL`, `expect`, `isBrowser`
 - Tests authenticate as `Administrator`/`Administrator`
 - Use `describe` blocks matching the class/method hierarchy
-- Use `.then()` chains in tests, never `async`/`await`. Exception: WDIO infrastructure code in `test/wdio/` uses `async`/`await` as required by the WDIO API
-- Return the Promise chain from `it()` blocks so Mocha waits for resolution
-- Test-specific ESLint config (`test/.eslintrc`) extends root config and enables the `mocha` env
+- Use `.then()` chains in tests, never `async`/`await`
+- Return the Promise chain from `it()` blocks so Vitest waits for resolution
+- Test-specific ESLint config (`test/.eslintrc`) extends root config and declares test globals (`Nuxeo`, `baseURL`, `expect`, `isBrowser`, `support`, `vi`, `describe`, `it`, `beforeAll`, `afterAll`, `beforeEach`, `afterEach`)
 
 ### Validation Without a Server
 
@@ -291,7 +287,7 @@ npm run build           # Verify the build succeeds
 
 ## Dependencies
 
-Key runtime deps: `extend` (deep merge), `node-fetch`, `whatwg-fetch`, `es6-promise`, `form-data`, `buffer`, `querystring`, `promise-queue`, `md5`, `random-js`. Note: `mocha` is incorrectly listed as a runtime dependency in `package.json` -- it should be in `devDependencies`.
+Key runtime deps: `extend` (deep merge), `buffer`, `qs` (query string), `promise-queue`, `md5`, `random-js`.
 
 ## Common Tasks
 

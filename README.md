@@ -5,8 +5,6 @@
 [![npm downloads](https://img.shields.io/npm/dm/nuxeo.svg?style=flat-square)](https://www.npmjs.com/package/nuxeo)
 
 
-<img alt="Browser Support thanks to SauceLabs" src="https://saucelabs.com/browser-matrix/nuxeo-js-client.svg" width="200" />
-
 The Nuxeo JavaScript Client is a JavaScript client library for the Nuxeo Automation and REST API. The library can work in a browser, or in Node.js, using the same API.
 
 This is an on-going project, supported by Nuxeo.
@@ -1017,10 +1015,6 @@ To run both Node.js and browser tests:
 You can follow the developments in the Nuxeo JS Client project of our JIRA bug tracker: [https://jira.nuxeo.com/browse/NXJS](https://jira.nuxeo.com/browse/NXJS).
 
 You can report issues on [answers.nuxeo.com](http://answers.nuxeo.com).
-
-## Big Thanks
-
-Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs](https://saucelabs.com)
 
 ## License
 
