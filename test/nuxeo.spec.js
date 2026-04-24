@@ -4,7 +4,7 @@ const { LTS_2017 } = require('../lib/server-version');
 describe('Nuxeo', () => {
   let nuxeo;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({
       baseURL,
       auth: {
@@ -20,15 +20,15 @@ describe('Nuxeo', () => {
   });
 
   it('should have a version', () => {
-    expect(Nuxeo.version).to.be.equal(pkg.version);
+    expect(Nuxeo.version).toBe(pkg.version);
   });
 
   it('should have default values', () => {
     const n = new Nuxeo();
-    expect(n._baseURL).to.be.equal('http://localhost:8080/nuxeo/');
-    expect(n._restURL).to.be.equal('http://localhost:8080/nuxeo/api/v1/');
-    expect(n._automationURL).to.be.equal('http://localhost:8080/nuxeo/api/v1/automation/');
-    expect(n._auth).to.be.null();
+    expect(n._baseURL).toBe('http://localhost:8080/nuxeo/');
+    expect(n._restURL).toBe('http://localhost:8080/nuxeo/api/v1/');
+    expect(n._automationURL).toBe('http://localhost:8080/nuxeo/api/v1/automation/');
+    expect(n._auth).toBeNull();
   });
 
   it('should allow overriding default values when being created', () => {
@@ -40,71 +40,71 @@ describe('Nuxeo', () => {
         password: 'Administrator',
       },
     });
-    expect(n._baseURL).to.be.equal('http://localhost:9000/nuxeo/');
-    expect(n._restURL).to.be.equal('http://localhost:9000/nuxeo/api/v1/');
-    expect(n._automationURL).to.be.equal('http://localhost:9000/nuxeo/api/v1/automation/');
-    expect(n._auth.method).to.be.equal('basic');
-    expect(n._auth.username).to.be.equal('Administrator');
-    expect(n._auth.password).to.be.equal('Administrator');
+    expect(n._baseURL).toBe('http://localhost:9000/nuxeo/');
+    expect(n._restURL).toBe('http://localhost:9000/nuxeo/api/v1/');
+    expect(n._automationURL).toBe('http://localhost:9000/nuxeo/api/v1/automation/');
+    expect(n._auth.method).toBe('basic');
+    expect(n._auth.username).toBe('Administrator');
+    expect(n._auth.password).toBe('Administrator');
   });
 
   it('should have neither default \'transactionTimeout\' nor \'timeout\' set', () => {
     const n = new Nuxeo();
-    expect(n._baseOptions.transactionTimeout).to.be.undefined();
-    expect(n._baseOptions.timeout).to.be.undefined();
-    expect(n._baseOptions.httpTimeout).to.be.equal(30000);
+    expect(n._baseOptions.transactionTimeout).toBeUndefined();
+    expect(n._baseOptions.timeout).toBeUndefined();
+    expect(n._baseOptions.httpTimeout).toBe(30000);
   });
 
   describe('#_computeTimeouts', () => {
     it('should use \'timeout\' for both \'httpTimeout\' and \'transactionTimeout\'', () => {
       const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({ timeout: 25000 });
-      expect(transactionTimeout).to.be.equal(25000);
-      expect(httpTimeout).to.be.equal(25000 + 5);
+      expect(transactionTimeout).toBe(25000);
+      expect(httpTimeout).toBe(25000 + 5);
     });
 
     it('should use \'httpTimeout\' if defined', () => {
       const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({ timeout: 10000, httpTimeout: 20000 });
-      expect(httpTimeout).to.be.equal(20000);
-      expect(transactionTimeout).to.be.equal(10000);
+      expect(httpTimeout).toBe(20000);
+      expect(transactionTimeout).toBe(10000);
     });
 
     it('should use \'transactionTimeout\' for both \'httpTimeout\' and \'transactionTimeout\' if defined', () => {
       const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({ transactionTimeout: 10000 });
-      expect(transactionTimeout).to.be.equal(10000);
-      expect(httpTimeout).to.be.equal(10000 + 5);
+      expect(transactionTimeout).toBe(10000);
+      expect(httpTimeout).toBe(10000 + 5);
     });
 
     it('should ignore \'timeout\'', () => {
       const { httpTimeout, transactionTimeout } = nuxeo._computeTimeouts({
         timeout: 10000, httpTimeout: 50000, transactionTimeout: 30000,
       });
-      expect(transactionTimeout).to.be.equal(30000);
-      expect(httpTimeout).to.be.equal(50000);
+      expect(transactionTimeout).toBe(30000);
+      expect(httpTimeout).toBe(50000);
     });
   });
 
   describe('#connect', () => {
     it('should connect to a Nuxeo Server', () => (
       nuxeo.connect().then((n) => {
-        expect(n.connected).to.be.true();
-        expect(nuxeo.connected).to.be.true();
+        expect(n.connected).toBe(true);
+        expect(nuxeo.connected).toBe(true);
 
         const { user } = n;
-        expect(user['entity-type']).to.be.equal('user');
-        expect(user.id).to.exist();
-        expect(user.properties.username).to.be.equal('Administrator');
-        expect(user.properties.groups).to.be.eql(['administrators']);
+        expect(user['entity-type']).toBe('user');
+        expect(user.id).toBeDefined();
+        expect(user.properties.username).toBe('Administrator');
+        expect(user.properties.groups).toEqual(['administrators']);
 
         const profile = n.user.contextParameters.userprofile;
-        expect(profile).to.be.not.null();
+        expect(profile).not.toBeNull();
         const expectedKeys = ['birthdate', 'phonenumber', 'avatar'];
         if (nuxeo.serverVersion.gt(LTS_2017)) {
           expectedKeys.push('gender', 'locale');
         }
-        expect(profile).to.have.keys(expectedKeys);
+        expect(Object.keys(profile).sort()).toEqual(expectedKeys.sort());
 
-        expect(n.nuxeoVersion).to.be.not.null();
-        expect(n.serverVersion).to.be.not.null();
+        expect(n.nuxeoVersion).not.toBeNull();
+        expect(n.serverVersion).not.toBeNull();
       })
     ));
   });
@@ -112,17 +112,17 @@ describe('Nuxeo', () => {
   describe('#operation', () => {
     it('should create an Operation object', () => {
       const op = nuxeo.operation('Document.Update');
-      expect(op).to.be.an.instanceof(Nuxeo.Operation);
-      expect(op).to.be.an.instanceof(Nuxeo.Base);
-      expect(op._id).to.be.equal('Document.Update');
-      expect(op._nuxeo).to.be.equal(nuxeo);
+      expect(op).toBeInstanceOf(Nuxeo.Operation);
+      expect(op).toBeInstanceOf(Nuxeo.Base);
+      expect(op._id).toBe('Document.Update');
+      expect(op._nuxeo).toBe(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const op = nuxeo.operation('Document.Update');
-      expect(op._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
-      expect(op._baseOptions.headers).to.be.eql({ foo: 'bar' });
-      expect(op._url).to.be.equal(`${baseURL}/api/v1/automation/`);
+      expect(op._baseOptions.schemas).toEqual(['dublincore', 'common']);
+      expect(op._baseOptions.headers).toEqual({ foo: 'bar' });
+      expect(op._url).toBe(`${baseURL}/api/v1/automation/`);
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -132,8 +132,8 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(op._baseOptions.schemas).to.be.eql(['file']);
-      expect(op._baseOptions.headers).to.be.eql({
+      expect(op._baseOptions.schemas).toEqual(['file']);
+      expect(op._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -142,17 +142,17 @@ describe('Nuxeo', () => {
   describe('#request', () => {
     it('should create a Request object', () => {
       const request = nuxeo.request('/path/default-domain');
-      expect(request).to.be.an.instanceof(Nuxeo.Request);
-      expect(request).to.be.an.instanceof(Nuxeo.Base);
-      expect(request._path).to.be.equal('/path/default-domain');
-      expect(request._nuxeo).to.be.equal(nuxeo);
+      expect(request).toBeInstanceOf(Nuxeo.Request);
+      expect(request).toBeInstanceOf(Nuxeo.Base);
+      expect(request._path).toBe('/path/default-domain');
+      expect(request._nuxeo).toBe(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const request = nuxeo.request('/path/default-domain');
-      expect(request._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
-      expect(request._baseOptions.headers).to.be.eql({ foo: 'bar' });
-      expect(request._url).to.be.equal(`${baseURL}/api/v1/`);
+      expect(request._baseOptions.schemas).toEqual(['dublincore', 'common']);
+      expect(request._baseOptions.headers).toEqual({ foo: 'bar' });
+      expect(request._url).toBe(`${baseURL}/api/v1/`);
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -162,8 +162,8 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(request._baseOptions.schemas).to.be.eql(['file']);
-      expect(request._baseOptions.headers).to.be.eql({
+      expect(request._baseOptions.schemas).toEqual(['file']);
+      expect(request._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -172,22 +172,22 @@ describe('Nuxeo', () => {
   describe('#repository', () => {
     it('should create a Repository object', () => {
       const repository = nuxeo.repository();
-      expect(repository).to.be.an.instanceof(Nuxeo.Repository);
-      expect(repository).to.be.an.instanceof(Nuxeo.Base);
-      expect(repository._baseOptions.repositoryName).to.be.undefined();
-      expect(repository._nuxeo).to.be.equal(nuxeo);
+      expect(repository).toBeInstanceOf(Nuxeo.Repository);
+      expect(repository).toBeInstanceOf(Nuxeo.Base);
+      expect(repository._baseOptions.repositoryName).toBeUndefined();
+      expect(repository._nuxeo).toBe(nuxeo);
 
       const fooRepository = nuxeo.repository('foo');
-      expect(fooRepository).to.be.an.instanceof(Nuxeo.Repository);
-      expect(fooRepository).to.be.an.instanceof(Nuxeo.Base);
-      expect(fooRepository._baseOptions.repositoryName).to.be.equal('foo');
-      expect(fooRepository._nuxeo).to.be.equal(nuxeo);
+      expect(fooRepository).toBeInstanceOf(Nuxeo.Repository);
+      expect(fooRepository).toBeInstanceOf(Nuxeo.Base);
+      expect(fooRepository._baseOptions.repositoryName).toBe('foo');
+      expect(fooRepository._nuxeo).toBe(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const repository = nuxeo.repository();
-      expect(repository._baseOptions.schemas).to.be.eql(['dublincore', 'common']);
-      expect(repository._baseOptions.headers).to.be.eql({ foo: 'bar' });
+      expect(repository._baseOptions.schemas).toEqual(['dublincore', 'common']);
+      expect(repository._baseOptions.headers).toEqual({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -197,8 +197,8 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(repository._baseOptions.schemas).to.be.eql(['file']);
-      expect(repository._baseOptions.headers).to.be.eql({
+      expect(repository._baseOptions.schemas).toEqual(['file']);
+      expect(repository._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -207,14 +207,14 @@ describe('Nuxeo', () => {
   describe('#batchUpload', () => {
     it('should create a BatchUpload object', () => {
       const batch = nuxeo.batchUpload();
-      expect(batch).to.be.an.instanceof(Nuxeo.BatchUpload);
-      expect(batch).to.be.an.instanceof(Nuxeo.Base);
+      expect(batch).toBeInstanceOf(Nuxeo.BatchUpload);
+      expect(batch).toBeInstanceOf(Nuxeo.Base);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const batch = nuxeo.batchUpload();
-      expect(batch._baseOptions.headers).to.be.eql({ foo: 'bar' });
-      expect(batch._url).to.be.equal(`${baseURL}/api/v1/upload/`);
+      expect(batch._baseOptions.headers).toEqual({ foo: 'bar' });
+      expect(batch._url).toBe(`${baseURL}/api/v1/upload/`);
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -223,7 +223,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(op._baseOptions.headers).to.be.eql({
+      expect(op._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -232,14 +232,14 @@ describe('Nuxeo', () => {
   describe('#users', () => {
     it('should create a Users object', () => {
       const users = nuxeo.users();
-      expect(users).to.be.an.instanceof(Nuxeo.Users);
-      expect(users).to.be.an.instanceof(Nuxeo.Base);
-      expect(users._nuxeo).to.be.equal(nuxeo);
+      expect(users).toBeInstanceOf(Nuxeo.Users);
+      expect(users).toBeInstanceOf(Nuxeo.Base);
+      expect(users._nuxeo).toBe(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const users = nuxeo.users();
-      expect(users._baseOptions.headers).to.be.eql({ foo: 'bar' });
+      expect(users._baseOptions.headers).toEqual({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -248,7 +248,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(users._baseOptions.headers).to.be.eql({
+      expect(users._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -257,14 +257,14 @@ describe('Nuxeo', () => {
   describe('#groups', () => {
     it('should create a Groups object', () => {
       const groups = nuxeo.groups();
-      expect(groups).to.be.an.instanceof(Nuxeo.Groups);
-      expect(groups).to.be.an.instanceof(Nuxeo.Base);
-      expect(groups._nuxeo).to.be.equal(nuxeo);
+      expect(groups).toBeInstanceOf(Nuxeo.Groups);
+      expect(groups).toBeInstanceOf(Nuxeo.Base);
+      expect(groups._nuxeo).toBe(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const groups = nuxeo.groups();
-      expect(groups._baseOptions.headers).to.be.eql({ foo: 'bar' });
+      expect(groups._baseOptions.headers).toEqual({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -273,7 +273,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(groups._baseOptions.headers).to.be.eql({
+      expect(groups._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -282,15 +282,15 @@ describe('Nuxeo', () => {
   describe('#directory', () => {
     it('should create a Directory object', () => {
       const directory = nuxeo.directory('foo');
-      expect(directory).to.be.an.instanceof(Nuxeo.Directory);
-      expect(directory).to.be.an.instanceof(Nuxeo.Base);
-      expect(directory._directoryName).to.be.equal('foo');
-      expect(directory._nuxeo).to.be.equal(nuxeo);
+      expect(directory).toBeInstanceOf(Nuxeo.Directory);
+      expect(directory).toBeInstanceOf(Nuxeo.Base);
+      expect(directory._directoryName).toBe('foo');
+      expect(directory._nuxeo).toBe(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const directory = nuxeo.directory();
-      expect(directory._baseOptions.headers).to.be.eql({ foo: 'bar' });
+      expect(directory._baseOptions.headers).toEqual({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -299,7 +299,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(directory._baseOptions.headers).to.be.eql({
+      expect(directory._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -308,21 +308,21 @@ describe('Nuxeo', () => {
   describe('#workflows', () => {
     it('should create a Workflows object', () => {
       const workflows = nuxeo.workflows();
-      expect(workflows).to.be.an.instanceof(Nuxeo.Workflows);
-      expect(workflows).to.be.an.instanceof(Nuxeo.Base);
-      expect(workflows._baseOptions.repositoryName).to.be.undefined();
-      expect(workflows._nuxeo).to.be.equal(nuxeo);
+      expect(workflows).toBeInstanceOf(Nuxeo.Workflows);
+      expect(workflows).toBeInstanceOf(Nuxeo.Base);
+      expect(workflows._baseOptions.repositoryName).toBeUndefined();
+      expect(workflows._nuxeo).toBe(nuxeo);
 
       const fooWorkflows = nuxeo.workflows('foo');
-      expect(fooWorkflows).to.be.an.instanceof(Nuxeo.Workflows);
-      expect(fooWorkflows).to.be.an.instanceof(Nuxeo.Base);
-      expect(fooWorkflows._baseOptions.repositoryName).to.be.equal('foo');
-      expect(fooWorkflows._nuxeo).to.be.equal(nuxeo);
+      expect(fooWorkflows).toBeInstanceOf(Nuxeo.Workflows);
+      expect(fooWorkflows).toBeInstanceOf(Nuxeo.Base);
+      expect(fooWorkflows._baseOptions.repositoryName).toBe('foo');
+      expect(fooWorkflows._nuxeo).toBe(nuxeo);
     });
 
     it('should inherit configuration from Nuxeo', () => {
       const workflows = nuxeo.workflows();
-      expect(workflows._baseOptions.headers).to.be.eql({ foo: 'bar' });
+      expect(workflows._baseOptions.headers).toEqual({ foo: 'bar' });
     });
 
     it('should allow overriding configuration from Nuxeo', () => {
@@ -331,7 +331,7 @@ describe('Nuxeo', () => {
           bar: 'foo',
         },
       });
-      expect(workflows._baseOptions.headers).to.be.eql({
+      expect(workflows._baseOptions.headers).toEqual({
         bar: 'foo',
       });
     });
@@ -348,13 +348,13 @@ describe('Nuxeo', () => {
       repo.fetchProperties({ document: ['dc:creator', 'dc:subject'] });
       repo.depth('children');
       const options = nuxeo._computeFetchOptions(repo._computeOptions());
-      expect(options.headers).to.exist();
-      expect(options.headers['Nuxeo-Transaction-Timeout']).to.not.exist();
-      expect(options.headers['enrichers-document']).to.be.equal('acls,permissions');
-      expect(options.headers['enrichers-user']).to.be.equal('groups');
-      expect(options.headers['enrichers-group']).to.be.equal('members');
-      expect(options.headers['fetch-document']).to.be.equal('dc:creator,dc:subject');
-      expect(options.headers.depth).to.be.equal('children');
+      expect(options.headers).toBeDefined();
+      expect(options.headers['Nuxeo-Transaction-Timeout']).toBeUndefined();
+      expect(options.headers['enrichers-document']).toBe('acls,permissions');
+      expect(options.headers['enrichers-user']).toBe('groups');
+      expect(options.headers['enrichers-group']).toBe('members');
+      expect(options.headers['fetch-document']).toBe('dc:creator,dc:subject');
+      expect(options.headers.depth).toBe('children');
     });
 
     it('should keep query parameters ordered', () => {
@@ -365,7 +365,7 @@ describe('Nuxeo', () => {
         },
       };
       const options = nuxeo._computeFetchOptions(defaultOptions);
-      expect(options.url).to.be.equal('http://localhost:8080/nuxeo?param=1&param=2&param=3');
+      expect(options.url).toBe('http://localhost:8080/nuxeo?param=1&param=2&param=3');
     });
 
     it('should keep the abort signal property if it is provided', () => {
@@ -376,9 +376,9 @@ describe('Nuxeo', () => {
         },
       };
       const options = nuxeo._computeFetchOptions(defaultOptions);
-      expect(options.url).to.be.equal('http://localhost:8080/nuxeo');
-      expect(options.signal).to.exist();
-      expect(options.signal).to.eql(defaultOptions.signal);
+      expect(options.url).toBe('http://localhost:8080/nuxeo');
+      expect(options.signal).toBeDefined();
+      expect(options.signal).toEqual(defaultOptions.signal);
     });
 
     it('should not add the abort signal property if it is not provided', () => {
@@ -386,8 +386,8 @@ describe('Nuxeo', () => {
         url: 'http://localhost:8080/nuxeo',
       };
       const options = nuxeo._computeFetchOptions(defaultOptions);
-      expect(options.url).to.be.equal('http://localhost:8080/nuxeo');
-      expect(options.signal).to.not.exist();
+      expect(options.url).toBe('http://localhost:8080/nuxeo');
+      expect(options.signal).toBeUndefined();
     });
   });
 });

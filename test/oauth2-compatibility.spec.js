@@ -1,5 +1,5 @@
-const qs = require('querystring');
 const jwt = require('jsonwebtoken');
+const qs = require('qs');
 
 const fetch = require('../lib/deps/fetch');
 const { btoa } = require('../lib/deps/utils/base64');
@@ -38,11 +38,11 @@ function fetchAccessToken(clientId, clientSecret) {
 function testAuthorizationURLWithoutParams(clientId, clientSecret) {
   const params = { client_secret: clientSecret };
   const url = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', clientId, params);
-  expect(url.startsWith('http://localhost:8080/nuxeo/oauth2/authorize?')).to.be.true();
-  expect(url).to.include(`client_id=${clientId}`);
-  expect(url).to.include('response_type=code');
+  expect(url.startsWith('http://localhost:8080/nuxeo/oauth2/authorize?')).toBe(true);
+  expect(url).toContain(`client_id=${clientId}`);
+  expect(url).toContain('response_type=code');
   if (typeof clientSecret !== 'undefined') {
-    expect(url).to.include(`client_secret=${clientSecret}`);
+    expect(url).toContain(`client_secret=${clientSecret}`);
   }
 }
 
@@ -55,27 +55,27 @@ function testAuthorizationURLWithAdditionalParams(clientId, clientSecret) {
   };
 
   const url = Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo/', clientId, params);
-  expect(url.startsWith('http://localhost:8080/nuxeo/oauth2/authorize?')).to.be.true();
-  expect(url).to.include(`client_id=${clientId}`);
+  expect(url.startsWith('http://localhost:8080/nuxeo/oauth2/authorize?')).toBe(true);
+  expect(url).toContain(`client_id=${clientId}`);
   if (clientSecret) {
-    expect(url).to.include(`client_secret=${clientSecret}`);
+    expect(url).toContain(`client_secret=${clientSecret}`);
   }
-  expect(url).to.include('state=xyz');
-  expect(url).to.include('redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize');
-  expect(url).to.include('response_type=token');
+  expect(url).toContain('state=xyz');
+  expect(url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize');
+  expect(url).toContain('response_type=token');
 }
 
 function testAuthorizationURLMissingArguments(clientId) {
   expect(() => { Nuxeo.oauth2.getAuthorizationURL('http://localhost:8080/nuxeo', null); })
-    .to.throw(Error, 'Missing `clientId` argument');
+    .toThrow(Error, 'Missing `clientId` argument');
   expect(() => { Nuxeo.oauth2.getAuthorizationURL(null, clientId); })
-    .to.throw(Error, 'Missing `baseURL` argument');
+    .toThrow(Error, 'Missing `baseURL` argument');
 }
 
 function testAccessTokenFromAuthorizationCode(clientId, clientSecret) {
   return fetchAccessToken(clientId, clientSecret)
     .then((token) => {
-      expect(token).to.have.all.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
+      expect(Object.keys(token).sort()).toEqual(['access_token', 'expires_in', 'refresh_token', 'token_type'].sort());
     });
 }
 
@@ -88,8 +88,8 @@ function testAuthenticateWithBearerToken(clientId, clientSecret) {
       });
       return bearerNuxeo.repository().fetch('/')
         .then((doc) => {
-          expect(doc).to.be.an.instanceof(Nuxeo.Document);
-          expect(doc.uid).to.exist();
+          expect(doc).toBeInstanceOf(Nuxeo.Document);
+          expect(doc.uid).toBeDefined();
         });
     });
 }
@@ -111,8 +111,8 @@ function testAccessTokenManualRefresh(clientId, clientSecret) {
       return bearerNuxeo.repository().fetch('/');
     })
     .then((doc) => {
-      expect(doc).to.be.an.instanceof(Nuxeo.Document);
-      expect(doc.uid).to.exist();
+      expect(doc).toBeInstanceOf(Nuxeo.Document);
+      expect(doc.uid).toBeDefined();
       return Nuxeo.oauth2.refreshAccessToken(
         baseURL, clientId, firstToken.refresh_token, { client_secret: clientSecret });
     })
@@ -129,8 +129,8 @@ function testAccessTokenManualRefresh(clientId, clientSecret) {
       return bearerNuxeo.repository().fetch('/');
     })
     .then((doc) => {
-      expect(doc).to.be.an.instanceof(Nuxeo.Document);
-      expect(doc.uid).to.exist();
+      expect(doc).toBeInstanceOf(Nuxeo.Document);
+      expect(doc.uid).toBeDefined();
       const bearerNuxeo = new Nuxeo({
         baseURL,
         auth: {
@@ -142,8 +142,8 @@ function testAccessTokenManualRefresh(clientId, clientSecret) {
       });
       return bearerNuxeo.repository().fetch('/default-domain')
         .catch((error) => {
-          expect(error.response.url).to.be.equal(`${baseURL}/api/v1/path/default-domain`);
-          expect(error.response.status).to.be.equal(401);
+          expect(error.response.url).toBe(`${baseURL}/api/v1/path/default-domain`);
+          expect(error.response.status).toBe(401);
         });
     });
 }
@@ -166,15 +166,15 @@ function testAccessTokenAutomaticRefresh(adminNuxeo, clientId, clientSecret) {
         },
       });
       bearerNuxeo.onAuthenticationRefreshed((refreshedAuth) => {
-        expect(refreshedAuth.token.access_token).to.be.not.null();
-        expect(refreshedAuth.token.access_token).to.be.not.equal(token.access_token);
+        expect(refreshedAuth.token.access_token).not.toBeNull();
+        expect(refreshedAuth.token.access_token).not.toBe(token.access_token);
         hasRefreshedAuthentication = true;
       });
       return bearerNuxeo.repository().fetch('/');
     })
     .then((doc) => {
-      expect(doc).to.be.an.instanceof(Nuxeo.Document);
-      expect(doc.uid).to.exist();
+      expect(doc).toBeInstanceOf(Nuxeo.Document);
+      expect(doc.uid).toBeDefined();
       return adminNuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).fetchAll();
     })
     .then(({ entries }) => {
@@ -188,11 +188,11 @@ function testAccessTokenAutomaticRefresh(adminNuxeo, clientId, clientSecret) {
     })
     .then(() => bearerNuxeo.repository().fetch('/'))
     .then((doc) => {
-      expect(hasRefreshedAuthentication).to.be.true();
-      expect(doc).to.be.an.instanceof(Nuxeo.Document);
-      expect(doc.uid).to.exist();
-      expect(bearerNuxeo._auth.token.access_token).to.be.not.equal(firstToken.access_token);
-      expect(bearerNuxeo._auth.token.refresh_token).to.be.not.equal(firstToken.refresh_token);
+      expect(hasRefreshedAuthentication).toBe(true);
+      expect(doc).toBeInstanceOf(Nuxeo.Document);
+      expect(doc.uid).toBeDefined();
+      expect(bearerNuxeo._auth.token.access_token).not.toBe(firstToken.access_token);
+      expect(bearerNuxeo._auth.token.refresh_token).not.toBe(firstToken.refresh_token);
       return adminNuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME).fetchAll();
     })
     .then(({ entries }) => {
@@ -205,8 +205,8 @@ function testAccessTokenAutomaticRefresh(adminNuxeo, clientId, clientSecret) {
       bearerNuxeo.repository().fetch('/default-domain')
         .catch((error) => {
           // not authorized anymore; cannot refresh a non-existing token
-          expect(error.response.status).to.be.equal(401);
-          expect(error.response.url).to.be.equal(`${baseURL}/api/v1/path/default-domain`);
+          expect(error.response.status).toBe(401);
+          expect(error.response.url).toBe(`${baseURL}/api/v1/path/default-domain`);
         })
     ));
 }
@@ -216,7 +216,7 @@ function testAccessTokenFromJWTToken(clientId, clientSecret) {
   const params = { client_secret: clientSecret };
   return Nuxeo.oauth2.fetchAccessTokenFromJWTToken(baseURL, clientId, jwtToken, params)
     .then((token) => {
-      expect(token).to.have.all.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
+      expect(Object.keys(token).sort()).toEqual(['access_token', 'expires_in', 'refresh_token', 'token_type'].sort());
     });
 }
 
@@ -225,7 +225,7 @@ describe('OAuth2 Compatibility spec', () => {
   let oauth2Client;
   let oauth2ClientWithSecret;
 
-  before(function f() {
+  beforeAll(function f() {
     nuxeo = new Nuxeo({
       baseURL,
       auth: {
@@ -265,7 +265,7 @@ describe('OAuth2 Compatibility spec', () => {
       .then((entry) => { oauth2ClientWithSecret = entry; });
   });
 
-  after(() => {
+  afterAll(() => {
     const oauth2ClientsDir = nuxeo.directory(OAUTH2_CLIENTS_DIRECTORY_NAME);
     const oauth2TokensDir = nuxeo.directory(OAUTH2_TOKENS_DIRECTORY_NAME);
     return oauth2ClientsDir.delete(oauth2Client.properties.id)
@@ -290,7 +290,7 @@ describe('OAuth2 Compatibility spec', () => {
     });
 
     describe('Access Token', () => {
-      before(function f() {
+      beforeAll(function f() {
         if (isBrowser) {
           this.skip();
         }
@@ -342,7 +342,7 @@ describe('OAuth2 Compatibility spec', () => {
     });
 
     describe('Access Token', () => {
-      before(function f() {
+      beforeAll(function f() {
         if (isBrowser) {
           this.skip();
         }

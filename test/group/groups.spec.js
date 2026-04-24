@@ -4,7 +4,7 @@ describe('Groups', () => {
   let nuxeo;
   let groups;
 
-  before(() => {
+  beforeAll(() => {
     nuxeo = new Nuxeo({ baseURL, auth: { method: 'basic', username: 'Administrator', password: 'Administrator' } });
     groups = nuxeo.groups();
   });
@@ -13,9 +13,9 @@ describe('Groups', () => {
     it('should fetch administrators group', () => (
       groups.fetch('administrators')
         .then((group) => {
-          expect(group.id).to.exist();
-          expect(group.groupname).to.be.equal('administrators');
-          expect(group.grouplabel).to.be.equal('Administrators group');
+          expect(group.id).toBeDefined();
+          expect(group.groupname).toBe('administrators');
+          expect(group.grouplabel).toBe('Administrators group');
         })
     ));
   });
@@ -29,8 +29,8 @@ describe('Groups', () => {
       };
       return groups.create(newGroup)
         .then((group) => {
-          expect(group.groupname).to.be.equal(FOO_GROUPNAME);
-          expect(group.grouplabel).to.be.equal('Foo');
+          expect(group.groupname).toBe(FOO_GROUPNAME);
+          expect(group.grouplabel).toBe('Foo');
         });
     });
   });
@@ -38,11 +38,11 @@ describe('Groups', () => {
   describe('#update', () => {
     it('should update foo group', () => (
       groups.fetch(FOO_GROUPNAME).then((group) => {
-        expect(group.grouplabel).to.be.equal('Foo');
+        expect(group.grouplabel).toBe('Foo');
         group.grouplabel = 'Foo Fighters';
         return groups.update(group);
       }).then((updatedGroup) => {
-        expect(updatedGroup.grouplabel).to.be.equal('Foo Fighters');
+        expect(updatedGroup.grouplabel).toBe('Foo Fighters');
       })
     ));
   });
@@ -50,7 +50,7 @@ describe('Groups', () => {
   describe('#delete', () => {
     it('should delete foo group', () => (
       groups.delete(FOO_GROUPNAME).then((res) => {
-        expect(res.status).to.be.equal(204);
+        expect(res.status).toBe(204);
       })
     ));
   });
