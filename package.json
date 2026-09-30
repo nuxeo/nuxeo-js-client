@@ -25,7 +25,6 @@
   "dependencies": {
     "buffer": "^6.0.0",
     "extend": "^3.0.0",
-    "md5": "^2.0.0",
     "promise-queue": "^2.0.0",
     "qs": "^6.15.1",
     "random-js": "^2.1.0"
