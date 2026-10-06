@@ -221,6 +221,26 @@ var nuxeo = new Nuxeo({
 });
 ```
 
+When the server uses a different `digestAlgorithm`, pass a `digest` function that returns raw digest bytes:
+
+```javascript
+var crypto = require('crypto');
+var nuxeo = new Nuxeo({
+  auth: {
+    method: 'portal',
+    username: 'joe',
+    secret: 'shared-secret-from-server',
+    digest: function(clearToken) {
+      return crypto.createHash('sha256').update(clearToken).digest();
+    }
+  }
+});
+```
+
+This example is Node-only; the hook runs synchronously, so browsers need a synchronous JavaScript digest.
+The default remains MD5 for compatibility with the default server configuration. `digest` must return raw bytes
+(a `Buffer` or a byte array); returning a string throws.
+
 #### Token Authentication
 
 To authenticate through a token from the Nuxeo Server:

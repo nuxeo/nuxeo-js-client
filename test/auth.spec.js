@@ -1,3 +1,5 @@
+const md5 = require('md5');
+
 const Authentication = require('../lib/auth/auth');
 const { btoa } = require('../lib/deps/utils/base64');
 
@@ -133,6 +135,40 @@ describe('Authenticators', () => {
       headersToCheck.forEach((headers) => {
         expect(Object.keys(headers).sort()).toEqual(['NX_RD', 'NX_TS', 'NX_TOKEN', 'NX_USER'].sort());
       });
+    });
+
+    it('should use a custom digest through the client options', () => {
+      const digestBytes = [0, 127, 128, 255];
+      let digestedToken;
+      const client = new Nuxeo({
+        baseURL,
+        auth: {
+          ...auth,
+          digest: (clearToken) => {
+            digestedToken = clearToken;
+            return digestBytes;
+          },
+        },
+      });
+
+      const headers = client.computeAuthenticationHeaders();
+
+      expect(headers.NX_TOKEN).toBe(btoa(digestBytes));
+      expect(digestedToken).toBe(`${headers.NX_TS}:${headers.NX_RD}:${auth.secret}:${auth.username}`);
+    });
+
+    it('should use the default digest when none is configured', () => {
+      const headers = nuxeo.computeAuthenticationHeaders();
+      const clearToken = `${headers.NX_TS}:${headers.NX_RD}:${auth.secret}:${auth.username}`;
+
+      expect(headers.NX_TOKEN).toBe(btoa(md5(clearToken, { asBytes: true })));
+    });
+
+    it('should reject a string digest', () => {
+      const client = new Nuxeo({ baseURL, auth: { ...auth, digest: () => 'not raw bytes' } });
+
+      expect(() => client.computeAuthenticationHeaders())
+        .toThrow('Portal digest must return raw bytes (Buffer or byte array), not a string.');
     });
 
     it('should not authenticate an URL', () => {
