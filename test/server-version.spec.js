@@ -27,6 +27,16 @@ describe('ServerVersion', () => {
     it('should throw an error for unknown version format', () => {
       expect(() => new ServerVersion('BAD_VERSION')).toThrow('Unknown Nuxeo Server version: BAD_VERSION');
       expect(() => new ServerVersion('9_10')).toThrow('Unknown Nuxeo Server version: 9_10');
+      expect(() => new ServerVersion('v9.10')).toThrow('Unknown Nuxeo Server version: v9.10');
+    });
+
+    it('should promptly reject a long version without a separator', () => {
+      const version = '9'.repeat(50000);
+      const start = Date.now();
+
+      expect(() => new ServerVersion(version)).toThrow('Unknown Nuxeo Server version:');
+      // This bound catches patterns that rescan the long input from each start position.
+      expect(Date.now() - start).toBeLessThan(500);
     });
   });
 
